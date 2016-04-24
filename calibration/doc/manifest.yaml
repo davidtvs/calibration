@@ -1,0 +1,24 @@
+actions: []
+authors: Marcelo Pereira
+brief: ''
+bugtracker: ''
+depends:
+- lidar_segmentation
+- catkin
+- roscpp
+- sensor_msgs
+- pcl_msgs
+- roslib
+- std_msgs
+- pcl
+- libpcl-all-dev
+- libpcl-all
+- colormap
+description: The calibration package
+license: BSD
+maintainers: Jorge Almeida <almeida.j@ua.pt>
+msgs: []
+package_type: package
+repo_url: ''
+srvs: []
+url: ''

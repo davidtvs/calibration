@@ -1,0 +1,21 @@
+/**
+\mainpage lidar_segmentation. A package with tools to preform Segmentation operations to sensor_msgs::LaserScan
+\htmlinclude manifest.html
+
+\b Lidar Segmentation Algorithms
+
+This node is intended to explore some 2D Laser segmentation algorithms
+
+The segmentation process, whose objective is grouping segments that
+belong to the same object, is analysed using several kinds of algorithms:
+
+Simple Clustering, Multivariable Segmentation, Adaptative Breakpoint Detector,
+Dietmayer Segmentation (Jump distance), Adapted Dietmayer Segmentation (Santos Segmentation) 
+and Spacial Nearest neighbour (Recursive method)
+
+The laser data is created from a .txt file with the Ground-truth data 
+
+The results of the Several Algorithms can be seen on a rviz plataform
+The segmentation results (segments' centers and boundaries) are published into .txt files
+
+*/

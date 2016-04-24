@@ -1,0 +1,4 @@
+python-numpy:
+    ubuntu: python-numpy
+bzr:
+    ubuntu: bzr

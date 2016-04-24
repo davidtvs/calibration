@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<launch>
+    
+<!--     <group ns="xb3/left"> -->
+<!--     export ROS_NAMESPACE=axis -->
+<!--  $ rosrun image_transport republish compressed in:=image_raw raw out:=image_raw -->
+    
+    <node ns="/xb3/left" name="republish_left" type="republish" pkg="image_transport" args="compressed in:=image_raw out:=image_decompressed"/>
+    <node ns="/xb3/center" name="republish_center" type="republish" pkg="image_transport" args="compressed in:=image_raw out:=image_decompressed"/>
+    <node ns="/xb3/right" name="republish_right" type="republish" pkg="image_transport" args="compressed in:=image_raw out:=image_decompressed"/>
+        
+    <!--<node ns="/xb3/left" name="info_changer_left" type="camera_info_republisher" pkg="multisensor_aquisition" args="image_raw:=image_decompressed">
+        <param name="camera_calibration_file" value="package://xb3/calibrations/left_short_v1.yaml"/>
+        <param name="camera_name" value="left"/>
+    </node>
+    
+    <node ns="/xb3/center" name="info_changer_center" type="camera_info_republisher" pkg="multisensor_aquisition" args="image_raw:=image_decompressed">
+        <param name="camera_calibration_file" value="package://xb3/calibrations/center_short_v1.yaml"/>
+        <param name="camera_name" value="center"/>
+    </node>-->
+    
+    
+    <node ns="/xb3/left" name="info_changer_left" type="camera_info_republisher" pkg="multisensor_aquisition" args="image_raw:=image_decompressed">
+        <param name="camera_calibration_file" value="package://xb3/calibrations/left_wide_v1.yaml"/>
+        <param name="camera_name" value="left"/>
+    </node>
+    
+    <node ns="/xb3/right" name="info_changer_right" type="camera_info_republisher" pkg="multisensor_aquisition" args="image_raw:=image_decompressed">
+        <param name="camera_calibration_file" value="package://xb3/calibrations/right_wide_v1.yaml"/>
+        <param name="camera_name" value="right"/>
+    </node>
+    
+    <node ns="/xb3/left/new_info" name="left_camera_rectification" type="image_proc" pkg="image_proc"/>
+<!--     <node ns="/xb3/center/new_info" name="center_camera_rectification" type="image_proc" pkg="image_proc"/> -->
+    <node ns="/xb3/right/new_info" name="right_camera_rectification" type="image_proc" pkg="image_proc"/>
+        
+
+    
+    <!--<node ns="/xb3/left/new_info" name="save_to_disk_left" type="save_frames" pkg="multisensor_aquisition" args="image_raw:=image_rect_color">
+        <param name="output_path" value="/home/data/ros_rosado_1_full/left_short"/>
+    </node>-->
+    
+    <!--<node ns="/xb3/center/new_info" name="save_to_disk_center" type="save_frames" pkg="multisensor_aquisition" args="image_raw:=image_rect_color">
+        <param name="output_path" value="/home/data/ros_rosado_1_full/center"/>
+    </node>-->
+    
+   <node ns="/xb3/left/new_info" name="save_to_disk_left" type="save_frames" pkg="multisensor_aquisition" args="image_raw:=image_rect_color">
+        <param name="output_path" value="/home/data/ros_rosado_1_full/left_wide"/>
+    </node>
+    
+     <node ns="/xb3/right/new_info" name="save_to_disk_right" type="save_frames" pkg="multisensor_aquisition" args="image_raw:=image_rect_color">
+        <param name="output_path" value="/home/data/ros_rosado_1_full/right_wide"/>
+    </node> 
+</launch>

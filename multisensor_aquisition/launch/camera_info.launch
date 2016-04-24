@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+    <group ns="/xb3">
+        <node name="camera_info" pkg="multisensor_aquisition" type="camera_info_publisher"/>
+        
+        <node name="short_left_rectification" pkg="image_proc" type="image_proc" ns="/xb3/info/short/left"/>
+        <node name="short_right_rectification" pkg="image_proc" type="image_proc" ns="/xb3/info/short/right"/>
+        <node name="wide_left_rectification" pkg="image_proc" type="image_proc" ns="/xb3/info/wide/left"/>
+        <node name="wide_right_rectification" pkg="image_proc" type="image_proc" ns="/xb3/info/wide/right"/>
+        
+        <remap from="/xb3/save_short_left/short/left/image_rect_color" to="/xb3/info/short/left/image_rect_color"/>
+        <remap from="/xb3/save_short_left/short/right/image_rect_color" to="/xb3/info/short/right/image_rect_color"/>
+        <remap from="/xb3/save_short_left/wide/left/image_rect_color" to="/xb3/info/wide/left/image_rect_color"/>
+        <remap from="/xb3/save_short_left/wide/right/image_rect_color" to="/xb3/info/wide/right/image_rect_color"/>
+        
+        <node name="save_short_left" pkg="multisensor_aquisition" type="save_frames">
+            <param name="output_path" value="/home/jorge/Desktop/var_2_5"/>
+        </node>
+        
+    </group>
+</launch>

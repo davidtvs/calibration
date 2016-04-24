@@ -1,0 +1,23 @@
+<package>
+  <description brief="small">
+
+     SMALL is a C++ library defining and implementing common geometric and 
+     mathematical functionality required for robotics applications.
+     SMALL consists of two major parts: a linear algebra library 
+     (matrices and vectors) and a spatial math library (poses and transformations).
+	 It is just a collection of C++ headers and not a binary library.
+
+  </description>
+  <author>Maintained by Fred Pauling</author>
+  <license>LGPL</license>
+  <review status="experimental" notes=""/>
+  <url>https://launchpad.net/small</url>
+  <rosdep name="bzr" />
+  <export>
+      <cpp cflags="-I${prefix}/include"/>
+	  <rosdoc config="rosdoc.yaml" />
+  </export>
+
+</package>
+
+

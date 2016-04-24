@@ -1,0 +1,15 @@
+<stack>
+  <description brief="CSIRO ASL ROS Utilities">
+  ROS packages developed and maintained by the CSIRO Autonomous Systems Lab.
+  These are mainly drivers and their supporting libraries.
+  </description>
+  <author>Maintained by Brett Grandbois and Fred Pauling</author>
+  <license>BSD,LGPL</license>  
+  <review status="experimental" notes=""/>
+  <url>http://www.ros.org/wiki/csiro_asl_utils</url>
+  <depend stack="ros" />  
+  <depend stack="ros_comm" />
+  <depend stack="common_msgs" /> <!-- sensor_msgs -->
+  <depend stack="driver_common" /> <!-- dynamic_reconfigure, driver_base -->
+
+</stack>

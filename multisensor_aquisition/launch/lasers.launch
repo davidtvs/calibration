@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+    
+    <node name="frames" pkg="multisensor_aquisition" type="frame_broadcaster" />
+    
+<!--    <group ns="laser_1">
+        <node name="laser_1" pkg="lms1xx" type="lms1xx">
+            <param name="host" value="10.0.0.10"/>
+            <param name="frame_id" value="/laser_1"/>
+        </node>
+    </group>-->
+    
+    <group ns="laser_2">
+        <node name="laser_2" pkg="lms1xx" type="lms1xx">
+            <param name="host" value="10.0.0.11"/>
+            <param name="frame_id" value="/laser_2"/>
+        </node>
+    </group>
+</launch>

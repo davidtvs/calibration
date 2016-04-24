@@ -1,0 +1,7 @@
+<library path="lib/libdepth_view">
+
+  <class name="depth_view/image" type="depth_view::DepthNodelet" base_class_type="nodelet::Nodelet">
+    <description>Nodelet to view a sensor_msgs/Image topic that represents depth data</description>
+  </class>
+
+</library>

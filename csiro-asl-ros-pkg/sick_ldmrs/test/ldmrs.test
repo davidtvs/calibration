@@ -1,0 +1,12 @@
+<launch>
+  <node pkg="sick_ldmrs" type="sickldmrs.py" name="ldmrs" respawn="false">
+    <param name="host"  value="localhost" />
+    <param name="port"  value="12002" />
+  </node>
+
+  <test test-name="sickldmrs-msg" pkg="sick_ldmrs" type="test_msg.py" name="test_msg" />
+  <test test-name="sickldmrs-utils" pkg="sick_ldmrs" type="test_utils.py" name="test_utils" />
+  <test test-name="sickldmrs-init" pkg="sick_ldmrs" type="test_init.py" name="test_init" />
+  <test test-name="sickldmrs-dynreconfig" pkg="sick_ldmrs" type="test_dynreconfig.py" name="test_dynreconfig" />
+
+</launch>

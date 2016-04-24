@@ -1,0 +1,17 @@
+<package>
+  <description brief="mdlslm">
+
+     mdl Laser scanner driver
+
+  </description>
+  <author>David Haddon</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roslib"/>
+  <depend package="rostest"/>
+  <depend package="sensor_msgs"/>
+</package>
+
+

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- This is a launch file for recording the topics for my thesys  -->
+
+  
+    <!--/tf
+    /laser_1/scan
+    /laser_2/scan-->
+    
+    
+  <node pkg="rosbag" type="record" name="rosbag_record"
+   args="record -o /home/jorge/Desktop/bags/test
+
+    /xb3/left/image_raw/compressed
+    /xb3/left/camera_info
+    
+    /xb3/center/image_raw/compressed
+    /xb3/center/camera_info
+    
+    /xb3/right/image_raw/compressed
+    /xb3/right/camera_info
+"/>
+
+
+
+</launch>

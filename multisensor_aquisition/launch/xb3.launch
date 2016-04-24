@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+    
+    <!--640x480 calibration files-->
+<!--    <node name="xb3" pkg="xb3" type="xb3_full_speed">
+        <param name="left_calibration_file" value="package://xb3/calibrations/left.yaml"/>
+        <param name="center_calibration_file" value="package://xb3/calibrations/center.yaml"/>
+        <param name="right_calibration_file" value="package://xb3/calibrations/right.yaml"/>
+    </node>-->
+    
+    <!--1280x960 calibration files-->
+    <node name="xb3" pkg="xb3" type="xb3_full_speed">
+        <param name="left_calibration_file" value="package://xb3/calibrations/left_full_resolution.yaml"/>
+        <param name="center_calibration_file" value="package://xb3/calibrations/center_full_resolution.yaml"/>
+        <param name="right_calibration_file" value="package://xb3/calibrations/right_full_resolution.yaml"/>
+    </node>
+        
+</launch>
