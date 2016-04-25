@@ -30,48 +30,8 @@
 \author Marcelo Pereira
 */
 
-#ifndef _MARCELO_CALIBRATION_H_
-#define _MARCELO_CALIBRATION_H_
-
-// #include <stdio.h>
-// #include <string>
-// #include <iostream>
-// #include "ros/ros.h"
-// #include <geometry_msgs/PointStamped.h>
-// #include <pcl/io/pcd_io.h>
-// #include <pcl/common/transforms.h>
-// #include <pcl/point_cloud.h>
-// #include <pcl/point_types.h>
-// #include <pcl/registration/transformation_estimation_svd.h>
-// #include <eigen3/Eigen/Dense>
-// #include <opencv2/core/core.hpp>
-// #include "opencv2/calib3d/calib3d.hpp"
-//
-// #include <ros/package.h>
-// #include <vector>
-// #include <cmath>
-// #include <algorithm>
-// #include <geometry_msgs/Point32.h>
-// #include <sensor_msgs/PointCloud.h>
-// #include "calibration/calibration.h"
-// #include <visualization_msgs/MarkerArray.h>
-// #include <visualization_msgs/Marker.h>
-// #include "calibration/visualization_rviz_calibration.h"
-// #include "tf/tf.h"
-// #include <geometry_msgs/Pose.h>
-// #include <string>
-// #include <sstream>
-// #include <Eigen/Dense>
-// #include <iostream>
-// #include <pcl/registration/icp.h>
-//
-// #include <iostream>
-// #include <ctime>
-// #include <sys/stat.h>
-//
-// #include <opencv2/imgproc/imgproc.hpp>
-// #include <opencv2/highgui/highgui.hpp>
-// #include <math.h>
+#ifndef _CALIBRATION_H_
+#define _CALIBRATION_H_
 
 #include <stdio.h>
 #include <string>
@@ -101,10 +61,6 @@
 #include <image_transport/image_transport.h>
 
 #define BALL_DIAMETER 0.99
-
-using namespace Eigen;
-using namespace std;
-//using namespace cv; // causes errors because multiply defined FLANN headers on PCL and OpenCV
 
 /**
   \class CircleCentroids
@@ -189,9 +145,4 @@ public:
       camImage = msg;
     }
 };
-
-void addCar(const vector<double>& RPY = vector<double>(), const vector<double>& translation = vector<double>() );
-void writeFile(pcl::registration::TransformationEstimationSVD<pcl::PointXYZ, pcl::PointXYZ>::Matrix4 transformation, const char* filepath);
-void writeFileCamera( cv::Mat transformation, const char* transformation_name, string filepath);
-//int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3f> objectPoints, vector<cv::Point2f> imagePoints, const char* cameraNames);
 #endif

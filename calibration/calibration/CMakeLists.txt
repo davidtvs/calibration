@@ -138,14 +138,14 @@ target_link_libraries(sick_lms151_2 ${catkin_LIBRARIES}
 				    ${lidar_segmentation_LIBRARIES}
 				    ${roscpp_LIBRARIES})
 
-add_executable(calibration src/calibration.cpp src/visualization_rviz_calibration.cpp)
+add_executable(calibration src/calibration.cpp src/calibration_utils.cpp src/visualization_rviz_calibration.cpp)
 
 target_link_libraries(calibration ${catkin_LIBRARIES}
 				  ${PCL_LIBRARIES}
 				  ${lidar_segmentation_LIBRARIES}
 				  ${roscpp_LIBRARIES})
 
-add_executable(calibration_pcd src/calibration_pcd.cpp src/visualization_rviz_calibration.cpp)
+add_executable(calibration_pcd src/calibration_pcd.cpp src/calibration_utils.cpp src/visualization_rviz_calibration.cpp)
 
 target_link_libraries(calibration_pcd ${catkin_LIBRARIES}
 				  ${PCL_LIBRARIES}
