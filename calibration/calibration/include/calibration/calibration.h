@@ -25,9 +25,9 @@
  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************************************/
 /**
-\file  calibration.h
+\file  calibration_utils.h
 \brief Global include file
-\author Marcelo Pereira
+\author David Silva
 */
 
 #ifndef _CALIBRATION_H_
@@ -36,11 +36,14 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <ctime>
 #include <sys/stat.h>
 #include <vector>
+#include <numeric> // for mean and standard deviation calculation (accumulate)
 
+// ROS
 #include "ros/ros.h"
 #include <ros/package.h>
 #include <sensor_msgs/PointCloud.h>
@@ -50,18 +53,28 @@
 #include "tf/tf.h"
 #include <geometry_msgs/Pose.h>
 
+// PCL
 #include <pcl/io/pcd_io.h>
 #include <pcl/registration/transformation_estimation_svd.h>
 
+//OpenCV
 #include "opencv2/calib3d/calib3d.hpp"
 #include <opencv2/highgui/highgui.hpp>
 
-// To subscribe to image
-#include <cv_bridge/cv_bridge.h>
-#include <image_transport/image_transport.h>
+// Boost filesystem to get parent directory
+#include "boost/filesystem.hpp"
 
 #define BALL_DIAMETER 0.99
 
+using namespace Eigen;
+using namespace std;
+//using namespace cv; // causes errors because multiply defined FLANN headers on PCL and OpenCV
+
+#if defined _CALIBRATION_UTILS_CPP_
+string file_path;
+
+#elif defined _CALIBRATION_CPP_
+extern string file_path;
 /**
   \class CircleCentroids
   \brief Class to handle the ball center coordinates from the different sensors
@@ -145,4 +158,19 @@ public:
       camImage = msg;
     }
 };
+
+#else
+extern string file_path;
+#endif
+
+void createDirectory ( );
+void writeFile(pcl::registration::TransformationEstimationSVD<pcl::PointXYZ, pcl::PointXYZ>::Matrix4 transformation, const string filepath);
+void writeFileCamera( cv::Mat transformation, const char* transformation_name, const string filepath);
+void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string laserNames);
+int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3f> objectPoints, vector<cv::Point2f> imagePoints, const string name, const bool draw = false, const bool ransac = false);
+visualization_msgs::Marker addCar(const vector<double>& RPY = vector<double>(), const vector<double>& translation = vector<double>() );
+vector<float> gridEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1);
+vector<float> pointCloudEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1, const pcl::PointCloud<pcl::PointXYZ>& p2);
+float vectorMean ( const vector<float>& v );
+float vectorStdDeviationPopulation ( const vector<float>& v );
 #endif

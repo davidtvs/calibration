@@ -32,10 +32,10 @@
    \date   April, 2016
  */
 
-#define _CALIBRATION_UTILS_CPP
+#define _CALIBRATION_UTILS_CPP_
 
-#include "calibration/calibration_utils.h"
-#include <errno.h>
+#include "calibration/calibration.h"
+
 
 void createDirectory ( )
 {
