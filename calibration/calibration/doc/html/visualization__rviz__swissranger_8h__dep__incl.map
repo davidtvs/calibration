@@ -1,8 +1,0 @@
-<map id="visualization_rviz_swissranger.h" name="visualization_rviz_swissranger.h">
-<area shape="rect" id="node2" href="$camera__config_8h.html" title="Global include file. " alt="" coords="123,104,241,131"/>
-<area shape="rect" id="node6" href="$swissranger_8cpp.html" title="Algorithm for the ball center detection with the SwissRanger. " alt="" coords="265,104,381,131"/>
-<area shape="rect" id="node7" href="$visualization__rviz__swissranger_8cpp.html" title="Illustration of the ball detection on the sensor data. " alt="" coords="406,97,529,138"/>
-<area shape="rect" id="node3" href="$camera_8cpp.html" title="Ball detection with a stereo system. " alt="" coords="5,187,96,213"/>
-<area shape="rect" id="node4" href="$camera__calib_8cpp.html" title="Calibration of the stereo system using OpenCV. " alt="" coords="121,187,244,213"/>
-<area shape="rect" id="node5" href="$camera__config_8cpp.html" title="Configuration of the camera mode. " alt="" coords="269,187,400,213"/>
-</map>
