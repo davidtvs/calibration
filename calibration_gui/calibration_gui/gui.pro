@@ -17,5 +17,4 @@ SOURCES += src/gui_main.cpp\
 
 HEADERS  += include/calibration_gui/gui_mainwindow.h
 
-FORMS    += ui/mainwindow.ui \
-    ui/mainwindow.ui
+FORMS    += ui/mainwindow.ui
