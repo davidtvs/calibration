@@ -3,7 +3,10 @@
 
 #include <QMainWindow>
 #include <QTreeWidget>
-
+#include <QStyledItemDelegate>
+#include <QItemDelegate>
+#include <QPainter>
+#include <QSignalMapper>
 
 namespace Ui {
 class MainWindow;
@@ -13,8 +16,8 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    void AddRoot ();
-    void AddChildRoslaunch (QTreeWidgetItem *parent);
+    void AddRoot (int rowNUmber);
+    void AddChildRoslaunch (QTreeWidgetItem *parent, int rowNUmber);
     void AddChildTopic (QTreeWidgetItem *parent);
 
 public:
@@ -27,12 +30,11 @@ private slots:
 
     void on_bt_remove_clicked();
 
-    void on_toolButton_clicked();
+    void toolButton_clicked(int rowNumber);
 
 private:
     Ui::MainWindow *ui;
 };
-
 
 
 #endif // MAINWINDOW_H

@@ -11,11 +11,21 @@
 #include <QHeaderView>
 #include <QFileDialog>
 
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    QString style = "QTreeWidget::item:!selected "
+      "{ "
+        "border: 1px solid gainsboro; "
+        "border-left: none; "
+        "border-top: none; "
+        "border-bottom: none; "
+      "}"
+      "QTreeWidget::item:selected {}";
+      ui->treeWidget->setStyleSheet(style);
 }
 
 MainWindow::~MainWindow()
@@ -54,10 +64,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_bt_add_clicked()
 {
-    AddRoot();
+    static int rowNumber = 0;
+    qDebug() << rowNumber;
+    AddRoot(rowNumber);
+    rowNumber++;
+    //ui->treeWidget->setItemDelegate(new GridDelegate(ui->treeWidget));
 }
 
-void MainWindow::AddRoot ()
+void MainWindow::AddRoot (int rowNumber)
 {
     // ComboBox with avaiable lasers and cameras
     QTreeWidgetItem *item = new QTreeWidgetItem(ui->treeWidget);
@@ -77,11 +91,11 @@ void MainWindow::AddRoot ()
     deviceCheckBox->setCheckState(Qt::Checked);
     ui->treeWidget->setItemWidget(item,1,deviceCheckBox);
 
-    AddChildRoslaunch(item);
+    AddChildRoslaunch(item, rowNumber);
     AddChildTopic(item);
 }
 
-void MainWindow::AddChildRoslaunch (QTreeWidgetItem *parent)
+void MainWindow::AddChildRoslaunch (QTreeWidgetItem *parent, int rowNumber)
 {
     QString descr_roslaunch = "Roslauch File";
 
@@ -101,7 +115,10 @@ void MainWindow::AddChildRoslaunch (QTreeWidgetItem *parent)
     toolButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
     toolButton->setText("...");
 
-    connect(toolButton, SIGNAL(clicked()), this, SLOT(on_toolButton_clicked));
+    connect(toolButton, SIGNAL(clicked()), &ButtonSignalMapper, SLOT(map()));
+    ButtonSignalMapper.setMapping(toolButton, rowNumber);
+    connect(&ButtonSignalMapper, SIGNAL(mapped(int)), this, SLOT(toolButton_clicked(int)));
+    //connect(ui->treeWidget, SIGNAL())
 
     hLayout->addWidget(lineEdit);
     hLayout->addWidget(toolButton);
@@ -126,9 +143,15 @@ void MainWindow::on_bt_remove_clicked()
 
 }
 
-void MainWindow::on_toolButton_clicked()
+void MainWindow::toolButton_clicked(int rowNumber)
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open File"), "/home");
-    int index = ui->treeWidget->indexOfTopLevelItem(this);
-    qDebug() << index;
+    QPoint point = QPoint(1, 2);
+    QTreeWidgetItem *treeWidgetItem = ui->treeWidget->itemAt(1, rowNumber);
+
+     QTreeWidgetItem * line = treeWidgetItem->child(0);
+
+     line->setText(0, "TESSATYSTAY");
+
+    qDebug() << filename << "rowNumber = " << rowNumber;
 }
