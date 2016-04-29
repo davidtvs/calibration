@@ -27,6 +27,8 @@ private slots:
 
     void on_bt_remove_clicked();
 
+    void on_toolButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

@@ -102,6 +102,7 @@ void MainWindow::AddChildRoslaunch (QTreeWidgetItem *parent)
     toolButton->setText("...");
 
     connect(toolButton, SIGNAL(clicked()), this, SLOT(on_toolButton_clicked));
+    connect(ui->treeWidget, SIGNAL())
 
     hLayout->addWidget(lineEdit);
     hLayout->addWidget(toolButton);
