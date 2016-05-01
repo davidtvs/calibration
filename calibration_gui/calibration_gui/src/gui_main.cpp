@@ -1,4 +1,4 @@
-#include "calibration_gui/gui_mainwindow.h"
+#include "../include/calibration_gui/gui_mainwindow.h"
 #include <QApplication>
 
 // ====================================================================================

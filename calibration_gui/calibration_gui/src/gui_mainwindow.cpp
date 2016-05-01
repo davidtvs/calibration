@@ -115,9 +115,18 @@ void MainWindow::AddChildRoslaunch (QTreeWidgetItem *parent, int rowNumber)
     toolButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
     toolButton->setText("...");
 
-    connect(toolButton, SIGNAL(clicked()), &ButtonSignalMapper, SLOT(map()));
-    ButtonSignalMapper.setMapping(toolButton, rowNumber);
-    connect(&ButtonSignalMapper, SIGNAL(mapped(int)), this, SLOT(toolButton_clicked(int)));
+
+    QSignalMapper * ButtonSignalMapper = new QSignalMapper(this);
+    connect(ButtonSignalMapper, SIGNAL(mapped(int)), this, SLOT(toolButton_clicked(int)));
+
+    ButtonSignalMapper->setMapping(toolButton, rowNumber);
+
+    connect(toolButton, SIGNAL(clicked()), ButtonSignalMapper, SLOT(map()));
+
+
+
+
+
     //connect(ui->treeWidget, SIGNAL())
 
     hLayout->addWidget(lineEdit);
@@ -145,7 +154,7 @@ void MainWindow::on_bt_remove_clicked()
 
 void MainWindow::toolButton_clicked(int rowNumber)
 {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open File"), "/home");
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open File"));
     QPoint point = QPoint(1, 2);
     QTreeWidgetItem *treeWidgetItem = ui->treeWidget->itemAt(1, rowNumber);
 
