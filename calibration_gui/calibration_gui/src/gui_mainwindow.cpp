@@ -10,14 +10,24 @@
 #include <QCheckBox>
 #include <QHeaderView>
 #include <QFileDialog>
+#include "../include/calibration_gui/gui_myrviz.h"
+    #include <QMdiArea>
 
+MyViz* myviz;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    QString style = "QTreeWidget::item:!selected "
+
+    myviz = new MyViz();
+    //setCentralWidget(ui->mdiArea);
+    ui->mdiArea->addSubWindow(myviz);
+    myviz->showMaximized();
+
+    // Draw vertical bar between columns
+    /*QString style = "QTreeWidget::item:!selected "
       "{ "
         "border: 1px solid gainsboro; "
         "border-left: none; "
@@ -25,41 +35,14 @@ MainWindow::MainWindow(QWidget *parent) :
         "border-bottom: none; "
       "}"
       "QTreeWidget::item:selected {}";
-      ui->treeWidget->setStyleSheet(style);
+      ui->treeWidget->setStyleSheet(style);*/
 }
 
 MainWindow::~MainWindow()
 {
+    delete myviz;
     delete ui;
 }
-
-// ====================================================================================
-// References:
-// http://stackoverflow.com/questions/36156519/set-qstring-to-qprocess-properly
-// http://stackoverflow.com/questions/24771293/how-to-get-parameter-from-ros-launch-file-and-use-it-in-qt
-// http://stackoverflow.com/questions/10098980/real-time-display-of-qprocess-output-in-a-textbrowser
-// http://doc.qt.io/qt-4.8/qprocess.html
-// ====================================================================================
-
-/*void MainWindow::on_bt_add_clicked()
-{
-    QProcess process;
-    QString program = "roslaunch";
-    QStringList arguments;
-    arguments << "calibration_gui" << "lasers.launch";
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    process.setProcessEnvironment(env);
-    process.start(program, arguments);
-
-    qDebug()<< "PID: " << process.pid();
-    int count = 0;
-    if (process.waitForStarted(-1)) {
-        while(process.waitForReadyRead(-1)) {
-            qDebug() <<  process.readAllStandardOutput();
-        }
-    }
-    qDebug() << "Process ended";
-}*/
 
 
 void MainWindow::on_bt_add_clicked()
@@ -91,21 +74,21 @@ void MainWindow::AddRoot (int rowNumber)
     deviceCheckBox->setCheckState(Qt::Checked);
     ui->treeWidget->setItemWidget(item,1,deviceCheckBox);
 
-    AddChildRoslaunch(item, rowNumber);
-    AddChildTopic(item);
+    AddChildIP(item, rowNumber);
+    //AddChildTopic(item);
 }
 
-void MainWindow::AddChildRoslaunch (QTreeWidgetItem *parent, int rowNumber)
+void MainWindow::AddChildIP (QTreeWidgetItem *parent, int rowNumber)
 {
-    QString descr_roslaunch = "Roslauch File";
+    QString ask_IP = "IP";
 
     QTreeWidgetItem *item = new QTreeWidgetItem(parent);
 
     parent->addChild(item);
 
-    item->setText(0, descr_roslaunch);
+    item->setText(0, ask_IP);
 
-    QWidget *dualPushButtons = new QWidget();
+    /*QWidget *dualPushButtons = new QWidget();
     QHBoxLayout *hLayout = new QHBoxLayout();
 
     QLineEdit* lineEdit = new QLineEdit("Button1");
@@ -123,10 +106,6 @@ void MainWindow::AddChildRoslaunch (QTreeWidgetItem *parent, int rowNumber)
 
     connect(toolButton, SIGNAL(clicked()), ButtonSignalMapper, SLOT(map()));
 
-
-
-
-
     //connect(ui->treeWidget, SIGNAL())
 
     hLayout->addWidget(lineEdit);
@@ -134,17 +113,7 @@ void MainWindow::AddChildRoslaunch (QTreeWidgetItem *parent, int rowNumber)
 
     dualPushButtons->setLayout(hLayout);
 
-    ui->treeWidget->setItemWidget(item,1,dualPushButtons);
-}
-
-void MainWindow::AddChildTopic (QTreeWidgetItem *parent)
-{
-    QString descr_topic = "Topic";
-    QTreeWidgetItem *item = new QTreeWidgetItem(parent);
-
-    parent->addChild(item);
-
-    item->setText(0, descr_topic);
+    ui->treeWidget->setItemWidget(item,1,dualPushButtons);*/
 }
 
 void MainWindow::on_bt_remove_clicked()
@@ -152,7 +121,20 @@ void MainWindow::on_bt_remove_clicked()
 
 }
 
-void MainWindow::toolButton_clicked(int rowNumber)
+
+
+/*void MainWindow::AddChildTopic (QTreeWidgetItem *parent)
+{
+    QString descr_topic = "Topic";
+    QTreeWidgetItem *item = new QTreeWidgetItem(parent);
+
+    parent->addChild(item);
+
+    item->setText(0, descr_topic);
+}*/
+
+
+/*void MainWindow::toolButton_clicked(int rowNumber)
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open File"));
     QPoint point = QPoint(1, 2);
@@ -163,4 +145,33 @@ void MainWindow::toolButton_clicked(int rowNumber)
      line->setText(0, "TESSATYSTAY");
 
     qDebug() << filename << "rowNumber = " << rowNumber;
-}
+}*/
+
+
+// ====================================================================================
+// References:
+// http://stackoverflow.com/questions/36156519/set-qstring-to-qprocess-properly
+// http://stackoverflow.com/questions/24771293/how-to-get-parameter-from-ros-launch-file-and-use-it-in-qt
+// http://stackoverflow.com/questions/10098980/real-time-display-of-qprocess-output-in-a-textbrowser
+// http://doc.qt.io/qt-4.8/qprocess.html
+// ====================================================================================
+
+/*void MainWindow::on_bt_add_clicked()
+{
+    QProcess process;
+    QString program = "roslaunch";
+    QStringList arguments;
+    arguments << "calibration_gui" << "lasers.launch";
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    process.setProcessEnvironment(env);
+    process.start(program, arguments);
+
+    qDebug()<< "PID: " << process.pid();
+    int count = 0;
+    if (process.waitForStarted(-1)) {
+        while(process.waitForReadyRead(-1)) {
+            qDebug() <<  process.readAllStandardOutput();
+        }
+    }
+    qDebug() << "Process ended";
+}*/

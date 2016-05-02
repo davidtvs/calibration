@@ -47,12 +47,14 @@
   <build_depend>colormap</build_depend>
   <build_depend>roslib</build_depend>
   <build_depend>lidar_segmentation</build_depend>
+  <build_depend>rviz</build_depend>
 
   <run_depend>roscpp</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>colormap</run_depend>
   <run_depend>roslib</run_depend>
   <run_depend>lidar_segmentation</run_depend>
+  <run_depend>rviz</run_depend>
 
 
 

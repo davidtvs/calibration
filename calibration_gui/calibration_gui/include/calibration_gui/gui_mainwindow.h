@@ -17,8 +17,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     void AddRoot (int rowNUmber);
-    void AddChildRoslaunch (QTreeWidgetItem *parent, int rowNUmber);
-    void AddChildTopic (QTreeWidgetItem *parent);
+    void AddChildIP (QTreeWidgetItem *parent, int rowNUmber);
+    //void AddChildTopic (QTreeWidgetItem *parent);
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -30,7 +30,7 @@ private slots:
 
     void on_bt_remove_clicked();
 
-    void toolButton_clicked(int rowNumber);
+    //void toolButton_clicked(int rowNumber);
 
 private:
     Ui::MainWindow *ui;

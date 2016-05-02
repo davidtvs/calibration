@@ -1,5 +1,7 @@
 #include "../include/calibration_gui/gui_mainwindow.h"
 #include <QApplication>
+#include <ros/ros.h>
+#include "../include/calibration_gui/gui_myrviz.h"
 
 // ====================================================================================
 // References:
@@ -10,9 +12,16 @@
 
 int main(int argc, char *argv[])
 {
+    if( !ros::isInitialized() )
+      {
+        ros::init( argc, argv, "myviz", ros::init_options::AnonymousName );
+      }
+
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
 
-    return a.exec();
+    a.exec();
+
+    return 0;
 }

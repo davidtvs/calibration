@@ -11,7 +11,15 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   image_transport
   cv_bridge
+  rviz
 )
+
+catkin_package(
+ INCLUDE_DIRS include
+ CATKIN_DEPENDS roscpp std_msgs colormap roslib
+)
+
+
 find_package(PkgConfig REQUIRED)
 find_package(PCL REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -19,27 +27,41 @@ find_package(lidar_segmentation REQUIRED)
 if ( NOT lidar_segmentation_FOUND )
 	message(FATAL_ERROR "Package lidar_segmentation required but not found!")
 endif( NOT lidar_segmentation_FOUND )
-# Find the QtWidgets library
-find_package(Qt5Widgets REQUIRED)
 
-
-catkin_package(
- INCLUDE_DIRS include
- CATKIN_DEPENDS roscpp std_msgs colormap roslib
-)
 
 link_directories(
-    ${GTKMM_LIBRARY_DIRS}  )
+    ${GTKMM_LIBRARY_DIRS}
+    ${catkin_LIBRARY_DIRS}  
+    )
     
 include_directories(${catkin_INCLUDE_DIRS}
 	            ${PCL_INCLUDE_DIRS}
 		    ${OpenCV_INCLUDE_DIRS}
 		    ${roscpp_INCLUDE_DIRS}
 		    ${lidar_segmentation_INCLUDE_DIRS}
-		    ${Qt5Widgets_INCLUDE_DIRS}
 		    /usr/include/flycapture
 		    include
                    )
+                   
+                   		    #${Qt5Widgets_INCLUDE_DIRS}
+
+## This setting causes Qt's "MOC" generation to happen automatically.
+set(CMAKE_AUTOMOC ON)
+
+# Find the QtWidgets library
+## We'll use the version that rviz used so they are compatible.
+if(rviz_QT_VERSION VERSION_LESS "5")
+  message(STATUS "Using Qt4 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+  find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
+  ## pull in all required include dirs, define QT_LIBRARIES, etc.
+  include(${QT_USE_FILE})
+else()
+  message(STATUS "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+  ## make target_link_libraries(${QT_LIBRARIES}) pull in all required dependencies
+  set(QT_LIBRARIES Qt5::Widgets)
+endif()
+
                    
 find_library(FLYCAPTURE2 flycapture)
 
@@ -55,37 +77,39 @@ find_library(FLYCAPTURE2 flycapture)
 # http://stackoverflow.com/questions/25989448/implementing-qt-project-through-cmake
 	# https://github.com/Gluttton/SOS/tree/master/25989448
 
-
-# Executables fail to build with Qt 5 in the default configuration
-# without -fPIE. We add that here.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} -std=c++11")
-
-find_package (Qt5Widgets)
-
-set (MyProjectLib_src ${CMAKE_CURRENT_SOURCE_DIR}/src/gui_mainwindow.cpp)
-set (MyProjectLib_hdr ${CMAKE_CURRENT_SOURCE_DIR}/include/calibration_gui/gui_mainwindow.h)
-set (MyProjectLib_ui  ${CMAKE_CURRENT_SOURCE_DIR}/ui/mainwindow.ui)
-set (MyProjectBin_src ${CMAKE_CURRENT_SOURCE_DIR}/src/gui_main.cpp)
-
-qt5_wrap_cpp(MyProjectLib_hdr_moc ${MyProjectLib_hdr})
-qt5_wrap_ui (MyProjectLib_ui_moc  ${MyProjectLib_ui})
+set (MyProject_src src/gui_main.cpp
+				   src/gui_mainwindow.cpp
+				   src/gui_myrviz.cpp
+				   )
+set (MyProjectLib_hdr include/calibration_gui/gui_mainwindow.h
+					  include/calibration_gui/gui_myrviz.h
+					  )
+					  
+set (MyProjectLib_ui  ui/mainwindow.ui)
 
 include_directories (${PROJECT_SOURCE_DIR})
 include_directories (${PROJECT_BINARY_DIR})
 
-add_library (Qt5Lib SHARED 
-    ${MyProjectLib_src}
-    ${MyProjectLib_hdr_moc}
-    ${MyProjectLib_ui_moc}
-)
-
 ##############################################################################
 # Binaries
 ##############################################################################
-target_link_libraries (Qt5Lib Qt5::Widgets)
 
-add_executable(calibration_gui ${MyProjectBin_src})
-target_link_libraries (calibration_gui Qt5Lib)
+if(rviz_QT_VERSION VERSION_LESS "5")
+  message(STATUS "Using Qt4 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+  QT4_WRAP_UI(MyProjectLib_ui_moc ${MyProjectLib_ui})
+  QT4_WRAP_CPP(MyProjectLib_hdr_moc ${MyProjectLib_hdr})
+  
+  add_executable(calibration_gui ${MyProject_src} ${MyProjectLib_ui_moc} ${MyProjectLib_hdr_moc})
+else()
+  message(STATUS "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+  
+  add_executable(calibration_gui ${MyProject_src})
+endif()
+
+target_link_libraries (calibration_gui ${QT_LIBRARIES}
+						#default_plugin 
+						${catkin_LIBRARIES})
+
 
 
 add_executable(sick_ldmrs src/visualization_rviz_ldmrs.cpp src/sick_ldmrs.cpp src/common_functions.cpp)

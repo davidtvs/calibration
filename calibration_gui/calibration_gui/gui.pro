@@ -13,8 +13,10 @@ TEMPLATE = app
 
 
 SOURCES += src/gui_main.cpp\
-        src/gui_mainwindow.cpp
+        src/gui_mainwindow.cpp \
+    src/gui_myrviz.cpp
 
-HEADERS  += include/calibration_gui/gui_mainwindow.h
+HEADERS  += include/calibration_gui/gui_mainwindow.h \
+    include/calibration_gui/gui_myrviz.h
 
 FORMS    += ui/mainwindow.ui

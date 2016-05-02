@@ -2,7 +2,7 @@
 <package>
   <name>calibration_gui</name>
   <version>0.0.0</version>
-  <description>The calibration package</description>
+  <description>The calibration package with GUI</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
