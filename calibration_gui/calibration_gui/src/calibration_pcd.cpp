@@ -71,7 +71,7 @@ geometry_msgs::Pose singleCamPnPRansac;
  */
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "calibration_gui");
+	ros::init(argc, argv, "calibration_pcd");
 	ros::NodeHandle n;
 
 	int num_of_points = 25; // number of points to collect

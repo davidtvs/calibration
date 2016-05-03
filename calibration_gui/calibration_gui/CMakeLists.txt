@@ -78,12 +78,14 @@ find_library(FLYCAPTURE2 flycapture)
 	# https://github.com/Gluttton/SOS/tree/master/25989448
 
 set (MyProject_src src/gui_main.cpp
-				   src/gui_mainwindow.cpp
-				   src/gui_myrviz.cpp
-				   )
+		src/gui_mainwindow.cpp
+		src/gui_myrviz.cpp
+		src/gui_calibration_node.cpp
+		)
 set (MyProjectLib_hdr include/calibration_gui/gui_mainwindow.h
-					  include/calibration_gui/gui_myrviz.h
-					  )
+			include/calibration_gui/gui_myrviz.h
+			include/calibration_gui/gui_calibration_node.hpp
+			)
 					  
 set (MyProjectLib_ui  ui/mainwindow.ui)
 

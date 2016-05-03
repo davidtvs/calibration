@@ -20,8 +20,8 @@ public:
   virtual ~MyViz();
 
 private Q_SLOTS:
-  void setThickness( int thickness_percent );
-  void setCellSize( int cell_size_percent );
+  //void setThickness( int thickness_percent );
+  //void setCellSize( int cell_size_percent );
 
 private:
   rviz::VisualizationManager* manager_;

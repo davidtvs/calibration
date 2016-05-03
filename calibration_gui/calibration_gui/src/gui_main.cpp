@@ -1,7 +1,8 @@
-#include "../include/calibration_gui/gui_mainwindow.h"
+#include "calibration_gui/gui_mainwindow.h"
+#include "calibration_gui/gui_myrviz.h"
+
 #include <QApplication>
 #include <ros/ros.h>
-#include "../include/calibration_gui/gui_myrviz.h"
 
 // ====================================================================================
 // References:
@@ -10,15 +11,15 @@
 // https://github.com/dxydas/ros-bioloid
 // https://github.com/dazhbog/tanky_gui
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-    if( !ros::isInitialized() )
+    /*if( !ros::isInitialized() )
       {
         ros::init( argc, argv, "myviz", ros::init_options::AnonymousName );
-      }
-
+      }*/
     QApplication a(argc, argv);
-    MainWindow w;
+    QNode node(argc,argv, "calibration");
+    MainWindow w(&node);
     w.show();
 
     a.exec();

@@ -7,6 +7,10 @@
 #include <QItemDelegate>
 #include <QPainter>
 #include <QSignalMapper>
+#include <QList>
+
+#include "ui_mainwindow.h"
+#include "calibration_gui/gui_calibration_node.hpp"
 
 namespace Ui {
 class MainWindow;
@@ -18,10 +22,12 @@ class MainWindow : public QMainWindow
 
     void AddRoot (int rowNUmber);
     void AddChildIP (QTreeWidgetItem *parent, int rowNUmber);
+    void setQStrings();
     //void AddChildTopic (QTreeWidgetItem *parent);
 
+
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    MainWindow(QNode *node, QWidget *parent = 0);
     ~MainWindow();
 
 private slots:
@@ -32,9 +38,34 @@ private slots:
 
     //void toolButton_clicked(int rowNumber);
 
+    void on_treeWidget_itemChanged(QTreeWidgetItem *item, int column);
+
 private:
     Ui::MainWindow *ui;
+    QNode *qnode;
+
+    // Parameter Strings
+    QString parameterBallDiameter;
+    QString parameterNumPoints;
+    QList<QString> supportedSensors;
+
 };
 
+
+// Source: http://www.qtcentre.org/archive/index.php/t-7031.html
+// Only column 1 has editable cells
+class MyItemDelegate : public QItemDelegate
+{
+public:
+MyItemDelegate(QObject* parent = 0) : QItemDelegate(parent) {}
+
+QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
+{
+// allow only specific column to be edited, second column in this example
+if (index.column() == 1)
+return QItemDelegate::createEditor(parent, option, index);
+return 0;
+}
+};
 
 #endif // MAINWINDOW_H

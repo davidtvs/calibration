@@ -1,5 +1,5 @@
-#include "../include/calibration_gui/gui_mainwindow.h"
-#include "ui_mainwindow.h"
+#include "calibration_gui/gui_mainwindow.h"
+#include "calibration_gui/gui_myrviz.h"
 
 #include <QDebug>
 #include <QProcess>
@@ -10,21 +10,37 @@
 #include <QCheckBox>
 #include <QHeaderView>
 #include <QFileDialog>
-#include "../include/calibration_gui/gui_myrviz.h"
-    #include <QMdiArea>
+#include <QMdiArea>
 
 MyViz* myviz;
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow(QNode *node, QWidget *parent)
+    :QMainWindow(parent)
+    ,ui(new Ui::MainWindow)
+    ,qnode(node)
 {
     ui->setupUi(this);
 
+    setQStrings();
+
+    qnode->on_init();
+
     myviz = new MyViz();
     //setCentralWidget(ui->mdiArea);
-    ui->mdiArea->addSubWindow(myviz);
+    ui->mdiArea->addSubWindow(myviz, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
     myviz->showMaximized();
+
+    ui->treeWidget->setItemDelegate(new MyItemDelegate(ui->treeWidget));
+
+    QTreeWidgetItem *item = new QTreeWidgetItem(ui->treeWidget);
+    ui->treeWidget->addTopLevelItem(item);
+    item->setText(0, parameterBallDiameter);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable);
+
+    item = new QTreeWidgetItem(ui->treeWidget);
+    ui->treeWidget->addTopLevelItem(item);
+    item->setText(0, parameterNumPoints);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable);
 
     // Draw vertical bar between columns
     /*QString style = "QTreeWidget::item:!selected "
@@ -51,7 +67,6 @@ void MainWindow::on_bt_add_clicked()
     qDebug() << rowNumber;
     AddRoot(rowNumber);
     rowNumber++;
-    //ui->treeWidget->setItemDelegate(new GridDelegate(ui->treeWidget));
 }
 
 void MainWindow::AddRoot (int rowNumber)
@@ -62,10 +77,7 @@ void MainWindow::AddRoot (int rowNumber)
     ui->treeWidget->addTopLevelItem(item);
 
     QComboBox *deviceComboBox = new QComboBox();
-    deviceComboBox->addItem("Sick LMS 151");
-    deviceComboBox->addItem("Sick LD-MRS400001");
-    deviceComboBox->addItem("Point Grey FL3-GE-28S4-C");
-    deviceComboBox->addItem("SwissRanger SR40000");
+    deviceComboBox->addItems(supportedSensors);
 
     ui->treeWidget->setItemWidget(item,0,deviceComboBox);
 
@@ -85,6 +97,10 @@ void MainWindow::AddChildIP (QTreeWidgetItem *parent, int rowNumber)
     QTreeWidgetItem *item = new QTreeWidgetItem(parent);
 
     parent->addChild(item);
+
+    // Source https://forum.qt.io/topic/28360/clicking-in-qtreewidget-item-while-already-editing-reopens-the-editor/5
+    // Makes this item editable
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable);
 
     item->setText(0, ask_IP);
 
@@ -118,10 +134,40 @@ void MainWindow::AddChildIP (QTreeWidgetItem *parent, int rowNumber)
 
 void MainWindow::on_bt_remove_clicked()
 {
+    qnode->run();
+}
+
+/*int MainWindow::treeWidgetFindText (const QString & textToFInd)
+{
+    QList<QTreeWidgetItem*> items = ui->treeWidget->findItems(textToFInd,
+                                    Qt::MatchContains|Qt::MatchRecursive,
+                                    0);
+    return items[0]->text(1).toInt();
+}*/
+
+void MainWindow::on_treeWidget_itemChanged(QTreeWidgetItem *item, int column)
+{
+    QString changedText = item->text(column); // column should always be 1, but this is more generic
+    QString parameter = item->text(0); // get changed paremeter name
+    qDebug() << changedText << " " << column << " " << parameter;
+    if (parameter == parameterNumPoints)
+        qnode->setCalibrationPoints(changedText.toInt());
 
 }
 
 
+void MainWindow::setQStrings()
+{
+    parameterBallDiameter = "Ball Diameter (meters)";
+    parameterNumPoints = "Number of Calibration Points";
+
+    supportedSensors = QList<QString>() << "Sick LMS 151_1"
+                                        << "Sick LMS 151_2"
+                                        << "Sick LD-MRS400001"
+                                        << "Point Grey FL3-GE-28S4-C"
+                                        << "SwissRanger SR40000";
+
+}
 
 /*void MainWindow::AddChildTopic (QTreeWidgetItem *parent)
 {
@@ -175,3 +221,5 @@ void MainWindow::on_bt_remove_clicked()
     }
     qDebug() << "Process ended";
 }*/
+
+
