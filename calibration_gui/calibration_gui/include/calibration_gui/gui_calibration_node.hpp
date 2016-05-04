@@ -51,10 +51,4 @@ protected:
     const std::string node_name;
 };
 
-class Listener : public QNode {
-     Q_OBJECT
-public:
-    Listener(int argc, char** argv);
-};
-
 #endif /* NODE_HPP_ */

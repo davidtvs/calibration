@@ -52,6 +52,9 @@
 #include <geometry_msgs/PointStamped.h>
 #include "tf/tf.h"
 #include <geometry_msgs/Pose.h>
+// To subscribe to image
+#include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
 
 // PCL
 #include <pcl/io/pcd_io.h>
@@ -63,6 +66,7 @@
 
 // Boost filesystem to get parent directory
 #include "boost/filesystem.hpp"
+
 
 #define BALL_DIAMETER 0.99
 

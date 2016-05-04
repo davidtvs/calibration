@@ -11,6 +11,7 @@
 #include <QHeaderView>
 #include <QFileDialog>
 #include <QMdiArea>
+#include <QTreeView>
 
 MyViz* myviz;
 
@@ -41,6 +42,8 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
     ui->treeWidget->addTopLevelItem(item);
     item->setText(0, parameterNumPoints);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable);
+
+    ui->treeWidget->resizeColumnToContents(0);
 
     // Draw vertical bar between columns
     /*QString style = "QTreeWidget::item:!selected "
@@ -134,7 +137,8 @@ void MainWindow::AddChildIP (QTreeWidgetItem *parent, int rowNumber)
 
 void MainWindow::on_bt_remove_clicked()
 {
-    qnode->run();
+    // start() is a QThread function. It calls QNode::run automatically
+    qnode->start();
 }
 
 /*int MainWindow::treeWidgetFindText (const QString & textToFInd)
@@ -156,18 +160,29 @@ void MainWindow::on_treeWidget_itemChanged(QTreeWidgetItem *item, int column)
 }
 
 
+void MainWindow::on_bt_start_nodes_clicked()
+{
+    qDebug() << "in start nodes";
+    QTreeWidgetItem *item = ui->treeWidget->topLevelItem(2);
+    QWidget *widget = ui->treeWidget->itemWidget(item, 0);
+    QComboBox *combobox = qobject_cast<QComboBox*>(widget);
+    qDebug() << combobox->currentText();
+}
+
+
 void MainWindow::setQStrings()
 {
     parameterBallDiameter = "Ball Diameter (meters)";
-    parameterNumPoints = "Number of Calibration Points";
+    parameterNumPoints = "No. of Calibration Points";
 
     supportedSensors = QList<QString>() << "Sick LMS 151_1"
                                         << "Sick LMS 151_2"
                                         << "Sick LD-MRS400001"
                                         << "Point Grey FL3-GE-28S4-C"
                                         << "SwissRanger SR40000";
-
 }
+
+
 
 /*void MainWindow::AddChildTopic (QTreeWidgetItem *parent)
 {
@@ -221,5 +236,4 @@ void MainWindow::setQStrings()
     }
     qDebug() << "Process ended";
 }*/
-
 

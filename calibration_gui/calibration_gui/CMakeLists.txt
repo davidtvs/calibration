@@ -81,6 +81,8 @@ set (MyProject_src src/gui_main.cpp
 		src/gui_mainwindow.cpp
 		src/gui_myrviz.cpp
 		src/gui_calibration_node.cpp
+		src/calibration_utils.cpp
+		src/visualization_rviz_calibration.cpp
 		)
 set (MyProjectLib_hdr include/calibration_gui/gui_mainwindow.h
 			include/calibration_gui/gui_myrviz.h

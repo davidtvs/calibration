@@ -52,6 +52,9 @@
 #include <geometry_msgs/PointStamped.h>
 #include "tf/tf.h"
 #include <geometry_msgs/Pose.h>
+// To subscribe to image
+#include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
 
 // PCL
 #include <pcl/io/pcd_io.h>
@@ -64,10 +67,6 @@
 // Boost filesystem to get parent directory
 #include "boost/filesystem.hpp"
 
-// To subscribe to image
-#include <cv_bridge/cv_bridge.h>
-#include <image_transport/image_transport.h>
-
 #define BALL_DIAMETER 0.99
 
 using namespace Eigen;
@@ -77,7 +76,7 @@ using namespace std;
 #if defined _CALIBRATION_UTILS_CPP_
 string file_path;
 
-#elif defined _CALIBRATION_CPP_
+#elif defined (_CALIBRATION_CPP_) || defined (_NODE_CPP_)
 extern string file_path;
 /**
   \class CircleCentroids

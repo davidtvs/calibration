@@ -36,9 +36,9 @@ private slots:
 
     void on_bt_remove_clicked();
 
-    //void toolButton_clicked(int rowNumber);
-
     void on_treeWidget_itemChanged(QTreeWidgetItem *item, int column);
+
+    void on_bt_start_nodes_clicked();
 
 private:
     Ui::MainWindow *ui;
