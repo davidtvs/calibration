@@ -2,7 +2,6 @@
 #include "calibration_gui/gui_myrviz.h"
 
 #include <QDebug>
-#include <QProcess>
 #include <QLineEdit>
 #include <QToolButton>
 #include <QAbstractButton> // ToolButton setText
@@ -163,10 +162,77 @@ void MainWindow::on_treeWidget_itemChanged(QTreeWidgetItem *item, int column)
 void MainWindow::on_bt_start_nodes_clicked()
 {
     qDebug() << "in start nodes";
-    QTreeWidgetItem *item = ui->treeWidget->topLevelItem(2);
-    QWidget *widget = ui->treeWidget->itemWidget(item, 0);
-    QComboBox *combobox = qobject_cast<QComboBox*>(widget);
-    qDebug() << combobox->currentText();
+
+    QList<int> sensorCounter;
+    for (int i = 0; i < supportedSensors.size(); i++)
+        sensorCounter.push_back(0);
+
+    // i starts at two because comboboxes can only exists after row number 2
+    for (int i=2; i < ui->treeWidget->topLevelItemCount(); i++)
+    {
+        QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i); // Get item containing combobox
+        QWidget *widget = ui->treeWidget->itemWidget(item, 0); // ComboBox widget is on column 0
+        QString sensor = qobject_cast<QComboBox*>(widget)->currentText(); // Gets ComboBox current text, which is a sensor
+
+        QTreeWidgetItem *itemchild = item->child(0); // Get child item (itemchild) of top level item (item)
+
+        QString sensorIP = "host:=";
+        sensorIP += itemchild->text(1); // Gets IP written by user (column 1)
+
+        QString node_name = "node_name:=";
+
+        if (sensor == supportedSensors[0])
+        {
+            sensorCounter[0] += 1;
+            node_name += "lms151_" + QString::number(sensorCounter[0]);
+        }
+        else if (sensor == supportedSensors[1])
+        {
+            sensorCounter[1] += 1;
+            node_name += "ldmrs_" + QString::number(sensorCounter[1]);
+        }
+        else if (sensor == supportedSensors[2])
+        {
+            sensorCounter[2] += 1;
+            node_name += "pointgrey_" + QString::number(sensorCounter[2]);
+        }
+        else if (sensor == supportedSensors[3])
+        {
+            sensorCounter[3] += 1;
+            node_name += "swissranger_" + QString::number(sensorCounter[3]);
+        }
+        else
+            qDebug() << sensor << " is not on " << supportedSensors;
+
+        QString roslaunch_file = sensor +".launch";
+
+        QString program = "roslaunch";
+        QStringList arguments = QStringList() << "calibration_gui"
+                                              << roslaunch_file
+                                              << sensorIP
+                                              << node_name;
+        qDebug() << "Launching with: " << program << arguments.join(" ");
+
+        process = new QProcess(this);
+        connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(NodeFinished(int, QProcess::ExitStatus)));
+        process->start(program, arguments);
+
+        usleep(10000*1000);
+    }
+
+}
+
+
+void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
+{
+
+    if (!exit_code)
+        qDebug() << "Process finished normally.";
+    else
+        qDebug() << "Process crashed.";
+
+    process->deleteLater();
+    qDebug() << "teste";
 }
 
 
@@ -175,8 +241,7 @@ void MainWindow::setQStrings()
     parameterBallDiameter = "Ball Diameter (meters)";
     parameterNumPoints = "No. of Calibration Points";
 
-    supportedSensors = QList<QString>() << "Sick LMS 151_1"
-                                        << "Sick LMS 151_2"
+    supportedSensors = QList<QString>() << "Sick LMS 151"
                                         << "Sick LD-MRS400001"
                                         << "Point Grey FL3-GE-28S4-C"
                                         << "SwissRanger SR40000";
@@ -237,3 +302,8 @@ void MainWindow::setQStrings()
     qDebug() << "Process ended";
 }*/
 
+
+void MainWindow::on_bt_stop_nodes_clicked()
+{
+
+}

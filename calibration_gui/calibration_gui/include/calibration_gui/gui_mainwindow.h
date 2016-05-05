@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QSignalMapper>
 #include <QList>
+#include <QProcess>
 
 #include "ui_mainwindow.h"
 #include "calibration_gui/gui_calibration_node.hpp"
@@ -40,15 +41,19 @@ private slots:
 
     void on_bt_start_nodes_clicked();
 
+    void NodeFinished(int exit_code, QProcess::ExitStatus exit_status);
+
+    void on_bt_stop_nodes_clicked();
+
 private:
     Ui::MainWindow *ui;
     QNode *qnode;
+    QProcess *process;
 
     // Parameter Strings
     QString parameterBallDiameter;
     QString parameterNumPoints;
     QList<QString> supportedSensors;
-
 };
 
 
