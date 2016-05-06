@@ -44,6 +44,9 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
 
     ui->treeWidget->resizeColumnToContents(0);
 
+    ui->bt_stop_nodes->setEnabled(false);
+    ui->bt_calibrate->setEnabled(false);
+
     // Draw vertical bar between columns
     /*QString style = "QTreeWidget::item:!selected "
       "{ "
@@ -106,6 +109,8 @@ void MainWindow::AddChildIP (QTreeWidgetItem *parent, int rowNumber)
 
     item->setText(0, ask_IP);
 
+    item->parent()->setExpanded(true);
+
     /*QWidget *dualPushButtons = new QWidget();
     QHBoxLayout *hLayout = new QHBoxLayout();
 
@@ -136,20 +141,25 @@ void MainWindow::AddChildIP (QTreeWidgetItem *parent, int rowNumber)
 
 void MainWindow::on_bt_remove_clicked()
 {
-    // start() is a QThread function. It calls QNode::run automatically
-    qnode->start();
+    QList<QTreeWidgetItem*> items = ui->treeWidget->selectedItems();
+    QTreeWidgetItem *pp = NULL;
+
+
+    if ( !items.isEmpty() )
+    {
+        foreach (QTreeWidgetItem *item, items)
+        {
+            qDebug() << "start delete";
+            delete item;
+            qDebug() << "item deleted";
+        }
+    }
 }
 
-/*int MainWindow::treeWidgetFindText (const QString & textToFInd)
-{
-    QList<QTreeWidgetItem*> items = ui->treeWidget->findItems(textToFInd,
-                                    Qt::MatchContains|Qt::MatchRecursive,
-                                    0);
-    return items[0]->text(1).toInt();
-}*/
 
 void MainWindow::on_treeWidget_itemChanged(QTreeWidgetItem *item, int column)
 {
+    qDebug() << "on_treeWidget_itemChanged";
     QString changedText = item->text(column); // column should always be 1, but this is more generic
     QString parameter = item->text(0); // get changed paremeter name
     qDebug() << changedText << " " << column << " " << parameter;
@@ -158,10 +168,32 @@ void MainWindow::on_treeWidget_itemChanged(QTreeWidgetItem *item, int column)
 
 }
 
+void MainWindow::on_treeWidget_itemSelectionChanged()
+{
+    QList<QTreeWidgetItem *> selectedItems = ui->treeWidget->selectedItems();
+
+    if (!selectedItems.isEmpty()) // not empty
+    {
+        foreach (QTreeWidgetItem *item, selectedItems)
+        {
+            if (item->parent()) // has parent
+                ui->bt_remove->setEnabled(false);
+            else
+                ui->bt_remove->setEnabled(true);
+        }
+    }
+}
+
+
 
 void MainWindow::on_bt_start_nodes_clicked()
 {
     qDebug() << "in start nodes";
+
+    ui->bt_start_nodes->setEnabled(false);
+
+    processes.clear();
+    launchedNodes.clear();
 
     QList<int> sensorCounter;
     for (int i = 0; i < supportedSensors.size(); i++)
@@ -181,28 +213,36 @@ void MainWindow::on_bt_start_nodes_clicked()
 
         QString node_name = "node_name:=";
 
+        QString lms151_1 = "true"; // see comment after QStringList arguments
+
         if (sensor == supportedSensors[0])
         {
             sensorCounter[0] += 1;
-            node_name += "lms151_" + QString::number(sensorCounter[0]);
+            launchedNodes.push_back(supportedSensorsNodes[0] + "_" + QString::number(sensorCounter[0]));
+            node_name += launchedNodes.last();
+            if (sensorCounter[0] == 2)
+                lms151_1="false";
         }
         else if (sensor == supportedSensors[1])
         {
             sensorCounter[1] += 1;
-            node_name += "ldmrs_" + QString::number(sensorCounter[1]);
+            launchedNodes.push_back(supportedSensorsNodes[1] + "_" + QString::number(sensorCounter[1]));
+            node_name += launchedNodes.last();
         }
         else if (sensor == supportedSensors[2])
         {
             sensorCounter[2] += 1;
-            node_name += "pointgrey_" + QString::number(sensorCounter[2]);
+            launchedNodes.push_back(supportedSensorsNodes[2] + "_" + QString::number(sensorCounter[2]));
+            node_name += launchedNodes.last();
         }
         else if (sensor == supportedSensors[3])
         {
             sensorCounter[3] += 1;
-            node_name += "swissranger_" + QString::number(sensorCounter[3]);
+            launchedNodes.push_back(supportedSensorsNodes[3] + "_" + QString::number(sensorCounter[3]));
+            node_name += launchedNodes.last();
         }
         else
-            qDebug() << sensor << " is not on " << supportedSensors;
+            qDebug() << sensor << "is not on" << supportedSensors;
 
         QString roslaunch_file = sensor +".launch";
 
@@ -210,29 +250,87 @@ void MainWindow::on_bt_start_nodes_clicked()
         QStringList arguments = QStringList() << "calibration_gui"
                                               << roslaunch_file
                                               << sensorIP
-                                              << node_name;
-        qDebug() << "Launching with: " << program << arguments.join(" ");
+                                              << node_name
+                                              << "lms151_1:=" + lms151_1;
+        /*  The last argument ""lms151_2:=" + lms151" is only needed because subscribing to topics
+            on the calibration  and circle detection files is not generalised. SO in order to launch
+            multiple LMS151 nodes this workaround is needed - if true a different When that's is done
+            the argument should be removed */
 
-        process = new QProcess(this);
-        connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(NodeFinished(int, QProcess::ExitStatus)));
-        process->start(program, arguments);
+        qDebug() << "Launching with:" << program << arguments.join(" ");
 
-        usleep(10000*1000);
+        processes.push_back(new QProcess(this));
+        connect(processes.last(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(NodeFinished(int, QProcess::ExitStatus)));
+
+        processes.last()->start(program, arguments);
     }
 
+    ui->bt_stop_nodes->setEnabled(true);
+    ui->bt_calibrate->setEnabled(true);
+
+}
+
+void MainWindow::on_bt_stop_nodes_clicked()
+{
+    qDebug() << "Nodes to be killed" << launchedNodes;
+
+    ui->bt_stop_nodes->setEnabled(false);
+    ui->bt_calibrate->setEnabled(false);
+
+    foreach (QProcess *process, processes)
+    {
+        qint64 pid = process->pid();
+        qDebug() << "Killing process PID:" << pid;
+        process->kill();
+
+        QString nodeName = "/" + launchedNodes.first() + "/" + launchedNodes.first();
+        QProcess nodeKiller;
+        nodeKiller.start("rosnode", QStringList() << "kill" << nodeName);
+        if (nodeKiller.waitForStarted(-1))
+        {
+            while(nodeKiller.waitForReadyRead(-1))
+                qDebug() <<  nodeKiller.readAllStandardOutput();
+        }
+        launchedNodes.removeFirst();
+        qDebug() << "Killed node:" << nodeName;
+        qDebug() << "Nodes remaining:" << launchedNodes;
+    }
+    launchedNodes.clear();
+    qDebug() << "All node killed ended" << launchedNodes;
+
+    ui->bt_start_nodes->setEnabled(true);
+}
+
+void MainWindow::on_bt_calibrate_clicked()
+{
+    // start() is a QThread function. It calls QNode::run automatically
+    //qnode->start();
 }
 
 
 void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
 {
+    for (int i = 0; i < processes.size(); i++)
+    {
+        if (processes[i]->state() == QProcess::NotRunning)
+        {
+            processes[i]->deleteLater();
+            processes.remove(i);
+            launchedNodes.removeAt(i);
+            if (!exit_code)
+                qDebug() << "Process" << i << "finished normally.";
+            else
+                qDebug() << "Process" << i << "crashed.";
+        }
+    }
 
-    if (!exit_code)
-        qDebug() << "Process finished normally.";
-    else
-        qDebug() << "Process crashed.";
-
-    process->deleteLater();
-    qDebug() << "teste";
+    if (processes.size() == 0)
+    {
+        ui->bt_stop_nodes->setEnabled(false);
+        ui->bt_calibrate->setEnabled(false);
+        ui->bt_start_nodes->setEnabled(true);
+    }
+    qDebug() << processes;
 }
 
 
@@ -245,6 +343,11 @@ void MainWindow::setQStrings()
                                         << "Sick LD-MRS400001"
                                         << "Point Grey FL3-GE-28S4-C"
                                         << "SwissRanger SR40000";
+
+    supportedSensorsNodes = QList<QString>() << "lms151"
+                                             << "ldmrs"
+                                             << "pointgrey"
+                                             << "swissranger";
 }
 
 
@@ -303,7 +406,5 @@ void MainWindow::setQStrings()
 }*/
 
 
-void MainWindow::on_bt_stop_nodes_clicked()
-{
 
-}
+

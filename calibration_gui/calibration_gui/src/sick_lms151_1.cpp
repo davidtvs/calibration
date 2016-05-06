@@ -46,6 +46,8 @@
 #include <geometry_msgs/PointStamped.h>
 #include "std_msgs/Float64.h"
 
+#include <ctime>
+
 //Marker's publisher
 ros::Publisher markers_lms_1_pub;
 ros::Publisher circleCentroid_pub;
@@ -331,12 +333,12 @@ int main(int argc, char **argv)
 	markers_lms_1_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers2", 10000);
 	circleCentroid_pub = n.advertise<geometry_msgs::PointStamped>( "/laser1/sphereCentroid", 10000);
 
-	//ros::Rate loop_rate(1);
+	ros::Rate loop_rate(50);
 
-	while(1)
+	while(ros::ok())
 	{
 		C_DataFromFilePtr data_gt;
-		//cout<<"size "<<scan.scanLaser1.ranges.size()<<endl;
+		cout<<"size "<<scan.scanLaser1.ranges.size()<<endl;
 		vector<PointPtr> points;
 		if(scan.scanLaser1.ranges.size()!=0)
 		{
@@ -349,7 +351,7 @@ int main(int argc, char **argv)
 		}
 
 		ros::spinOnce();
-		//loop_rate.sleep();
+		loop_rate.sleep();
 	}
 	return 0;
 }

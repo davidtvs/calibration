@@ -37,11 +37,8 @@
 //Marker's publisher
 ros::Publisher ballCentroidCam_pub;
 ros::Publisher ballCentroidCamPnP_pub;
-ros::Publisher markers_pub;
 image_transport::Publisher image_pub;
 
-StereoBM sbm;
-StereoSGBM sgbm;
 Mat CameraMatrix1, CameraMatrix2, disCoeffs1, disCoeffs2, R1, R2, P1, P2, Q, T;
 
 
@@ -395,10 +392,6 @@ void CentroidPub( const pcl::PointXYZ centroid, const pcl::PointXYZ centroidRadi
 	CentroidCam.header.stamp = ros::Time::now();
 	ballCentroidCam_pub.publish(CentroidCam);
 	//std::cout << CentroidCam << std::endl;
-
-	visualization_msgs::MarkerArray targets_markers;
-	targets_markers.markers = createTargetMarkers(centroid);
-	markers_pub.publish(targets_markers);
 }
 
 void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& contour)
@@ -414,11 +407,13 @@ void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& cont
 
 	cv::Point pt(r.x + ((r.width - text.width) / 2), r.y + ((r.height + text.height) / 2));
 	cv::Point center(r.x + ((r.width) / 2), r.y + ((r.height) / 2));
-	cv::rectangle(im, pt + cv::Point(0, baseline), pt + cv::Point(text.width, -text.height), CV_RGB(255,255,255), CV_FILLED);
-	cv::putText(im, label, pt, fontface, scale, CV_RGB(0,0,0), thickness, 8);
-	circle( im, center, 3, Scalar(255,0,0), -1, 8, 0 );
+	//cv::rectangle(im, pt + cv::Point(0, baseline), pt + cv::Point(text.width, -text.height), CV_RGB(255,255,255), CV_FILLED);
+	//cv::putText(im, label, pt, fontface, scale, CV_RGB(0,0,0), thickness, 8);
+	//circle( im, center, 4, Scalar(255,0,0), -1, 8, 0 );
+	cv::line(im, cv::Point(center.x - 7, center.y), cv::Point(center.x + 7, center.y), cv::Scalar(255,255,255), 2);  //crosshair horizontal
+	cv::line(im, cv::Point(center.x, center.y - 7), cv::Point(center.x, center.y + 7), cv::Scalar(255,255,255), 2);  //crosshair vertical
 	// circle outline
-	circle( im, center, radius, Scalar(0,255,0), 1, 8, 0 );
+	circle( im, center, radius, Scalar(255,255,255), 2, 8, 0 );
 }
 
 /**
@@ -446,34 +441,10 @@ int main(int argc, char **argv)
 	fs["CM1"] >> CameraMatrix1;
 	fs["D1"] >> disCoeffs1;
 
-	sbm.state->SADWindowSize = 7;
-	sbm.state->numberOfDisparities = 112;
-	sbm.state->preFilterSize = 5;
-	sbm.state->preFilterCap = 61;
-	sbm.state->minDisparity = 0;
-	sbm.state->textureThreshold = 700;
-	sbm.state->uniquenessRatio = 0;
-	sbm.state->speckleWindowSize = 0;
-	sbm.state->speckleRange = 8;
-	sbm.state->disp12MaxDiff = 1;
-
-	sgbm.SADWindowSize=5;
-	sgbm.numberOfDisparities=192;
-	sgbm.preFilterCap=4;
-	sgbm.minDisparity=-64;
-	sgbm.uniquenessRatio=1;
-	sgbm.speckleWindowSize = 150;
-	sgbm.speckleRange=2;
-	sgbm.disp12MaxDiff=10;
-	sgbm.fullDP=false;
-	sgbm.P1=950;
-	sgbm.P2=2500;
-
 	image_transport::ImageTransport it(n);
-	image_pub = it.advertise("/SingleCamera/image", 1000);
+	image_pub = it.advertise("/SingleCamera/image", 2);
 	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( "/SingleCamera/ballCentroid", 7);
 	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( "/SingleCamera/ballCentroidPnP", 7);
-	markers_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers4", 1000);
 
   Camera Camera;
 	ConnectCameras(Camera);
@@ -481,168 +452,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-
-
-
-// /**
-//    @brief Stereo 3D reconstraction
-//    @param[in] image1 image from the first camera
-//    @param[in] image2 image from the second camera
-//    @return void
-//  */
-// void reconstrution3D(Mat image1, Mat image2)
-// {
-//      Mat map1x, map1y, map2x, map2y;
-//      Mat imgU1, imgU2;
-//
-//      initUndistortRectifyMap(CameraMatrix1, disCoeffs1, R1, P1, image1.size(), CV_32FC1, map1x, map1y);
-//      initUndistortRectifyMap(CameraMatrix2, disCoeffs2, R2, P2, image1.size(), CV_32FC1, map2x, map2y);
-//
-//      remap(image1, imgU1, map1x, map1y, INTER_LINEAR, BORDER_CONSTANT, Scalar());
-//      remap(image2, imgU2, map2x, map2y, INTER_LINEAR, BORDER_CONSTANT, Scalar());
-//
-//      createTrackbar("P1", "Disparity", &sgbm.P1, 2000, NULL);
-//      createTrackbar("P2", "Disparity", &sgbm.P2, 4000, NULL);
-//      createTrackbar("preFilterCap", "Disparity", &sgbm.preFilterCap, 200, NULL);
-//      createTrackbar("speckleWindowSize", "Disparity", &sgbm.speckleWindowSize, 200, NULL);
-// }
-//
-// /**
-//    @brief Create a point cloud from the 3D reconstruction
-//    @param[in] XYZ Matrix with 3D points
-//    @return void
-//  */
-// void CreatePointCloud(Mat XYZ)
-// {
-//      sensor_msgs::PointCloud cloud;
-//      pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud;
-//
-//      for(int i; i<XYZ.rows; i++)
-//      {
-//              for(int j=0; j<XYZ.cols; j++)
-//              {
-//                      Point3f point = XYZ.at<Point3f>(i, j);
-//                      geometry_msgs::Point32 point3D;
-//                      if(point.z>0.2 && point.z<4)
-//                      {
-//                              point3D.x = point.x;
-//                              point3D.y = point.y;
-//                              point3D.z = point.z;
-//                              cloud.points.push_back(point3D);
-//
-//                              pcl::PointXYZ p;
-//                              p.x=cloud.points[i].x;
-//                              p.y=cloud.points[i].y;
-//                              p.z=cloud.points[i].z;
-//                              SwissRanger_cloud.push_back(p);
-//                      }
-//              }
-//      }
-//      cout<<"size "<<cloud.points.size()<<endl;
-//      if(cloud.points.size()>0)
-//      {
-//
-//              ballDetection(cloud);
-//      }
-// }
-//
-// /**
-//    @brief Ball detection in the stereo system
-//    @param[in] cloud point cloud from the stereo system
-//    @return void
-//  */
-// void ballDetection(sensor_msgs::PointCloud cloud)
-// {
-//      pcl::PointCloud<pcl::PointXYZ> camera_cloud;
-//      for(int i; i<cloud.points.size(); i++)
-//      {
-//              pcl::PointXYZ p;
-//              p.x=cloud.points[i].x;
-//              p.y=cloud.points[i].y;
-//              p.z=cloud.points[i].z;
-//              camera_cloud.push_back(p);
-//      }
-//
-//      pcl::PCLPointCloud2 cloud2;
-//      pcl::toPCLPointCloud2 (camera_cloud, cloud2);
-//      pcl::PCLPointCloud2::Ptr cloud3 (new pcl::PCLPointCloud2 (cloud2));
-//      pcl::PCLPointCloud2::Ptr cloud_filtered (new pcl::PCLPointCloud2 ());
-//      pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
-//      sor.setInputCloud (cloud3);
-//      sor.setLeafSize (0.01f, 0.01f, 0.01f);
-//      sor.filter (*cloud_filtered);
-//
-//      sensor_msgs::PointCloud2 pp;
-//
-//      pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(camera_cloud));
-//
-//      pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
-//      pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
-//      pcl::SACSegmentation<pcl::PointXYZ> seg;
-//      seg.setOptimizeCoefficients (true);
-//      seg.setModelType (pcl::SACMODEL_SPHERE); //detecting SPHERE
-//      seg.setMethodType (pcl::SAC_RANSAC);
-//      seg.setDistanceThreshold (0.02);
-//      seg.setRadiusLimits(0.35, 0.55);
-//      seg.setMaxIterations(1000000);
-//      seg.setInputCloud (cloudPtr);
-//      seg.segment (*inliers, *coefficients);
-//
-//      if(inliers->indices.size ()>0)
-//      {
-//              cout << "Model coefficients: " << coefficients->values[0] << " "
-//                   << coefficients->values[1] << " "
-//                   << coefficients->values[2] << " "
-//                   << coefficients->values[3] << endl;
-//
-//              pcl::PointXYZ center;
-//              center.x = coefficients->values[0];
-//              center.y = coefficients->values[1];
-//              center.z = coefficients->values[2];
-//
-//              geometry_msgs::PointStamped CentroidCam_1, CentroidCam_2;
-//
-//              if(coefficients->values[3]<0.6)
-//              {
-//                      CentroidCam_1.point.x = coefficients->values[0];
-//                      CentroidCam_1.point.y = coefficients->values[1];
-//                      CentroidCam_1.point.z = coefficients->values[2];
-//                      CentroidCam_1.header.stamp = ros::Time::now();
-//                      ballCentroidCam1_pub.publish(CentroidCam_1);
-//
-//                      CentroidCam_2.point.x = coefficients->values[0]+T.at<double>(0,0)*pow(10,-1);
-//                      CentroidCam_2.point.y = coefficients->values[1];
-//                      CentroidCam_2.point.z = coefficients->values[2];
-//                      CentroidCam_2.header.stamp = ros::Time::now();
-//                      ballCentroidCam2_pub.publish(CentroidCam_2);
-//              }
-//              else
-//              {
-//                      CentroidCam_1.point.x = 0;
-//                      CentroidCam_1.point.y = 0;
-//                      CentroidCam_1.point.z = 0;
-//                      CentroidCam_1.header.stamp = ros::Time::now();
-//                      ballCentroidCam1_pub.publish(CentroidCam_1);
-//
-//                      CentroidCam_2.point.x = 0;
-//                      CentroidCam_2.point.y = 0;
-//                      CentroidCam_2.point.z = 0;
-//                      CentroidCam_2.header.stamp = ros::Time::now();
-//                      ballCentroidCam1_pub.publish(CentroidCam_2);
-//              }
-//
-//              visualization_msgs::MarkerArray targets_markers;
-//              targets_markers.markers = createTargetMarkers(center);
-//              markers_pub.publish(targets_markers);
-//      }
-//
-//
-//      pcl::toROSMsg(*cloudPtr,pp);
-//      sensor_msgs::PointCloud stereoCloud;
-//      sensor_msgs::convertPointCloud2ToPointCloud(pp, stereoCloud);
-//
-//      stereoCloud.header.frame_id="/my_frame";
-//      stereoCloud.header.stamp=ros::Time::now();
-//      stereoCloud_pub.publish(stereoCloud);
-//
-// }

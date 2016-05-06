@@ -3,11 +3,13 @@
   <arg name="host" default="192.168.100.244"/>
   <arg name="port" default="12002"/>
   <arg name="node_name" default="ldmrs_1"/>
-  
+
   <group ns="$(arg node_name)">
-    <node pkg="sick_ldmrs" type="sickldmrs.py" name="$(arg node_name)" respawn="false">
+    <node pkg="sick_ldmrs" type="sickldmrs.py" name="$(arg node_name)" respawn="false" required="true">
       <param name="host" value="$(arg host)"/>
       <param name="port" value="$(arg port)"/>
     </node>
   </group>
+
+  <node name = >
 </launch>

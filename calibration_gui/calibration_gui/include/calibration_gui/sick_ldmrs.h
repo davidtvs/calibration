@@ -14,7 +14,7 @@
    with the distribution.
   *Neither the name of the University of Aveiro nor the names of its contributors may be used to
    endorse or promote products derived from this software without specific prior written permission.
- 
+
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
@@ -25,7 +25,7 @@
  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************************************/
 /**
-\file  sick_ldmrs.h 
+\file  sick_ldmrs.h
 \brief Global include file
 \author Marcelo Pereira
 \date   December, 2015
@@ -94,10 +94,10 @@ public:
     sickLDMRSscan()
     {
         //Topics I want to subscribe
-        scan0_subscriber=n_.subscribe("/sickldmrs/scan0", 1000, &sickLDMRSscan::scan0Update, this);
-        scan1_subscriber=n_.subscribe("/sickldmrs/scan1", 1000, &sickLDMRSscan::scan1Update, this);
-        scan2_subscriber=n_.subscribe("/sickldmrs/scan2", 1000, &sickLDMRSscan::scan2Update, this);
-        scan3_subscriber=n_.subscribe("/sickldmrs/scan3", 1000, &sickLDMRSscan::scan3Update, this);
+        scan0_subscriber=n_.subscribe("/ldmrs_1/scan0", 1000, &sickLDMRSscan::scan0Update, this);
+        scan1_subscriber=n_.subscribe("/ldmrs_1/scan1", 1000, &sickLDMRSscan::scan1Update, this);
+        scan2_subscriber=n_.subscribe("/ldmrs_1/scan2", 1000, &sickLDMRSscan::scan2Update, this);
+        scan3_subscriber=n_.subscribe("/ldmrs_1/scan3", 1000, &sickLDMRSscan::scan3Update, this);
     }
 
     void scan0Update(const sensor_msgs::LaserScan& msg)

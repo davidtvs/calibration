@@ -56,8 +56,6 @@
 #include <pcl/conversions.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/segmentation/sac_segmentation.h>
-#include <visualization_msgs/MarkerArray.h>
-#include "visualization_rviz_swissranger.h"
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>

@@ -330,9 +330,9 @@ int main(int argc, char **argv)
 	markers_lms_2_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers3", 10000);
 	circleCentroid_pub = n.advertise<geometry_msgs::PointStamped>( "/laser2/sphereCentroid", 10000);
 
-	//ros::Rate loop_rate(1);
+	ros::Rate loop_rate(50);
 
-	while(1)
+	while(ros::ok())
 	{
 		C_DataFromFilePtr data_gt;
 		//cout<<"size "<<scan.scanLaser2.ranges.size()<<endl;
@@ -346,8 +346,8 @@ int main(int argc, char **argv)
 
 			dataFromFileHandler(points, scan_lms_2_header);
 		}
-
 		ros::spinOnce();
+		loop_rate.sleep();
 	}
 	return 0;
 }

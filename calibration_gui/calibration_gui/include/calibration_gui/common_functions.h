@@ -64,8 +64,8 @@ public:
     sickLMSscan()
     {
         //Topics I want to subscribe
-        laser1_subscriber=n_.subscribe("/laser_1/scan", 1000, &sickLMSscan::laser1Update, this);
-        laser2_subscriber=n_.subscribe("/laser_2/scan", 1000, &sickLMSscan::laser2Update, this);
+        laser1_subscriber=n_.subscribe("/lms151_1/scan", 1000, &sickLMSscan::laser1Update, this);
+        laser2_subscriber=n_.subscribe("/lms151_2/scan", 1000, &sickLMSscan::laser2Update, this);
     }
 
     void laser1Update(const sensor_msgs::LaserScan& msg)

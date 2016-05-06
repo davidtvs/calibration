@@ -1,12 +1,19 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="host" default="192.168.0.134"/>
-  <arg name="node_name" default="lms151_1"/>
+    <arg name="host" default="192.168.0.134"/>
+    <arg name="node_name" default="lms151_1"/>
+    <arg name="lms151_1" default="true"/> <!-- Remove this when subscribing is generalised -->
 
-  <group ns="$(arg node_name)/sicklms151">
-    <node name="$(arg node_name)" pkg="lms1xx" type="lms1xx">
-      <param name="host" value="$(arg host)"/>
-      <param name="frame_id" value="/$(arg node_name)"/>
-    </node>
-  </group>
+    <group ns="$(arg node_name)">
+        <node name="$(arg node_name)" pkg="lms1xx" type="lms1xx" required="true">
+            <param name="host" value="$(arg host)"/>
+            <param name="frame_id" value="/$(arg node_name)"/>
+        </node>
+    </group>
+
+    <!-- Remove this when subscribing is generalised and call the generalised node instaead -->
+    <node if="$(arg lms151_1)" name="CD_lms151_1" pkg="calibration_gui" type="sick_lms151_1" required="true"></node>
+
+    <node unless="$(arg lms151_1)" name="CD_lms151_2" pkg="calibration_gui" type="sick_lms151_2" required="true"></node>
+
 </launch>

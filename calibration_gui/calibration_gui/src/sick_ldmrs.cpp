@@ -494,7 +494,9 @@ int main(int argc, char **argv)
 	markers_ldmrs_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers", 10000);
 	sphereCentroid_pub = n.advertise<geometry_msgs::PointStamped>("/sphere_centroid",1000);
 
-	while(1)
+	ros::Rate loop_rate(50);
+
+	while(ros::ok())
 	{
 		vector<C_DataFromFilePtr> data_gt;
 		//cout<<"size "<<scan.scan0.ranges.size()<<endl;
@@ -546,8 +548,8 @@ int main(int argc, char **argv)
 
 			dataFromFileHandler(lidarPoints, scan_ldmrs_header);
 		}
-
 		ros::spinOnce();
+		loop_rate.sleep();
 	}
 	return 0;
 }

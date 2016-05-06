@@ -9,6 +9,7 @@
 #include <QSignalMapper>
 #include <QList>
 #include <QProcess>
+#include <QVector>
 
 #include "ui_mainwindow.h"
 #include "calibration_gui/gui_calibration_node.hpp"
@@ -45,15 +46,21 @@ private slots:
 
     void on_bt_stop_nodes_clicked();
 
+    void on_bt_calibrate_clicked();
+
+    void on_treeWidget_itemSelectionChanged();
+
 private:
     Ui::MainWindow *ui;
     QNode *qnode;
-    QProcess *process;
+    QVector<QProcess*> processes;
 
     // Parameter Strings
     QString parameterBallDiameter;
     QString parameterNumPoints;
     QList<QString> supportedSensors;
+    QList<QString> supportedSensorsNodes;
+    QList<QString> launchedNodes;
 };
 
 

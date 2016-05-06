@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="node_name" default="pointgrey"/>
+  <node name="$(arg node_name)" pkg="calibration_gui" type="single_camera" required="true"></node>
+</launch>

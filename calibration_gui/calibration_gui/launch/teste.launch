@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <node  name="teste_lms151_1" pkg="calibration_gui" type="sick_lms151_1">
+  </node>
+
+</launch>
+

@@ -4,7 +4,6 @@
 //Marker's publisher
 ros::Publisher ballCentroidCam_pub;
 ros::Publisher ballCentroidCamPnP_pub;
-ros::Publisher markers_pub;
 image_transport::Publisher image_pub;
 
 StereoBM sbm;
@@ -187,10 +186,6 @@ void CentroidPub( const pcl::PointXYZ centroid, const pcl::PointXYZ centroidRadi
 	CentroidCam.header.stamp = ros::Time::now();
 	ballCentroidCam_pub.publish(CentroidCam);
 	//std::cout << CentroidCam << std::endl;
-
-	visualization_msgs::MarkerArray targets_markers;
-	targets_markers.markers = createTargetMarkers(centroid);
-	markers_pub.publish(targets_markers);
 }
 
 void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& contour)
@@ -209,8 +204,8 @@ void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& cont
 	//cv::rectangle(im, pt + cv::Point(0, baseline), pt + cv::Point(text.width, -text.height), CV_RGB(255,255,255), CV_FILLED);
 	//cv::putText(im, label, pt, fontface, scale, CV_RGB(0,0,0), thickness, 8);
 	//circle( im, center, 4, Scalar(255,0,0), -1, 8, 0 );
-	cv::line(im, cv::Point(center.x - 5, center.y), cv::Point(center.x + 5, center.y), cv::Scalar(255,255,255), 2);  //crosshair horizontal
-	cv::line(im, cv::Point(center.x, center.y - 5), cv::Point(center.x, center.y + 5), cv::Scalar(255,255,255), 2);  //crosshair vertical
+	cv::line(im, cv::Point(center.x - 7, center.y), cv::Point(center.x + 7, center.y), cv::Scalar(255,255,255), 2);  //crosshair horizontal
+	cv::line(im, cv::Point(center.x, center.y - 7), cv::Point(center.x, center.y + 7), cv::Scalar(255,255,255), 2);  //crosshair vertical
 	// circle outline
 	circle( im, center, radius, Scalar(255,255,255), 2, 8, 0 );
 }
@@ -278,7 +273,6 @@ int main(int argc, char **argv)
 
 	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( "/SingleCamera/ballCentroid", 1);
 	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( "/SingleCamera/ballCentroidPnP", 1);
-	markers_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers4", 1000);
 	image_transport::ImageTransport it(n);
 
 	image_transport::Subscriber sub = it.subscribe("/SingleCamera/image", 1, ImageCapture_bag);

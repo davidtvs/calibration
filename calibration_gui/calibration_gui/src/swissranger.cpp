@@ -158,7 +158,10 @@ int main(int argc, char **argv)
     pointCloud_pub = n.advertise<sensor_msgs::PointCloud>("/swissranger/pointcloud",10000);
 
     swissranger cloud;
-    while(1)
+
+    ros::Rate loop_rate(50);
+
+    while(ros::ok())
     {
         cout<<"size "<<cloud.cloud.points.size()<<endl;
         if(cloud.cloud.points.size()>0)
@@ -178,6 +181,7 @@ int main(int argc, char **argv)
             pointCloud_pub.publish(cloud.cloud);
         }
         ros::spinOnce();
+        loop_rate.sleep();
     }
 
     return 0;
