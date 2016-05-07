@@ -172,6 +172,7 @@ void writeFileCamera( cv::Mat transformation, const char* transformation_name, c
 void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string laserNames);
 int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3f> objectPoints, vector<cv::Point2f> imagePoints, const string name, const bool draw = false, const bool ransac = false);
 visualization_msgs::Marker addCar(const vector<double>& RPY = vector<double>(), const vector<double>& translation = vector<double>() );
+float pointEuclideanDistance (const pcl::PointXYZ &p1, const pcl::PointXYZ &p2);
 vector<float> gridEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1);
 vector<float> pointCloudEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1, const pcl::PointCloud<pcl::PointXYZ>& p2);
 float vectorMean ( const vector<float>& v );

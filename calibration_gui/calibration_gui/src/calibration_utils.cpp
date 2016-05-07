@@ -413,6 +413,16 @@ visualization_msgs::Marker addCar(const vector<double>& RPY, const vector<double
   return marker;
 }
 
+float pointEuclideanDistance (const pcl::PointXYZ &p1, const pcl::PointXYZ &p2)
+{
+	float eu_dist, x_dist, y_dist, z_dist;
+	x_dist = p1.x - p2.x;
+	y_dist = p1.y - p2.y;
+	z_dist = p1.z - p2.z;
+	eu_dist = sqrt( pow(x_dist,2) + pow(y_dist,2) + pow(z_dist,2) );
+
+	return eu_dist;
+}
 
 vector<float> gridEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1)
 {
@@ -421,10 +431,7 @@ vector<float> gridEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1)
   // Euclidean distance calculation between points p1[i] and p1[i+1]
   for (int i=0; i<p1.points.size()-1; i++)
   {
-    x_dist = p1[i].x - p1[i+1].x;
-    y_dist = p1[i].y - p1[i+1].y;
-    z_dist = p1[i].z - p1[i+1].z;
-    eu_dist = sqrt( pow(x_dist,2) + pow(y_dist,2) + pow(z_dist,2) );
+		eu_dist = pointEuclideanDistance(p1[i], p1[i+1]);
     eu_dist_vector.push_back(eu_dist); // Adds current euclidean distance to vector of euclidean distances
   }
   return eu_dist_vector;
@@ -437,10 +444,7 @@ vector<float> pointCloudEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>
   // Euclidean distance calculation between correspondent points of p1 and p2
   for (int i=0; i<p1.points.size(); i++)
   {
-    x_dist = p1[i].x - p2[i].x;
-    y_dist = p1[i].y - p2[i].y;
-    z_dist = p1[i].z - p2[i].z;
-    eu_dist = sqrt( pow(x_dist,2) + pow(y_dist,2) + pow(z_dist,2) );
+		eu_dist = pointEuclideanDistance(p1[i], p2[i]);
     eu_dist_vector.push_back(eu_dist); // Adds current euclidean distance to vector of euclidean distances
   }
   return eu_dist_vector;

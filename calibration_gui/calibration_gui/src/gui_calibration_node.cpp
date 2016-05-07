@@ -160,6 +160,11 @@ void QNode::run() {
                     && centroids.ldmrsCentroid.point.x != 0 && centroids.singleCamCentroid.point.z != 0
                     && centroids.singleCamCentroidPnP.point.z != 0)        //&& centroids.cam1Centroid.point.z!=0)
             {
+                for (int i = 0; i < calibrationSensors.size(); i++)
+                {
+
+                }
+
                 P[0].x=centroids.lms1Centroid.point.x;
                 P[0].y=centroids.lms1Centroid.point.y;
                 P[0].z=centroids.lms1Centroid.point.z;
@@ -173,8 +178,12 @@ void QNode::run() {
                 if(dist>0.10)
                 {
                     double diff_dist_mean=0;
-                    if(count>0)
+                    if(count>0) // code beow is skipped on the first cycle (count = 0)
                     {
+                        for (int i = 0; i < calibrationSensors.size(); i++)
+                        {
+                            float eu_dist = pointEuclideanDistance (sensorClouds[i].points[count-1], P[1]);
+                        }
                         double d_ldmrs, d_lms1, d_lms2, d_sr, d_stereo;
                         // calculation of the distance between the corrent center of the ball detected and the previous
                         d_ldmrs=sqrt(pow((ldmrPointCloud.points[count-1].x-centroids.ldmrsCentroid.point.x),2)+pow((ldmrPointCloud.points[count-1].y-centroids.ldmrsCentroid.point.y),2)+pow((ldmrPointCloud.points[count-1].z-centroids.ldmrsCentroid.point.z),2));
