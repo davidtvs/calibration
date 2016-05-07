@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>618</width>
-    <height>513</height>
+    <width>885</width>
+    <height>586</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -62,6 +62,18 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="frameShadow">
            <enum>QFrame::Sunken</enum>
@@ -179,7 +191,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>618</width>
+     <width>885</width>
      <height>25</height>
     </rect>
    </property>

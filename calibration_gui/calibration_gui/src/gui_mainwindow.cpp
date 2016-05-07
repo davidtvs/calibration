@@ -30,17 +30,10 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
     ui->mdiArea->addSubWindow(myviz, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
     myviz->showMaximized();
 
+    //ui->treeWidget->headerItem()->setText(0, "");
     ui->treeWidget->setItemDelegate(new MyItemDelegate(ui->treeWidget));
 
-    QTreeWidgetItem *item = new QTreeWidgetItem(ui->treeWidget);
-    ui->treeWidget->addTopLevelItem(item);
-    item->setText(0, parameterBallDiameter);
-    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable);
-
-    item = new QTreeWidgetItem(ui->treeWidget);
-    ui->treeWidget->addTopLevelItem(item);
-    item->setText(0, parameterNumPoints);
-    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable);
+    addCalibOptions(); // adds calibration options (ball diameter, number of points...)
 
     ui->treeWidget->resizeColumnToContents(0);
 
@@ -66,6 +59,25 @@ MainWindow::~MainWindow()
 }
 
 
+void MainWindow::addCalibOptions()
+{
+    QTreeWidgetItem *item = new QTreeWidgetItem(ui->treeWidget);
+    ui->treeWidget->addTopLevelItem(item);
+    item->setText(0, "Calibration Options");
+
+    QTreeWidgetItem *childitem = new QTreeWidgetItem(item);
+    childitem->setText(0, parameterBallDiameter);
+    childitem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable);
+    item->addChild(childitem);
+
+    childitem = new QTreeWidgetItem(item);
+    childitem->setText(0, parameterNumPoints);
+    childitem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable);
+    item->addChild(childitem);
+
+    item->setExpanded(true);
+}
+
 void MainWindow::on_bt_add_clicked()
 {
     static int rowNumber = 0;
@@ -73,6 +85,7 @@ void MainWindow::on_bt_add_clicked()
     AddRoot(rowNumber);
     rowNumber++;
 }
+
 
 void MainWindow::AddRoot (int rowNumber)
 {
@@ -178,6 +191,8 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
         {
             if (item->parent()) // has parent
                 ui->bt_remove->setEnabled(false);
+            else if (item->text(0) == "Calibration Options")
+                ui->bt_remove->setEnabled(false);
             else
                 ui->bt_remove->setEnabled(true);
         }
@@ -193,14 +208,14 @@ void MainWindow::on_bt_start_nodes_clicked()
     ui->bt_start_nodes->setEnabled(false);
 
     processes.clear();
-    launchedNodes.clear();
+    launchedSensors.clear();
 
     QList<int> sensorCounter;
     for (int i = 0; i < supportedSensors.size(); i++)
         sensorCounter.push_back(0);
 
-    // i starts at two because comboboxes can only exists after row number 2
-    for (int i=2; i < ui->treeWidget->topLevelItemCount(); i++)
+    // i starts at two because comboboxes can only exists after row number 1
+    for (int i=1; i < ui->treeWidget->topLevelItemCount(); i++)
     {
         QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i); // Get item containing combobox
         QWidget *widget = ui->treeWidget->itemWidget(item, 0); // ComboBox widget is on column 0
@@ -218,28 +233,28 @@ void MainWindow::on_bt_start_nodes_clicked()
         if (sensor == supportedSensors[0])
         {
             sensorCounter[0] += 1;
-            launchedNodes.push_back(supportedSensorsNodes[0] + "_" + QString::number(sensorCounter[0]));
-            node_name += launchedNodes.last();
+            launchedSensors.push_back(supportedSensorsNodes[0] + "_" + QString::number(sensorCounter[0]));
+            node_name += launchedSensors.last();
             if (sensorCounter[0] == 2)
                 lms151_1="false";
         }
         else if (sensor == supportedSensors[1])
         {
             sensorCounter[1] += 1;
-            launchedNodes.push_back(supportedSensorsNodes[1] + "_" + QString::number(sensorCounter[1]));
-            node_name += launchedNodes.last();
+            launchedSensors.push_back(supportedSensorsNodes[1] + "_" + QString::number(sensorCounter[1]));
+            node_name += launchedSensors.last();
         }
         else if (sensor == supportedSensors[2])
         {
             sensorCounter[2] += 1;
-            launchedNodes.push_back(supportedSensorsNodes[2] + "_" + QString::number(sensorCounter[2]));
-            node_name += launchedNodes.last();
+            launchedSensors.push_back(supportedSensorsNodes[2] + "_" + QString::number(sensorCounter[2]));
+            node_name += launchedSensors.last();
         }
         else if (sensor == supportedSensors[3])
         {
             sensorCounter[3] += 1;
-            launchedNodes.push_back(supportedSensorsNodes[3] + "_" + QString::number(sensorCounter[3]));
-            node_name += launchedNodes.last();
+            launchedSensors.push_back(supportedSensorsNodes[3] + "_" + QString::number(sensorCounter[3]));
+            node_name += launchedSensors.last();
         }
         else
             qDebug() << sensor << "is not on" << supportedSensors;
@@ -272,7 +287,7 @@ void MainWindow::on_bt_start_nodes_clicked()
 
 void MainWindow::on_bt_stop_nodes_clicked()
 {
-    qDebug() << "Nodes to be killed" << launchedNodes;
+    qDebug() << "Nodes to be killed" << launchedSensors;
 
     ui->bt_stop_nodes->setEnabled(false);
     ui->bt_calibrate->setEnabled(false);
@@ -283,7 +298,7 @@ void MainWindow::on_bt_stop_nodes_clicked()
         qDebug() << "Killing process PID:" << pid;
         process->kill();
 
-        QString nodeName = "/" + launchedNodes.first() + "/" + launchedNodes.first();
+        QString nodeName = "/" + launchedSensors.first() + "/" + launchedSensors.first();
         QProcess nodeKiller;
         nodeKiller.start("rosnode", QStringList() << "kill" << nodeName);
         if (nodeKiller.waitForStarted(-1))
@@ -291,18 +306,20 @@ void MainWindow::on_bt_stop_nodes_clicked()
             while(nodeKiller.waitForReadyRead(-1))
                 qDebug() <<  nodeKiller.readAllStandardOutput();
         }
-        launchedNodes.removeFirst();
+        launchedSensors.removeFirst();
         qDebug() << "Killed node:" << nodeName;
-        qDebug() << "Nodes remaining:" << launchedNodes;
+        qDebug() << "Nodes remaining:" << launchedSensors;
     }
-    launchedNodes.clear();
-    qDebug() << "All node killed ended" << launchedNodes;
+    launchedSensors.clear();
+    qDebug() << "All node killed ended" << launchedSensors;
 
     ui->bt_start_nodes->setEnabled(true);
 }
 
 void MainWindow::on_bt_calibrate_clicked()
 {
+    qnode->setLaunchedSensors(launchedSensors);
+
     // start() is a QThread function. It calls QNode::run automatically
     //qnode->start();
 }
@@ -316,7 +333,7 @@ void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
         {
             processes[i]->deleteLater();
             processes.remove(i);
-            launchedNodes.removeAt(i);
+            launchedSensors.removeAt(i);
             if (!exit_code)
                 qDebug() << "Process" << i << "finished normally.";
             else

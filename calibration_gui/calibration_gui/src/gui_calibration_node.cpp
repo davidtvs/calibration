@@ -78,12 +78,6 @@ void QNode::run() {
     pcl::PointCloud<pcl::PointXYZ> camera1Cloud;
     pcl::PointCloud<pcl::PointXYZ> singleCamCloud;
     pcl::PointCloud<pcl::PointXYZ> singleCamCloudPnP;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr Lms1PointCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr Lms2PointCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr LdmrPointCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr Camera1Cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr SingleCamCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr SingleCamCloudPnP (new pcl::PointCloud<pcl::PointXYZ>);
     geometry_msgs::Pose laser_ldmrs;
     geometry_msgs::Pose laser_lms151_1;
     geometry_msgs::Pose laser_lms151_2;
@@ -92,6 +86,23 @@ void QNode::run() {
     geometry_msgs::Pose singleCam;
     geometry_msgs::Pose singleCamPnP;
     geometry_msgs::Pose singleCamPnPRansac;
+
+    // Vector for containing future pointclouds for each sensor
+    vector<pcl::PointCloud<pcl::PointXYZ> > sensorClouds;
+    for (int i=0; i < calibrationSensors.size(); i++)
+    {
+        pcl::PointCloud<pcl::PointXYZ> sensorCloud;
+        sensorClouds.push_back(sensorCloud);
+    }
+
+    // Vector for containing future sensor poses
+    vector<geometry_msgs::Pose> sensorPoses;
+    for (int i=0; i < calibrationSensors.size(); i++)
+    {
+        geometry_msgs::Pose sensorPose;
+        sensorPoses.push_back(sensorPose);
+    }
+    sensorPoses[0].orientation.w = 1.0; // so it can be multiplied by transformations later
 
 
     ros::NodeHandle n;
@@ -144,9 +155,7 @@ void QNode::run() {
     {
         while(count < num_of_points)
         {
-            //cout << "calibration: test\n" << "lms1 - " << centroids.lms1Centroid.point.x << " | lms2 - " <<  centroids.lms2Centroid.point.x << endl; // debug
-            //cout<<"cycle start"<<endl;
-            //cout << "(" << centroids.singleCamCentroid.point.x << "," << centroids.singleCamCentroid.point.y << "," <<  centroids.singleCamCentroid.point.z << ")" << endl;
+            // Change condition below when subscribing is generic
             if(centroids.lms1Centroid.point.x != 0 && centroids.lms2Centroid.point.x != 0
                     && centroids.ldmrsCentroid.point.x != 0 && centroids.singleCamCentroid.point.z != 0
                     && centroids.singleCamCentroidPnP.point.z != 0)        //&& centroids.cam1Centroid.point.z!=0)
@@ -156,7 +165,7 @@ void QNode::run() {
                 P[0].z=centroids.lms1Centroid.point.z;
 
                 double dist;
-                dist=sqrt(pow((P[0].x-P[1].x),2) + pow((P[0].y-P[1].y),2));
+                dist=sqrt(pow((P[0].x-P[1].x),2) + pow((P[0].y-P[1].y),2)); // X-Y distance
                 double time_diference;
                 time_diference = centroids.lms2Centroid.header.stamp.nsec - centroids.lms1Centroid.header.stamp.nsec;
                 cout<<"time = "<<time_diference<<endl;
@@ -388,4 +397,9 @@ void QNode::run() {
 void QNode::setCalibrationPoints(int numPoints)
 {
     num_of_points=numPoints;
+}
+
+void QNode::setLaunchedSensors(QList<QString> sensors)
+{
+    sensors=calibrationSensors;
 }

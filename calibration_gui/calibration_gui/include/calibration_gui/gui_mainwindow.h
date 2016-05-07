@@ -22,9 +22,10 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    void setQStrings();
+    void addCalibOptions();
     void AddRoot (int rowNUmber);
     void AddChildIP (QTreeWidgetItem *parent, int rowNUmber);
-    void setQStrings();
     //void AddChildTopic (QTreeWidgetItem *parent);
 
 
@@ -60,7 +61,7 @@ private:
     QString parameterNumPoints;
     QList<QString> supportedSensors;
     QList<QString> supportedSensorsNodes;
-    QList<QString> launchedNodes;
+    QList<QString> launchedSensors;
 };
 
 
