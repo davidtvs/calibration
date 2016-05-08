@@ -13,6 +13,7 @@
 
 #include "ui_mainwindow.h"
 #include "calibration_gui/gui_calibration_node.hpp"
+#include "calibration_gui/gui_myrviz.h"
 
 namespace Ui {
 class MainWindow;
@@ -24,8 +25,8 @@ class MainWindow : public QMainWindow
 
     void setQStrings();
     void addCalibOptions();
-    void AddRoot (int rowNUmber);
-    void AddChildIP (QTreeWidgetItem *parent, int rowNUmber);
+    void AddRoot ();
+    void AddChildIP (QTreeWidgetItem *parent);
     //void AddChildTopic (QTreeWidgetItem *parent);
 
 
@@ -51,17 +52,25 @@ private slots:
 
     void on_treeWidget_itemSelectionChanged();
 
+    void on_actionOptions_triggered();
+
+    void on_tabWidget_currentChanged(int index);
+
 private:
     Ui::MainWindow *ui;
     QNode *qnode;
+    MyViz *mRviz;
+    MyViz *mRviz2;
+    MyViz *mRviz3;
     QVector<QProcess*> processes;
+    std::vector<bool> isCamera;
 
     // Parameter Strings
     QString parameterBallDiameter;
     QString parameterNumPoints;
     QList<QString> supportedSensors;
     QList<QString> supportedSensorsNodes;
-    QList<QString> launchedSensors;
+    QList<QString> launchedNodes;
 };
 
 

@@ -66,6 +66,7 @@
 
 // Boost filesystem to get parent directory
 #include "boost/filesystem.hpp"
+#include <boost/bind.hpp>
 
 #define BALL_DIAMETER 0.99
 
@@ -76,7 +77,7 @@ using namespace std;
 #if defined _CALIBRATION_UTILS_CPP_
 string file_path;
 
-#elif defined (_CALIBRATION_CPP_) || defined (_NODE_CPP_)
+#elif defined (_NODE_CPP_)
 extern string file_path;
 /**
   \class CircleCentroids
@@ -87,78 +88,86 @@ class CircleCentroids
 {
 public:
     ros::NodeHandle n_;
-    ros::Subscriber lms1Centroid_subscriber;
-    ros::Subscriber lms2Centroid_subscriber;
-    ros::Subscriber ldmrsCentroid_subscriber;
-    ros::Subscriber swissrangerCentroid_subscriber;
-    ros::Subscriber cam1Centroid_subscriber;
-    ros::Subscriber singleCamCentroid_subscriber;
-    ros::Subscriber singleCamCentroidPnP_subscriber;
-    image_transport::Subscriber image_subscriber;
-    geometry_msgs::PointStamped lms1Centroid; /**< ball center coordinates on the first sick lms151 laser. */
-    geometry_msgs::PointStamped lms2Centroid; /**< ball center coordinates on the second sick lms151 laser. */
-    geometry_msgs::PointStamped ldmrsCentroid; /**< ball center coordinates on the sick ld-mrs laser. */
-    geometry_msgs::PointStamped swissrangerCentroid; /**< ball center coordinates on the swissranger. */
-    geometry_msgs::PointStamped cam1Centroid; /**< ball center coordinates on the stereo system. */
-    geometry_msgs::PointStamped singleCamCentroid; /**< ball center coordinates on single camera coordinate system. */
-    geometry_msgs::PointStamped singleCamCentroidPnP; /**< ball center coordinates on single camera image. */
-    sensor_msgs::ImageConstPtr camImage;
 
+    vector<ros::Subscriber> subs;
+    vector<pcl::PointXYZ> sensors_ball_centers;
+
+    vector<ros::Subscriber> subs_pnp;
+    vector<pcl::PointXYZ> camCentroidPnP; /**< ball center coordinates on single camera image. */
+
+    vector<image_transport::Subscriber> subs_cam_images;
+    vector<sensor_msgs::ImageConstPtr> camImage;
 /**
 @brief constructer - subscription of the topics with the ball center coordinates in the different sensors
 */
-    CircleCentroids()
+    CircleCentroids(const vector<string> &sensors_list, const vector<bool> &isCamera)
     {
         //Topics I want to subscribe
-        lms1Centroid_subscriber=n_.subscribe("/laser1/sphereCentroid", 1000, &CircleCentroids::lms1CentroidUpdate, this);
-        lms2Centroid_subscriber=n_.subscribe("/laser2/sphereCentroid", 1000, &CircleCentroids::lms2CentroidUpdate, this);
-        ldmrsCentroid_subscriber=n_.subscribe("/sphere_centroid", 1000, &CircleCentroids::ldmrsCentroidUpdate, this);
-        swissrangerCentroid_subscriber=n_.subscribe("/swissranger/spherecenter", 1000, &CircleCentroids::swissrangerCentroidUpdate, this);
-        cam1Centroid_subscriber=n_.subscribe("/Camera1/ballCentroid",1000, &CircleCentroids::cam1CentroidUpdate, this);
-        singleCamCentroid_subscriber = n_.subscribe("/SingleCamera/ballCentroid", 1, &CircleCentroids::singleCamCentroidUpdate, this);
-        singleCamCentroidPnP_subscriber = n_.subscribe("/SingleCamera/ballCentroidPnP", 1, &CircleCentroids::singleCamCentroidPnPUpdate, this);
-        image_transport::ImageTransport it(n_);
-        image_subscriber = it.subscribe("/SingleCamera/image", 1, &CircleCentroids::imageUpdate, this);
+        //Source: http://ros-users.122217.n3.nabble.com/How-to-identify-the-subscriber-or-the-topic-name-related-to-a-callback-td2391327.html
+        string topic_name;
+        int cam_count = 0;
+        for (int i = 0; i < sensors_list.size(); i++)
+        {
+          topic_name = sensors_list[i] + "/SphereCentroid";
+          cout << i << " " << topic_name << endl;
+          pcl::PointXYZ allocator_ball_centers;
+          sensors_ball_centers.push_back(allocator_ball_centers);
+
+          subs.push_back( n_.subscribe <geometry_msgs::PointStamped> (topic_name, 1000, boost::bind(&CircleCentroids::sensorUpdate, this, _1, i, isCamera[i])) );
+        if (isCamera[i])
+          {
+            // Allocating space in camImage vector
+            sensor_msgs::ImageConstPtr allocator_camImage;
+            camImage.push_back(allocator_camImage);
+            // Subscribing to raw image topics
+            image_transport::ImageTransport it(n_);
+            subs_cam_images.push_back( it.subscribe (sensors_list[i] + "/RawImage", 1, boost::bind(&CircleCentroids::imageUpdate, this, _1, cam_count)) );
+
+            // Allocating space in camCentroidPnP vector
+            pcl::PointXYZ allocator_camCentroidPnP;
+            camCentroidPnP.push_back(allocator_camCentroidPnP);
+            //Subscribing to topics containing image points for the solvepnp method
+            subs_pnp.push_back( n_.subscribe <geometry_msgs::PointStamped> (topic_name + "PnP", 1, boost::bind(&CircleCentroids::camCentroidPnPUpdate, this, _1, cam_count)) );
+
+            cam_count++;
+          }
+        }
     }
 
     ~CircleCentroids(){}
 
-    void lms1CentroidUpdate(const geometry_msgs::PointStamped& msg)
+    // Source: https://foundry.supelec.fr/scm/viewvc.php/nouveau/ROS/koala_node/src/camera_position_node.cpp?view=markup&root=rpm_ims&sortdir=down&pathrev=2320
+    void sensorUpdate(const geometry_msgs::PointStampedConstPtr& msg, int i, bool isCamera)
     {
-        lms1Centroid=msg;
+      sensors_ball_centers[i].x = msg->point.x;
+      sensors_ball_centers[i].y = msg->point.y;
+      sensors_ball_centers[i].z = msg->point.z;
+      if (isCamera)
+      {
+        /* Since the cameras' coordinate system is different from the lasers'
+          they need to be rotated so the pose for lasers and cameras is consistent */
+        Eigen::Affine3f cam_transform = Eigen::Affine3f::Identity();
+        cam_transform.translation() << 0.0, 0.0, 0.0;
+        cam_transform.rotate ( AngleAxisf(M_PI/2, Vector3f::UnitX())
+                              *  AngleAxisf(-M_PI/2, Vector3f::UnitY())
+                              *  AngleAxisf(0, Vector3f::UnitZ())
+                            );
+
+        cout << cam_transform.matrix() << endl;
+
+        sensors_ball_centers[i] = pcl::transformPoint(sensors_ball_centers[i], cam_transform);
+      }
     }
 
-    void lms2CentroidUpdate(const geometry_msgs::PointStamped& msg)
+    void camCentroidPnPUpdate(const geometry_msgs::PointStampedConstPtr& msg, int camNum)
     {
-        lms2Centroid=msg;
+        camCentroidPnP[camNum].x = msg->point.x;
+        camCentroidPnP[camNum].y = msg->point.y;
+        camCentroidPnP[camNum].z = msg->point.z;
     }
-
-    void ldmrsCentroidUpdate(const geometry_msgs::PointStamped& msg)
+    void imageUpdate(const sensor_msgs::ImageConstPtr& msg, int camNum)
     {
-        ldmrsCentroid=msg;
-    }
-
-    void swissrangerCentroidUpdate(const geometry_msgs::PointStamped& msg)
-    {
-        swissrangerCentroid=msg;
-    }
-
-    void cam1CentroidUpdate(const geometry_msgs::PointStamped& msg)
-    {
-        cam1Centroid=msg;
-    }
-
-    void singleCamCentroidUpdate(const geometry_msgs::PointStamped& msg)
-    {
-        singleCamCentroid=msg;
-    }
-    void singleCamCentroidPnPUpdate(const geometry_msgs::PointStamped& msg)
-    {
-        singleCamCentroidPnP=msg;
-    }
-    void imageUpdate(const sensor_msgs::ImageConstPtr& msg)
-    {
-      camImage = msg;
+      camImage[camNum] = msg;
     }
 };
 
@@ -169,7 +178,7 @@ extern string file_path;
 void createDirectory ( );
 void writeFile(pcl::registration::TransformationEstimationSVD<pcl::PointXYZ, pcl::PointXYZ>::Matrix4 transformation, const string filepath);
 void writeFileCamera( cv::Mat transformation, const char* transformation_name, const string filepath);
-void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string laserNames);
+void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName);
 int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3f> objectPoints, vector<cv::Point2f> imagePoints, const string name, const bool draw = false, const bool ransac = false);
 visualization_msgs::Marker addCar(const vector<double>& RPY = vector<double>(), const vector<double>& translation = vector<double>() );
 float pointEuclideanDistance (const pcl::PointXYZ &p1, const pcl::PointXYZ &p2);

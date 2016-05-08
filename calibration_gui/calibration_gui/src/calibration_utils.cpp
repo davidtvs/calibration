@@ -107,7 +107,7 @@ void writeFileCamera( cv::Mat transformation, const char* transformation_name, c
    @param[in] laserNames name of the sensor pairs
    @return void
  */
-void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string laserNames)
+void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName)
 {
 	//Eigen::Matrix4d transformation of laser lms151 to ldmrs
 	pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,pcl::PointXYZ> TESVD;
@@ -131,21 +131,9 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 		laserCloud.points[i].z = Point_out(2);
 	}
 
-	string name;
+	string name = targetSensorName + "_" + sensorName + "_calib.txt";
 
-	if(laserNames=="lms1_ldmrs")
-		name="lms1_ldmrs_calib.txt";
-
-	else if(laserNames=="lms1_sr")
-		name="lms1_sr_calib.txt";
-
-	else if(laserNames=="lms1_stereo")
-		name="lms1_stereo_calib_.txt";
-
-	else if(laserNames=="lms1_lms2")
-		name="lms1_lms2_calib.txt";
-
-	else if (laserNames=="lms1_camera")
+	/*else if (laserNames=="lms1_camera")
 	{
 		name="lms1_camera_calib.txt";
 		// Rotation matrix around the X axis so the pose represents the Z axis
@@ -156,7 +144,7 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 		        -sin(alpha), 0, cos(alpha), 0,
 		        0,           0,     0,      1;
 		Trans=Trans*R_y;
-	}
+	}*/
 
 	/* Visualization of camera position and orientation
 	   Convert the opencv matrices to tf compatible ones */
@@ -173,7 +161,7 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 
 	T.getRotation(q);
 
-	std::cout << "Quaternion " << laserNames << ": " << q[0] << " "
+	std::cout << "Quaternion " << targetSensorName + "_" + sensorName << ": " << q[0] << " "
 	<< q[1] << " "
 	<< q[2] << " "
 	<< q[3] << endl;

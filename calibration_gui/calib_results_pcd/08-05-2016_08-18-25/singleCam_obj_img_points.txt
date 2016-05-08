@@ -1,0 +1,2 @@
+ObjectPoints (m)	ImagePoints (pixel)
+x;y;z	x;y;r

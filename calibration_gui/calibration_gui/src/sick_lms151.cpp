@@ -49,9 +49,9 @@
 #include <ctime>
 
 //Marker's publisher
-ros::Publisher markers_lms_1_pub;
+ros::Publisher markers_lms_pub;
 ros::Publisher circleCentroid_pub;
-int scan_lms_1_header;
+int scan_lms_header;
 int checkCircle=0;
 
 /**
@@ -105,7 +105,7 @@ void dataFromFileHandler(vector<PointPtr>& groundtruth_points, int iteration)
 
 	targets_markers.markers = createTargetMarkers(clusters_nn,circle,sphere);
 
-	markers_lms_1_pub.publish(targets_markers);
+	markers_lms_pub.publish(targets_markers);
 
 	//cout<<"done all"<<endl;
 
@@ -327,27 +327,33 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "sick_lms151");
-	ros::NodeHandle n;
-	sickLMSscan scan;
 
-	markers_lms_1_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers2", 10000);
-	circleCentroid_pub = n.advertise<geometry_msgs::PointStamped>( "/laser1/sphereCentroid", 10000);
+
+	ros::NodeHandle n("~");
+	string sub_node_name;
+	n.getParam("sub_node_name", sub_node_name);
+	std::cout << sub_node_name << std::endl;
+
+	sickLMSscan scan(sub_node_name);
+
+	markers_lms_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers2", 10000);
+	circleCentroid_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroid", 10000);
 
 	ros::Rate loop_rate(50);
 
 	while(ros::ok())
 	{
 		C_DataFromFilePtr data_gt;
-		cout<<"size "<<scan.scanLaser1.ranges.size()<<endl;
+		cout<<"size "<<scan.scanLaser.ranges.size()<<endl;
 		vector<PointPtr> points;
-		if(scan.scanLaser1.ranges.size()!=0)
+		if(scan.scanLaser.ranges.size()!=0)
 		{
-			convertDataToXY(scan.scanLaser1, data_gt);
+			convertDataToXY(scan.scanLaser, data_gt);
 
 			createPointsFromFile(points, data_gt);
-			scan_lms_1_header=data_gt->iteration;
+			scan_lms_header=data_gt->iteration;
 
-			dataFromFileHandler(points, scan_lms_1_header);
+			dataFromFileHandler(points, scan_lms_header);
 		}
 
 		ros::spinOnce();

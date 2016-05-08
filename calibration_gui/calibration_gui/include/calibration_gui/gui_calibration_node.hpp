@@ -35,7 +35,7 @@ public:
     const std::string& nodeName() { return node_name; }
 
     void setCalibrationPoints(int numPoints);
-    void setLaunchedSensors(QList<QString> sensors);
+    void setLaunchedNodes(std::vector<std::string> sensors, std::vector<bool> camera);
 
 Q_SIGNALS:
     void loggingUpdated();
@@ -43,7 +43,8 @@ Q_SIGNALS:
 
 private:
     int num_of_points;
-    QList<QString> calibrationSensors;
+    std::vector<std::string> calibrationNodes;
+    std::vector<bool> isCamera;
 
 protected:
     int init_argc;

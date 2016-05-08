@@ -1,5 +1,5 @@
 #include "calibration_gui/gui_mainwindow.h"
-#include "calibration_gui/gui_myrviz.h"
+#include "calibration_gui/gui_options.h"
 
 #include <QDebug>
 #include <QLineEdit>
@@ -25,15 +25,25 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
 
     qnode->on_init();
 
-    myviz = new MyViz();
+    mRviz = new MyViz();
     //setCentralWidget(ui->mdiArea);
-    ui->mdiArea->addSubWindow(myviz, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
-    myviz->showMaximized();
+    ui->mdiArea_lasers->addSubWindow(mRviz, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
+    mRviz->showMaximized();
+
+    mRviz2 = new MyViz();
+    ui->mdiArea_cameras->addSubWindow(mRviz2, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
+    mRviz2->showMaximized();
+
+    mRviz3 = new MyViz();
+    ui->mdiArea_calib->addSubWindow(mRviz3, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
+    mRviz3->showMaximized();
 
     //ui->treeWidget->headerItem()->setText(0, "");
     ui->treeWidget->setItemDelegate(new MyItemDelegate(ui->treeWidget));
 
     addCalibOptions(); // adds calibration options (ball diameter, number of points...)
+
+    AddRoot();
 
     ui->treeWidget->resizeColumnToContents(0);
 
@@ -80,14 +90,11 @@ void MainWindow::addCalibOptions()
 
 void MainWindow::on_bt_add_clicked()
 {
-    static int rowNumber = 0;
-    qDebug() << rowNumber;
-    AddRoot(rowNumber);
-    rowNumber++;
+    AddRoot();
 }
 
 
-void MainWindow::AddRoot (int rowNumber)
+void MainWindow::AddRoot ()
 {
     // ComboBox with avaiable lasers and cameras
     QTreeWidgetItem *item = new QTreeWidgetItem(ui->treeWidget);
@@ -104,11 +111,11 @@ void MainWindow::AddRoot (int rowNumber)
     deviceCheckBox->setCheckState(Qt::Checked);
     ui->treeWidget->setItemWidget(item,1,deviceCheckBox);
 
-    AddChildIP(item, rowNumber);
+    AddChildIP(item);
     //AddChildTopic(item);
 }
 
-void MainWindow::AddChildIP (QTreeWidgetItem *parent, int rowNumber)
+void MainWindow::AddChildIP (QTreeWidgetItem *parent)
 {
     QString ask_IP = "IP";
 
@@ -200,7 +207,6 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
 }
 
 
-
 void MainWindow::on_bt_start_nodes_clicked()
 {
     qDebug() << "in start nodes";
@@ -208,7 +214,8 @@ void MainWindow::on_bt_start_nodes_clicked()
     ui->bt_start_nodes->setEnabled(false);
 
     processes.clear();
-    launchedSensors.clear();
+    launchedNodes.clear();
+    isCamera.clear();
 
     QList<int> sensorCounter;
     for (int i = 0; i < supportedSensors.size(); i++)
@@ -217,6 +224,7 @@ void MainWindow::on_bt_start_nodes_clicked()
     // i starts at two because comboboxes can only exists after row number 1
     for (int i=1; i < ui->treeWidget->topLevelItemCount(); i++)
     {
+
         QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i); // Get item containing combobox
         QWidget *widget = ui->treeWidget->itemWidget(item, 0); // ComboBox widget is on column 0
         QString sensor = qobject_cast<QComboBox*>(widget)->currentText(); // Gets ComboBox current text, which is a sensor
@@ -228,33 +236,33 @@ void MainWindow::on_bt_start_nodes_clicked()
 
         QString node_name = "node_name:=";
 
-        QString lms151_1 = "true"; // see comment after QStringList arguments
-
-        if (sensor == supportedSensors[0])
+        if (sensor == supportedSensors[0]) // lms151
         {
             sensorCounter[0] += 1;
-            launchedSensors.push_back(supportedSensorsNodes[0] + "_" + QString::number(sensorCounter[0]));
-            node_name += launchedSensors.last();
-            if (sensorCounter[0] == 2)
-                lms151_1="false";
+            launchedNodes.push_back(supportedSensorsNodes[0] + "_" + QString::number(sensorCounter[0]));
+            node_name += launchedNodes.last();
+            isCamera.push_back(false);
         }
-        else if (sensor == supportedSensors[1])
+        else if (sensor == supportedSensors[1]) //ldmrs
         {
             sensorCounter[1] += 1;
-            launchedSensors.push_back(supportedSensorsNodes[1] + "_" + QString::number(sensorCounter[1]));
-            node_name += launchedSensors.last();
+            launchedNodes.push_back(supportedSensorsNodes[1] + "_" + QString::number(sensorCounter[1]));
+            node_name += launchedNodes.last();
+            isCamera.push_back(false);
         }
-        else if (sensor == supportedSensors[2])
+        else if (sensor == supportedSensors[2]) // pointgrey
         {
             sensorCounter[2] += 1;
-            launchedSensors.push_back(supportedSensorsNodes[2] + "_" + QString::number(sensorCounter[2]));
-            node_name += launchedSensors.last();
+            launchedNodes.push_back(supportedSensorsNodes[2] + "_" + QString::number(sensorCounter[2]));
+            node_name += launchedNodes.last();
+            isCamera.push_back(true);
         }
-        else if (sensor == supportedSensors[3])
+        else if (sensor == supportedSensors[3]) // swissranger
         {
             sensorCounter[3] += 1;
-            launchedSensors.push_back(supportedSensorsNodes[3] + "_" + QString::number(sensorCounter[3]));
-            node_name += launchedSensors.last();
+            launchedNodes.push_back(supportedSensorsNodes[3] + "_" + QString::number(sensorCounter[3]));
+            node_name += launchedNodes.last();
+            isCamera.push_back(false);
         }
         else
             qDebug() << sensor << "is not on" << supportedSensors;
@@ -265,12 +273,7 @@ void MainWindow::on_bt_start_nodes_clicked()
         QStringList arguments = QStringList() << "calibration_gui"
                                               << roslaunch_file
                                               << sensorIP
-                                              << node_name
-                                              << "lms151_1:=" + lms151_1;
-        /*  The last argument ""lms151_2:=" + lms151" is only needed because subscribing to topics
-            on the calibration  and circle detection files is not generalised. SO in order to launch
-            multiple LMS151 nodes this workaround is needed - if true a different When that's is done
-            the argument should be removed */
+                                              << node_name;
 
         qDebug() << "Launching with:" << program << arguments.join(" ");
 
@@ -287,7 +290,7 @@ void MainWindow::on_bt_start_nodes_clicked()
 
 void MainWindow::on_bt_stop_nodes_clicked()
 {
-    qDebug() << "Nodes to be killed" << launchedSensors;
+    qDebug() << "Nodes to be killed" << launchedNodes;
 
     ui->bt_stop_nodes->setEnabled(false);
     ui->bt_calibrate->setEnabled(false);
@@ -298,7 +301,7 @@ void MainWindow::on_bt_stop_nodes_clicked()
         qDebug() << "Killing process PID:" << pid;
         process->kill();
 
-        QString nodeName = "/" + launchedSensors.first() + "/" + launchedSensors.first();
+        QString nodeName = "/" + launchedNodes.first() + "/" + launchedNodes.first();
         QProcess nodeKiller;
         nodeKiller.start("rosnode", QStringList() << "kill" << nodeName);
         if (nodeKiller.waitForStarted(-1))
@@ -306,19 +309,25 @@ void MainWindow::on_bt_stop_nodes_clicked()
             while(nodeKiller.waitForReadyRead(-1))
                 qDebug() <<  nodeKiller.readAllStandardOutput();
         }
-        launchedSensors.removeFirst();
+        launchedNodes.removeFirst();
         qDebug() << "Killed node:" << nodeName;
-        qDebug() << "Nodes remaining:" << launchedSensors;
+        qDebug() << "Nodes remaining:" << launchedNodes;
     }
-    launchedSensors.clear();
-    qDebug() << "All node killed ended" << launchedSensors;
+    launchedNodes.clear();
+    qDebug() << "All node killed ended" << launchedNodes;
 
     ui->bt_start_nodes->setEnabled(true);
 }
 
 void MainWindow::on_bt_calibrate_clicked()
 {
-    qnode->setLaunchedSensors(launchedSensors);
+    std::vector<std::string> vec;
+
+    foreach( QString str, launchedNodes) {
+      vec.push_back(str.toStdString());
+    }
+
+    qnode->setLaunchedNodes(vec, isCamera);
 
     // start() is a QThread function. It calls QNode::run automatically
     //qnode->start();
@@ -333,7 +342,7 @@ void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
         {
             processes[i]->deleteLater();
             processes.remove(i);
-            launchedSensors.removeAt(i);
+            launchedNodes.removeAt(i);
             if (!exit_code)
                 qDebug() << "Process" << i << "finished normally.";
             else
@@ -425,3 +434,15 @@ void MainWindow::setQStrings()
 
 
 
+
+void MainWindow::on_actionOptions_triggered()
+{
+    Options mOptions;
+    mOptions.setModal(true);
+    mOptions.exec();
+}
+
+void MainWindow::on_tabWidget_currentChanged(int index)
+{
+    qDebug() << "on_tabWidget_currentChanged";
+}

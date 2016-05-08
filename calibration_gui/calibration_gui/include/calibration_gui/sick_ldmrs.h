@@ -91,13 +91,13 @@ public:
     sensor_msgs::LaserScan scan2;
     sensor_msgs::LaserScan scan3;
 
-    sickLDMRSscan()
+    sickLDMRSscan(const string &nodeToSub)
     {
         //Topics I want to subscribe
-        scan0_subscriber=n_.subscribe("/ldmrs_1/scan0", 1000, &sickLDMRSscan::scan0Update, this);
-        scan1_subscriber=n_.subscribe("/ldmrs_1/scan1", 1000, &sickLDMRSscan::scan1Update, this);
-        scan2_subscriber=n_.subscribe("/ldmrs_1/scan2", 1000, &sickLDMRSscan::scan2Update, this);
-        scan3_subscriber=n_.subscribe("/ldmrs_1/scan3", 1000, &sickLDMRSscan::scan3Update, this);
+        scan0_subscriber=n_.subscribe("/" + nodeToSub + "/scan0", 1000, &sickLDMRSscan::scan0Update, this);
+        scan1_subscriber=n_.subscribe("/" + nodeToSub + "/scan1", 1000, &sickLDMRSscan::scan1Update, this);
+        scan2_subscriber=n_.subscribe("/" + nodeToSub + "/scan2", 1000, &sickLDMRSscan::scan2Update, this);
+        scan3_subscriber=n_.subscribe("/" + nodeToSub + "/scan3", 1000, &sickLDMRSscan::scan3Update, this);
     }
 
     void scan0Update(const sensor_msgs::LaserScan& msg)

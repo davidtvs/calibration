@@ -151,13 +151,18 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "swissranger");
-    ros::NodeHandle n;
+
+    ros::NodeHandle n("~");
+    string sub_node_name;
+    n.getParam("sub_node_name", sub_node_name);
+
+    std::cout << sub_node_name << std::endl;
 
     markers_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers4", 10000);
-    sphereCenter_pub = n.advertise<geometry_msgs::PointStamped>("/swissranger/spherecenter",1000);
-    pointCloud_pub = n.advertise<sensor_msgs::PointCloud>("/swissranger/pointcloud",10000);
+    sphereCenter_pub = n.advertise<geometry_msgs::PointStamped>("SphereCentroid",1000);
+    pointCloud_pub = n.advertise<sensor_msgs::PointCloud>("Pointcloud",10000);
 
-    swissranger cloud;
+    swissranger cloud(sub_node_name);
 
     ros::Rate loop_rate(50);
 

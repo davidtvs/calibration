@@ -54,16 +54,18 @@ void ConnectCameras(Camera &Camera)
 	Error error;
 
 	BusManager busManager;
-	unsigned int numCameras=0;
-	while(numCameras!=1)
+	unsigned int numCameras=0, count=0;
+	while(numCameras!=1 && ros::ok())
 	{
 		error = busManager.GetNumOfCameras(&numCameras);
-		if(error != PGRERROR_OK)
+		if(error != PGRERROR_OK || count==10)
 		{
 			cout<<"Failed to get number of cameras"<<endl;
-			exit(1);
+			throw exception();
 		}
 		cout<<numCameras<<"cameras detected"<<endl;
+		count++;
+		ros::Duration(2).sleep(); // sleep for two seconds
 	}
 
 	//Camera camera1;
@@ -79,7 +81,7 @@ void ConnectCameras(Camera &Camera)
 
 	CameraInfo camInfo;
 
-	//connect the two cameras
+	//connect the camera
 	error=Camera.Connect(&pGuid);
 	if ( error != PGRERROR_OK )
 	{
@@ -183,8 +185,9 @@ void ImageCapture(Camera &Camera)
 	sensor_msgs::ImagePtr image_msg;
 
 	// capture loop
+	ros::Rate loop_rate(30);
 	int key = 0;
-	while(key != 1048689 && key != 1114193)
+	while(key != 1048689 && key != 1114193 && ros::ok())
 	{
 		// Get the image camera 1
 		Image rawImage;
@@ -246,6 +249,7 @@ void ImageCapture(Camera &Camera)
 		// get user key
 		key = waitKey(1);
 		ros::spinOnce();
+		loop_rate.sleep();
 	}
 
 	destroyWindow("Camera"); //destroy the window
@@ -442,12 +446,20 @@ int main(int argc, char **argv)
 	fs["D1"] >> disCoeffs1;
 
 	image_transport::ImageTransport it(n);
-	image_pub = it.advertise("/SingleCamera/image", 2);
-	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( "/SingleCamera/ballCentroid", 7);
-	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( "/SingleCamera/ballCentroidPnP", 7);
+	image_pub = it.advertise("RawImage", 2);
+	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroid", 7);
+	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroidPnP", 7);
 
   Camera Camera;
-	ConnectCameras(Camera);
+	try
+	{
+		ConnectCameras(Camera);
+	}
+	catch (const exception&)
+	{
+		return EXIT_FAILURE;
+	}
+
 	ImageCapture(Camera);
 
 	return 0;

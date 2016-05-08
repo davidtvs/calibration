@@ -488,11 +488,17 @@ void convertDataToXYZ(sensor_msgs::LaserScan scan, vector<C_DataFromFilePtr>& da
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "sick_ldmrs");
-	ros::NodeHandle n;
-	sickLDMRSscan scan;
+
+	ros::NodeHandle n("~");
+	string sub_node_name;
+	n.getParam("sub_node_name", sub_node_name);
+
+	std::cout << sub_node_name << std::endl;
+
+	sickLDMRSscan scan(sub_node_name);
 
 	markers_ldmrs_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers", 10000);
-	sphereCentroid_pub = n.advertise<geometry_msgs::PointStamped>("/sphere_centroid",1000);
+	sphereCentroid_pub = n.advertise<geometry_msgs::PointStamped>("SphereCentroid",1000);
 
 	ros::Rate loop_rate(50);
 

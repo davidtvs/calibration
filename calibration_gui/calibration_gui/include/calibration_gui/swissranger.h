@@ -52,10 +52,10 @@ public:
 /**
 @brief constructer - subscription of the point cloud from the swissranger
 */
-    swissranger()
+    swissranger(const string &nodeToSub)
     {
         //Topics I want to subscribe
-        pointCloud_subscriber=n_.subscribe("/swissranger_1/pointcloud_raw", 10000, &swissranger::pointCloudUpdate, this);
+        pointCloud_subscriber=n_.subscribe("/" + nodeToSub + "/pointcloud_raw", 10000, &swissranger::pointCloudUpdate, this);
     }
 
     ~swissranger(){}

@@ -125,7 +125,6 @@ int main(int argc, char **argv)
 	fprintf(pFile, "x;y;z\tx;y;r\n");
 	fclose(pFile);
 
-
 	cout<<"Start calibration"<<endl;
 
 	cout<<"Press Enter to Continue";
@@ -200,11 +199,11 @@ int main(int argc, char **argv)
 	targets_markerss.markers = createTargetMarkers(cloudss,laserss);
 	markers_pub.publish(targets_markerss);
 
-	estimateTransformation(laser_lms151_2,lms1PointCloud,lms2PointCloud, "lms1_lms2");
-	estimateTransformation(laser_ldmrs,lms1PointCloud,ldmrPointCloud, "lms1_ldmrs");
+	estimateTransformation(laser_lms151_2,lms1PointCloud,lms2PointCloud, "lms1", "lms2");
+	estimateTransformation(laser_ldmrs,lms1PointCloud,ldmrPointCloud, "lms1", "ldmrs");
 	// estimateTransformation(swissranger,lmsPointCloud,swissrangerCloud,"lms_sr");
 	// estimateTransformation(stereo,lms1PointCloud,camera1Cloud,"lms1_stereo");
-	estimateTransformation(singleCam, lms1PointCloud, singleCamCloud, "lms1_camera");
+	estimateTransformation(singleCam, lms1PointCloud, singleCamCloud, "lms1", "camera");
   estimateTransformationCamera(singleCamPnP, objectPoints, imagePoints, "lms1_camera_calib", false, false); // Transformation estimation with solvePnP
   estimateTransformationCamera(singleCamPnPRansac, objectPoints, imagePoints, "lms1_camera_calib", true, true); // Transformation estimation with solvePnPRansac;
 

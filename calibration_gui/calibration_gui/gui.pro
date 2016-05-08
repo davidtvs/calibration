@@ -15,12 +15,16 @@ TEMPLATE = app
 SOURCES += src/gui_main.cpp\
         src/gui_mainwindow.cpp \
     src/gui_myrviz.cpp \
-    src/gui_calibration_node.cpp
+    src/gui_calibration_node.cpp \
+    src/gui_options.cpp
 
 HEADERS  += include/calibration_gui/gui_mainwindow.h \
     include/calibration_gui/gui_myrviz.h \
-    include/calibration_gui/gui_calibration_node.hpp
+    include/calibration_gui/gui_calibration_node.hpp \
+    include/calibration_gui/gui_options.h \
+    include/calibration_gui/gui_options.h
 
-FORMS    += ui/mainwindow.ui
+FORMS    += ui/mainwindow.ui \
+    ui/options.ui
 
 INCLUDEPATH += $$PWD/include

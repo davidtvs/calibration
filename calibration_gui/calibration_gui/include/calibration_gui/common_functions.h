@@ -56,27 +56,18 @@ class sickLMSscan
 {
 public:
     ros::NodeHandle n_;
-    ros::Subscriber laser1_subscriber;
-    ros::Subscriber laser2_subscriber;
-    sensor_msgs::LaserScan scanLaser1;
-    sensor_msgs::LaserScan scanLaser2;
+    ros::Subscriber laser_subscriber;
+    sensor_msgs::LaserScan scanLaser;
 
-    sickLMSscan()
+    sickLMSscan(const string &nodeToSub)
     {
         //Topics I want to subscribe
-        laser1_subscriber=n_.subscribe("/lms151_1/scan", 1000, &sickLMSscan::laser1Update, this);
-        laser2_subscriber=n_.subscribe("/lms151_2/scan", 1000, &sickLMSscan::laser2Update, this);
+        laser_subscriber=n_.subscribe("/" + nodeToSub + "/scan", 1000, &sickLMSscan::laserUpdate, this);
     }
 
-    void laser1Update(const sensor_msgs::LaserScan& msg)
+    void laserUpdate(const sensor_msgs::LaserScan& msg)
     {
-        scanLaser1=msg;
-        //ROS_INFO("Scan time: %lf ", msg.ranges[1]);
-    }
-
-    void laser2Update(const sensor_msgs::LaserScan& msg)
-    {
-        scanLaser2=msg;
+        scanLaser=msg;
         //ROS_INFO("Scan time: %lf ", msg.ranges[1]);
     }
 };

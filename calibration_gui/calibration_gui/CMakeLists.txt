@@ -83,13 +83,17 @@ set (MyProject_src src/gui_main.cpp
 		src/gui_calibration_node.cpp
 		src/calibration_utils.cpp
 		src/visualization_rviz_calibration.cpp
+		src/gui_options.cpp
 		)
 set (MyProjectLib_hdr include/calibration_gui/gui_mainwindow.h
 			include/calibration_gui/gui_myrviz.h
 			include/calibration_gui/gui_calibration_node.hpp
+			include/calibration_gui/gui_options.h
 			)
 					  
-set (MyProjectLib_ui  ui/mainwindow.ui)
+set (MyProjectLib_ui  ui/mainwindow.ui
+			ui/options.ui
+			)
 
 include_directories (${PROJECT_SOURCE_DIR})
 include_directories (${PROJECT_BINARY_DIR})
@@ -123,26 +127,19 @@ target_link_libraries(sick_ldmrs ${catkin_LIBRARIES}
 				 ${lidar_segmentation_LIBRARIES}
 				 ${roscpp_LIBRARIES})
 
-add_executable(sick_lms151_1 src/visualization_rviz_lms.cpp src/sick_lms151_1.cpp src/common_functions.cpp)
+add_executable(sick_lms151 src/visualization_rviz_lms.cpp src/sick_lms151.cpp src/common_functions.cpp)
 
-target_link_libraries(sick_lms151_1 ${catkin_LIBRARIES}
+target_link_libraries(sick_lms151 ${catkin_LIBRARIES}
 				    ${PCL_LIBRARIES}
 				    ${lidar_segmentation_LIBRARIES}
 				    ${roscpp_LIBRARIES})
 
-add_executable(sick_lms151_2 src/visualization_rviz_lms2.cpp src/sick_lms151_2.cpp src/common_functions.cpp)
+#add_executable(sick_lms151_2 src/visualization_rviz_lms2.cpp src/sick_lms151_2.cpp src/common_functions.cpp)
 
-target_link_libraries(sick_lms151_2 ${catkin_LIBRARIES}
-				    ${PCL_LIBRARIES}
-				    ${lidar_segmentation_LIBRARIES}
-				    ${roscpp_LIBRARIES})
-
-add_executable(calibration src/calibration.cpp src/calibration_utils.cpp src/visualization_rviz_calibration.cpp)
-
-target_link_libraries(calibration ${catkin_LIBRARIES}
-				  ${PCL_LIBRARIES}
-				  ${lidar_segmentation_LIBRARIES}
-				  ${roscpp_LIBRARIES})
+#target_link_libraries(sick_lms151_2 ${catkin_LIBRARIES}
+#				    ${PCL_LIBRARIES}
+#				    ${lidar_segmentation_LIBRARIES}
+#				    ${roscpp_LIBRARIES})
 
 add_executable(calibration_pcd src/calibration_pcd.cpp src/calibration_utils.cpp src/visualization_rviz_calibration.cpp)
 
