@@ -108,7 +108,7 @@ public:
         int cam_count = 0;
         for (int i = 0; i < sensors_list.size(); i++)
         {
-          topic_name = sensors_list[i] + "/SphereCentroid";
+          topic_name = "/" + sensors_list[i] + "/BD_" + sensors_list[i] + "/SphereCentroid";
           cout << i << " " << topic_name << endl;
           pcl::PointXYZ allocator_ball_centers;
           sensors_ball_centers.push_back(allocator_ball_centers);
@@ -157,6 +157,7 @@ public:
 
         sensors_ball_centers[i] = pcl::transformPoint(sensors_ball_centers[i], cam_transform);
       }
+      //cout << sensors_ball_centers[i] << " " << i << endl;
     }
 
     void camCentroidPnPUpdate(const geometry_msgs::PointStampedConstPtr& msg, int camNum)

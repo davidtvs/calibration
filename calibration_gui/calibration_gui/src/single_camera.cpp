@@ -32,6 +32,7 @@
  */
 
 #include "calibration_gui/camera_config.h"
+#include <sys/time.h>
 
 
 //Marker's publisher
@@ -41,6 +42,14 @@ image_transport::Publisher image_pub;
 
 Mat CameraMatrix1, CameraMatrix2, disCoeffs1, disCoeffs2, R1, R2, P1, P2, Q, T;
 
+typedef unsigned long long timestamp_t;
+
+static timestamp_t get_timestamp ()
+{
+	struct timeval now;
+	gettimeofday (&now, NULL);
+	return now.tv_usec + (timestamp_t)now.tv_sec * 1000000;
+}
 
 /**
    @brief Cameras connection
@@ -128,6 +137,8 @@ void ImageCapture(Camera &Camera)
 	Mat imgHSV;
 	Mat unImg;
 	Mat imgBinary;
+	Image rawImage;
+	Image rgbImage;
 
 	// create the main window, and attach the trackbars
 	namedWindow( "Camera", CV_WINDOW_NORMAL );
@@ -186,11 +197,13 @@ void ImageCapture(Camera &Camera)
 
 	// capture loop
 	ros::Rate loop_rate(30);
+	timestamp_t t0, t1;
+	double secs;
 	int key = 0;
 	while(key != 1048689 && key != 1114193 && ros::ok())
 	{
 		// Get the image camera 1
-		Image rawImage;
+		t0 = get_timestamp();
 		Error error = Camera.RetrieveBuffer( &rawImage );
 		if ( error != PGRERROR_OK )
 		{
@@ -199,7 +212,6 @@ void ImageCapture(Camera &Camera)
 		}
 
 		// convert to rgb
-		Image rgbImage;
 		rawImage.Convert(PIXEL_FORMAT_BGR, &rgbImage );
 
 		// convert to OpenCV Mat
@@ -207,7 +219,6 @@ void ImageCapture(Camera &Camera)
 		img = Mat(rgbImage.GetRows(), rgbImage.GetCols(), CV_8UC3, rgbImage.GetData(),rowBytes);
 
 		imshow("Camera", img); // untouched image
-
 
 		// =========================================================================
 		// Pre-processing
@@ -221,14 +232,16 @@ void ImageCapture(Camera &Camera)
 		inRange(imgHSV, Scalar(lowH, lowS, lowV), Scalar(highH, highS, highV), imgBinary);
 
 		//morphological closing (fill small holes in the foreground)
-		dilate( imgBinary, imgBinary, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
-		erode(imgBinary, imgBinary, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+		dilate( imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
+		erode(imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
 
 		//morphological opening (remove small objects from the foreground)
-		erode(imgBinary, imgBinary, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
-		dilate( imgBinary, imgBinary, getStructuringElement(MORPH_ELLIPSE, Size(5, 5)) );
+		erode(imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
+		dilate( imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
 
-		GaussianBlur( imgBinary, imgBinary, Size(3, 3),2, 2 );
+		GaussianBlur( imgBinary, imgBinary, Size(5, 5), 2, 2 );
+
+
 
 		imshow("Binarized Image", imgBinary);
 
@@ -241,15 +254,20 @@ void ImageCapture(Camera &Camera)
 
 		PolygonalCurveDetection(unImg, imgBinary, valC);
 
+
 		if(!img.empty()) {
-		 	image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-		 	image_pub.publish(image_msg);
+			image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
+			image_pub.publish(image_msg);
 		}
 
 		// get user key
 		key = waitKey(1);
 		ros::spinOnce();
 		loop_rate.sleep();
+
+		t1 = get_timestamp();
+		secs = (t1 - t0) / 1000000.0L;
+		std::cout << secs << std::endl;
 	}
 
 	destroyWindow("Camera"); //destroy the window
@@ -450,7 +468,7 @@ int main(int argc, char **argv)
 	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroid", 7);
 	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroidPnP", 7);
 
-  Camera Camera;
+	Camera Camera;
 	try
 	{
 		ConnectCameras(Camera);

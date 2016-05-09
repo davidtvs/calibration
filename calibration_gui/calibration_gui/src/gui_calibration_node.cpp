@@ -294,11 +294,13 @@ void QNode::run() {
 
 void QNode::setCalibrationPoints(int numPoints)
 {
+    qDebug() << "setCalibrationPoints";
     num_of_points=numPoints;
 }
 
 void QNode::setLaunchedNodes(vector<string> nodes, vector<bool> camera)
 {
+    qDebug() << "setLaunchedNodes";
     calibrationNodes=nodes;
     isCamera=camera;
 }

@@ -329,8 +329,9 @@ void MainWindow::on_bt_calibrate_clicked()
 
     qnode->setLaunchedNodes(vec, isCamera);
 
+
     // start() is a QThread function. It calls QNode::run automatically
-    //qnode->start();
+    qnode->start();
 }
 
 

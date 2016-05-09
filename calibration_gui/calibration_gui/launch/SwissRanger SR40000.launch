@@ -11,7 +11,7 @@
         <param name="auto_exposure" value="1"/>
         <!--param name="integration_time" value="40" /-->
         <!-- Set auto_exposure or integration_time, not both -->
-        <param name="ether_addr" value="$(arg host)"/>
+        <!--param name="ether_addr" value="$(arg host)"/-->
         <param name="camera_name" value="$(arg node_name)"/>
     </node>
 
