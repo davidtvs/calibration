@@ -98,7 +98,9 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
 	// Set the maximum allowed distance to the model.
 	ransac.setDistanceThreshold(0.01);
 	ransac.computeModel();
-
+	t1 = get_timestamp();
+	secs = (t1 - t0) / 1000000.0L;
+	std::cout << secs << std::endl;
 	vector<int> inlierIndices;
 	ransac.getInliers(inlierIndices);
 	cout<<" number od inliers "<<inlierIndices.size()<<endl;
@@ -113,11 +115,9 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
 
 		Eigen::VectorXf sphereCoeffsRefined;
 		sphereModel->optimizeModelCoefficients (inlierIndices, sphereCoeffs, sphereCoeffsRefined);
-    t1 = get_timestamp();
-    secs = (t1 - t0) / 1000000.0L;
-    std::cout << secs << std::endl;
 
-		if(sphereCoeffsRefined(3)<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && sphereCoeffsRefined(3)<BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2) // +- 5% of BALL_DIAMETER is admissable
+
+		if(sphereCoeffsRefined(3)<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && sphereCoeffsRefined(3)>BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2) // +- 5% of BALL_DIAMETER is admissable
 		{
 			sphereCenter.point.x = sphereCoeffsRefined(0);
 			sphereCenter.point.y = sphereCoeffsRefined(1);
