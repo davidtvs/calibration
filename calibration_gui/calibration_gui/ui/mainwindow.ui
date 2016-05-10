@@ -17,30 +17,31 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Multisensor Calibration</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_2">
-    <item row="4" column="0">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>401</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="0" column="0" colspan="5">
+    <item row="0" column="1" colspan="6">
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QGridLayout" name="gridLayout">
+        <item row="1" column="6">
+         <widget class="QPushButton" name="bt_options">
+          <property name="text">
+           <string>Options</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="4">
+         <widget class="QPushButton" name="bt_remove">
+          <property name="text">
+           <string>Remove</string>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="3">
          <widget class="QPushButton" name="bt_add">
           <property name="text">
@@ -48,7 +49,14 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="3" colspan="3">
+        <item row="1" column="5">
+         <widget class="QPushButton" name="bt_make_reference">
+          <property name="text">
+           <string>Make Reference</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3" colspan="4">
          <widget class="QTreeWidget" name="treeWidget">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -74,11 +82,14 @@
           <property name="lineWidth">
            <number>1</number>
           </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+          </property>
           <property name="dragEnabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="uniformRowHeights">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="wordWrap">
            <bool>false</bool>
@@ -104,92 +115,57 @@
           </column>
          </widget>
         </item>
-        <item row="1" column="4">
-         <widget class="QPushButton" name="bt_remove">
-          <property name="text">
-           <string>Remove</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="5">
-         <widget class="QPushButton" name="bt_make_reference">
-          <property name="text">
-           <string>Make Reference</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="layoutWidget_1">
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <widget class="QTabWidget" name="tabWidget">
-          <property name="currentIndex">
-           <number>0</number>
+        <item row="1" column="0">
+         <widget class="QMdiArea" name="mdiArea_calibration">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
-          <widget class="QWidget" name="tab">
-           <attribute name="title">
-            <string>Lasers</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_4">
-            <item row="0" column="0">
-             <widget class="QMdiArea" name="mdiArea_lasers">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tab_2">
-           <attribute name="title">
-            <string>Cameras</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_5">
-            <item row="0" column="0">
-             <widget class="QMdiArea" name="mdiArea_cameras"/>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tab_3">
-           <attribute name="title">
-            <string>Calibration</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_6">
-            <item row="0" column="0">
-             <widget class="QMdiArea" name="mdiArea_calib"/>
-            </item>
-           </layout>
-          </widget>
          </widget>
         </item>
        </layout>
       </widget>
      </widget>
     </item>
-    <item row="4" column="2">
+    <item row="3" column="4">
      <widget class="QPushButton" name="bt_start_nodes">
       <property name="text">
        <string>Start Nodes</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="4">
+    <item row="3" column="6">
      <widget class="QPushButton" name="bt_calibrate">
       <property name="text">
        <string>Calibrate</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="3">
+    <item row="3" column="5">
      <widget class="QPushButton" name="bt_stop_nodes">
       <property name="text">
        <string>Stop Nodes</string>
       </property>
      </widget>
+    </item>
+    <item row="3" column="3">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>401</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
     </item>
    </layout>
   </widget>

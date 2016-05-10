@@ -18,7 +18,7 @@ int main(int argc, char **argv)
         ros::init( argc, argv, "myviz", ros::init_options::AnonymousName );
       }*/
     QApplication a(argc, argv);
-    QNode node(argc,argv, "calibration");
+    QNode node(argc,argv, "calibration_gui");
     MainWindow w(&node);
     w.show();
 

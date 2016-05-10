@@ -38,7 +38,8 @@
 //Marker's publisher
 ros::Publisher ballCentroidCam_pub;
 ros::Publisher ballCentroidCamPnP_pub;
-image_transport::Publisher image_pub;
+image_transport::Publisher rawImage_pub;
+image_transport::Publisher ballCentroidImage_pub;
 
 Mat CameraMatrix1, CameraMatrix2, disCoeffs1, disCoeffs2, R1, R2, P1, P2, Q, T;
 
@@ -218,6 +219,11 @@ void ImageCapture(Camera &Camera)
 		unsigned int rowBytes = (double)rgbImage.GetReceivedDataSize()/(double)rgbImage.GetRows();
 		img = Mat(rgbImage.GetRows(), rgbImage.GetCols(), CV_8UC3, rgbImage.GetData(),rowBytes);
 
+		if(!img.empty()) {
+			image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
+			rawImage_pub.publish(image_msg);
+		}
+
 		imshow("Camera", img); // untouched image
 
 		// =========================================================================
@@ -253,12 +259,6 @@ void ImageCapture(Camera &Camera)
 		//HoughCircles(unImg, imgBinary, valC, valA, minRadius, maxRadius);
 
 		PolygonalCurveDetection(unImg, imgBinary, valC);
-
-
-		if(!img.empty()) {
-			image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-			image_pub.publish(image_msg);
-		}
 
 		// get user key
 		key = waitKey(1);
@@ -337,9 +337,9 @@ void PolygonalCurveDetection( Mat &img, Mat &imgBinary, int valCanny )
 	/* The following lines make sure that position (0,0,0) is published when
 	   the ball is not detected (avoids publishing previous positions when the
 	   ball is no longer detected) */
-	centroidRadius.x = 0;
-	centroidRadius.y = 0;
-	centroidRadius.z = 0;
+	centroidRadius.x = -999;
+	centroidRadius.y = -999;
+	centroidRadius.z = -999;
 
 	for(int i=0; i<contours.size(); i++)
 	{
@@ -436,6 +436,10 @@ void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& cont
 	cv::line(im, cv::Point(center.x, center.y - 7), cv::Point(center.x, center.y + 7), cv::Scalar(255,255,255), 2);  //crosshair vertical
 	// circle outline
 	circle( im, center, radius, Scalar(255,255,255), 2, 8, 0 );
+
+	sensor_msgs::ImagePtr image_msg;
+	image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", im).toImageMsg();
+	ballCentroidImage_pub.publish(image_msg);
 }
 
 /**
@@ -464,7 +468,8 @@ int main(int argc, char **argv)
 	fs["D1"] >> disCoeffs1;
 
 	image_transport::ImageTransport it(n);
-	image_pub = it.advertise("RawImage", 2);
+	rawImage_pub = it.advertise("RawImage", 2);
+	ballCentroidImage_pub = it.advertise("BallDetection", 2);
 	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroid", 7);
 	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroidPnP", 7);
 

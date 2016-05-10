@@ -234,9 +234,9 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 
 					if(radius > ballDiameter/2 + 0.075 && radius < 0) // invalid radius
 					{
-						centroid.point.x=0;
-						centroid.point.y=0;
-						centroid.point.z=-10;
+						centroid.point.x=-999;
+						centroid.point.y=-999;
+						centroid.point.z=-999;
 						sphere.x=-10000;
 						sphere.y=centroid.point.y;
 						sphere.z=centroid.point.z;
@@ -303,9 +303,9 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 				{
 					if(checkCircle==0)
 					{
-						centroid.point.x=0;
-						centroid.point.y=0;
-						centroid.point.z=-10;
+						centroid.point.x=-999;
+						centroid.point.y=-999;
+						centroid.point.z=-999;
 						sphere.x=-10000;
 						sphere.y=centroid.point.y;
 						sphere.z=centroid.point.z;
@@ -336,7 +336,7 @@ int main(int argc, char **argv)
 
 	sickLMSscan scan(sub_node_name);
 
-	markers_lms_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers2", 10000);
+	markers_lms_pub = n.advertise<visualization_msgs::MarkerArray>( "BallDetection", 10000);
 	circleCentroid_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroid", 10000);
 
 	ros::Rate loop_rate(50);
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
 	while(ros::ok())
 	{
 		C_DataFromFilePtr data_gt;
-		cout<<"size "<<scan.scanLaser.ranges.size()<<endl;
+		//cout<<"size "<<scan.scanLaser.ranges.size()<<endl;
 		vector<PointPtr> points;
 		if(scan.scanLaser.ranges.size()!=0)
 		{

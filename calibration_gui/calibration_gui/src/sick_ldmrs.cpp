@@ -416,9 +416,9 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, int
 				{
 					if(checkCircle==false)
 					{
-						sphereCentroid.point.x=0;
-						sphereCentroid.point.y=0;
-						sphereCentroid.point.z=-10;
+						sphereCentroid.point.x=-999;
+						sphereCentroid.point.y=-999;
+						sphereCentroid.point.z=-999;
 					}
 				}
 			}
@@ -497,7 +497,7 @@ int main(int argc, char **argv)
 
 	sickLDMRSscan scan(sub_node_name);
 
-	markers_ldmrs_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers", 10000);
+	markers_ldmrs_pub = n.advertise<visualization_msgs::MarkerArray>( "BallDetection", 10000);
 	sphereCentroid_pub = n.advertise<geometry_msgs::PointStamped>("SphereCentroid",1000);
 
 	ros::Rate loop_rate(50);

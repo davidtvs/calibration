@@ -35,6 +35,8 @@
 
 #include <eigen3/Eigen/Dense>
 
+#define BALL_DIAMETER 0.99
+
 using namespace std;
 
 /**

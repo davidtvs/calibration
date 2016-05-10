@@ -26,22 +26,14 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
     qnode->on_init();
 
     mRviz = new MyViz();
-    //setCentralWidget(ui->mdiArea);
-    ui->mdiArea_lasers->addSubWindow(mRviz, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
+    ui->mdiArea_calibration->addSubWindow(mRviz, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
     mRviz->showMaximized();
 
-    mRviz2 = new MyViz();
-    ui->mdiArea_cameras->addSubWindow(mRviz2, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
-    mRviz2->showMaximized();
-
-    mRviz3 = new MyViz();
-    ui->mdiArea_calib->addSubWindow(mRviz3, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
-    mRviz3->showMaximized();
-
-    //ui->treeWidget->headerItem()->setText(0, "");
+    ui->treeWidget->headerItem()->setText(0, "Calibration Manager");
+    ui->treeWidget->headerItem()->setText(1, "");
     ui->treeWidget->setItemDelegate(new MyItemDelegate(ui->treeWidget));
 
-    addCalibOptions(); // adds calibration options (ball diameter, number of points...)
+    //addCalibOptions(); // adds calibration options (ball diameter, number of points...)
 
     AddRoot();
 
@@ -49,6 +41,8 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
 
     ui->bt_stop_nodes->setEnabled(false);
     ui->bt_calibrate->setEnabled(false);
+
+    connect(ui->bt_options, SIGNAL(clicked()), this, SLOT(on_actionOptions_triggered()));
 
     // Draw vertical bar between columns
     /*QString style = "QTreeWidget::item:!selected "
@@ -117,7 +111,7 @@ void MainWindow::AddRoot ()
 
 void MainWindow::AddChildIP (QTreeWidgetItem *parent)
 {
-    QString ask_IP = "IP";
+    QString ask_IP = "IP Address";
 
     QTreeWidgetItem *item = new QTreeWidgetItem(parent);
 
@@ -197,11 +191,20 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
         foreach (QTreeWidgetItem *item, selectedItems)
         {
             if (item->parent()) // has parent
+            {
                 ui->bt_remove->setEnabled(false);
-            else if (item->text(0) == "Calibration Options")
+                ui->bt_make_reference->setEnabled(false);
+            }
+            else if (item->text(0) == "Calibration Options" || item->text(1) == "Reference Sensor")
+            {
                 ui->bt_remove->setEnabled(false);
+                ui->bt_make_reference->setEnabled(false);
+            }
             else
+            {
                 ui->bt_remove->setEnabled(true);
+                ui->bt_make_reference->setEnabled(true);
+            }
         }
     }
 }
@@ -221,66 +224,73 @@ void MainWindow::on_bt_start_nodes_clicked()
     for (int i = 0; i < supportedSensors.size(); i++)
         sensorCounter.push_back(0);
 
-    // i starts at two because comboboxes can only exists after row number 1
-    for (int i=1; i < ui->treeWidget->topLevelItemCount(); i++)
+    // Go trough the QTreewidget and launch nodes according to the user-selected sensors
+    for (int i=0; i < ui->treeWidget->topLevelItemCount(); i++)
     {
 
         QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i); // Get item containing combobox
-        QWidget *widget = ui->treeWidget->itemWidget(item, 0); // ComboBox widget is on column 0
-        QString sensor = qobject_cast<QComboBox*>(widget)->currentText(); // Gets ComboBox current text, which is a sensor
+        QWidget *widget = ui->treeWidget->itemWidget(item, 1);
 
-        QTreeWidgetItem *itemchild = item->child(0); // Get child item (itemchild) of top level item (item)
-
-        QString sensorIP = "host:=";
-        sensorIP += itemchild->text(1); // Gets IP written by user (column 1)
-
-        QString node_name = "node_name:=";
-
-        if (sensor == supportedSensors[0]) // lms151
+        // For i=1 there is no checkbox because the reference sensor will always be launched
+        if (i==0 || qobject_cast<QCheckBox*>(widget)->checkState() == Qt::Checked) // Do not reverse the order, for i=1, widget is NULL
         {
-            sensorCounter[0] += 1;
-            launchedNodes.push_back(supportedSensorsNodes[0] + "_" + QString::number(sensorCounter[0]));
-            node_name += launchedNodes.last();
-            isCamera.push_back(false);
+            widget = ui->treeWidget->itemWidget(item, 0); // ComboBox widget is in column 0
+            QString sensor = qobject_cast<QComboBox*>(widget)->currentText(); // Gets ComboBox current text, which is a sensor
+
+            QTreeWidgetItem *itemchild = item->child(0); // Get child item (itemchild) of top level item (item)
+
+            QString sensorIP = "host:=";
+            sensorIP += itemchild->text(1); // Gets IP written by user (column 1)
+
+            QString node_name = "node_name:=";
+
+            if (sensor == supportedSensors[0]) // lms151
+            {
+                sensorCounter[0] += 1;
+                launchedNodes.push_back(supportedSensorsNodes[0] + "_" + QString::number(sensorCounter[0]));
+                node_name += launchedNodes.last();
+                isCamera.push_back(false);
+            }
+            else if (sensor == supportedSensors[1]) //ldmrs
+            {
+                sensorCounter[1] += 1;
+                launchedNodes.push_back(supportedSensorsNodes[1] + "_" + QString::number(sensorCounter[1]));
+                node_name += launchedNodes.last();
+                isCamera.push_back(false);
+            }
+            else if (sensor == supportedSensors[2]) // pointgrey
+            {
+                sensorCounter[2] += 1;
+                launchedNodes.push_back(supportedSensorsNodes[2] + "_" + QString::number(sensorCounter[2]));
+                node_name += launchedNodes.last();
+                isCamera.push_back(true);
+            }
+            else if (sensor == supportedSensors[3]) // swissranger
+            {
+                sensorCounter[3] += 1;
+                launchedNodes.push_back(supportedSensorsNodes[3] + "_" + QString::number(sensorCounter[3]));
+                node_name += launchedNodes.last();
+                isCamera.push_back(false);
+            }
+            else
+                qDebug() << sensor << "is not on" << supportedSensors;
+
+
+            QString roslaunch_file = sensor +".launch";
+
+            QString program = "roslaunch";
+            QStringList arguments = QStringList() << "calibration_gui"
+                                                  << roslaunch_file
+                                                  << sensorIP
+                                                  << node_name;
+
+            qDebug() << "Launching with:" << program << arguments.join(" ");
+
+            processes.push_back(new QProcess(this));
+            connect(processes.last(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(NodeFinished(int, QProcess::ExitStatus)));
+
+            processes.last()->start(program, arguments);
         }
-        else if (sensor == supportedSensors[1]) //ldmrs
-        {
-            sensorCounter[1] += 1;
-            launchedNodes.push_back(supportedSensorsNodes[1] + "_" + QString::number(sensorCounter[1]));
-            node_name += launchedNodes.last();
-            isCamera.push_back(false);
-        }
-        else if (sensor == supportedSensors[2]) // pointgrey
-        {
-            sensorCounter[2] += 1;
-            launchedNodes.push_back(supportedSensorsNodes[2] + "_" + QString::number(sensorCounter[2]));
-            node_name += launchedNodes.last();
-            isCamera.push_back(true);
-        }
-        else if (sensor == supportedSensors[3]) // swissranger
-        {
-            sensorCounter[3] += 1;
-            launchedNodes.push_back(supportedSensorsNodes[3] + "_" + QString::number(sensorCounter[3]));
-            node_name += launchedNodes.last();
-            isCamera.push_back(false);
-        }
-        else
-            qDebug() << sensor << "is not on" << supportedSensors;
-
-        QString roslaunch_file = sensor +".launch";
-
-        QString program = "roslaunch";
-        QStringList arguments = QStringList() << "calibration_gui"
-                                              << roslaunch_file
-                                              << sensorIP
-                                              << node_name;
-
-        qDebug() << "Launching with:" << program << arguments.join(" ");
-
-        processes.push_back(new QProcess(this));
-        connect(processes.last(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(NodeFinished(int, QProcess::ExitStatus)));
-
-        processes.last()->start(program, arguments);
     }
 
     ui->bt_stop_nodes->setEnabled(true);
@@ -297,10 +307,6 @@ void MainWindow::on_bt_stop_nodes_clicked()
 
     foreach (QProcess *process, processes)
     {
-        qint64 pid = process->pid();
-        qDebug() << "Killing process PID:" << pid;
-        process->kill();
-
         QString nodeName = "/" + launchedNodes.first() + "/" + launchedNodes.first();
         QProcess nodeKiller;
         nodeKiller.start("rosnode", QStringList() << "kill" << nodeName);
@@ -312,11 +318,13 @@ void MainWindow::on_bt_stop_nodes_clicked()
         launchedNodes.removeFirst();
         qDebug() << "Killed node:" << nodeName;
         qDebug() << "Nodes remaining:" << launchedNodes;
+
+        /*qint64 pid = process->pid();
+        qDebug() << "Killing process PID:" << pid;
+        process->kill();*/
     }
     launchedNodes.clear();
     qDebug() << "All node killed ended" << launchedNodes;
-
-    ui->bt_start_nodes->setEnabled(true);
 }
 
 void MainWindow::on_bt_calibrate_clicked()
@@ -324,14 +332,16 @@ void MainWindow::on_bt_calibrate_clicked()
     std::vector<std::string> vec;
 
     foreach( QString str, launchedNodes) {
-      vec.push_back(str.toStdString());
+        vec.push_back(str.toStdString());
     }
 
     qnode->setLaunchedNodes(vec, isCamera);
 
-
     // start() is a QThread function. It calls QNode::run automatically
     qnode->start();
+
+    QString qnode_name = QString::fromStdString(qnode->nodeName());
+    mRviz->subscribeTopics(qnode_name);
 }
 
 
@@ -358,6 +368,81 @@ void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
         ui->bt_start_nodes->setEnabled(true);
     }
     qDebug() << processes;
+}
+
+
+void MainWindow::on_actionOptions_triggered()
+{
+    Options mOptions;
+    mOptions.setModal(true);
+    mOptions.exec();
+}
+
+/*void MainWindow::on_tabWidget_currentChanged(int index)
+{
+    qDebug() << "on_tabWidget_currentChanged";
+
+    ui->mdiArea_lasers->closeActiveSubWindow();
+    ui->mdiArea_cameras->closeActiveSubWindow();
+    ui->mdiArea_calib->closeActiveSubWindow();
+
+    if (index == 0)
+    {
+        ui->mdiArea_lasers->addSubWindow(mRviz, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
+        mRviz->showMaximized();
+    }
+    else if (index == 1)
+    {
+        ui->mdiArea_cameras->addSubWindow(mRviz, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
+        mRviz->showMaximized();
+    }
+    else
+    {
+        ui->mdiArea_calib->addSubWindow(mRviz, Qt::FramelessWindowHint); // FramelessWindowHint removes close, minimize and maximize title bar
+        mRviz->showMaximized();
+    }
+
+}*/
+
+void MainWindow::on_bt_make_reference_clicked()
+{
+    qDebug() << "on_bt_make_reference_clicked";
+
+    /* Since QTreeWidget doesn't directly support moving QTreeWidgetItems this Slot uses a
+     * workaround to accomplish it.
+     * The item will be deleted and then inserted at the new position.
+     */
+
+    QTreeWidgetItem* item = ui->treeWidget->currentItem(); // Gets currently selected item
+    int row  = ui->treeWidget->currentIndex().row(); // Gets the row of the item
+
+    QTreeWidgetItem* old_item = ui->treeWidget->topLevelItem(0); // Pointer to the old reference item
+
+    if (item && row > 0 && old_item)
+    {
+        QCheckBox *deviceCheckBox = new QCheckBox;
+        deviceCheckBox->setCheckState(Qt::Checked);
+
+        old_item->setText(1, "");
+        ui->treeWidget->setItemWidget(old_item, 1, deviceCheckBox);
+
+        /* Since the item has to be deleted in order to be moved the combobox selection is going to be copied
+         if this is not done, the selection is lost.*/
+        QWidget *widget = ui->treeWidget->itemWidget(item, 0); // pointer to combobox widget
+        QString sensor = qobject_cast<QComboBox*>(widget)->currentText(); // Gets ComboBox current text, which is a sensor
+        QComboBox *deviceComboBox = new QComboBox(); // create a new combobox
+        deviceComboBox->addItems(supportedSensors); // add supported sensors
+
+        deviceComboBox->setCurrentIndex(deviceComboBox->findText(sensor)); // find text and select it
+
+        // Now the item is removed, inserted and the new combobox equal to the one lost, is inserted
+        ui->treeWidget->takeTopLevelItem(row); // Removes the item
+        ui->treeWidget->insertTopLevelItem(0, item); // Inserts item at the top of the treewidget (0)
+        ui->treeWidget->setItemWidget(item, 0, deviceComboBox); // adds combobox to the item
+        item->setText(1, "Reference Sensor");
+        ui->treeWidget->setCurrentItem(item); // sets selection
+        item->setExpanded(true);
+    }
 }
 
 
@@ -431,19 +516,3 @@ void MainWindow::setQStrings()
     }
     qDebug() << "Process ended";
 }*/
-
-
-
-
-
-void MainWindow::on_actionOptions_triggered()
-{
-    Options mOptions;
-    mOptions.setModal(true);
-    mOptions.exec();
-}
-
-void MainWindow::on_tabWidget_currentChanged(int index)
-{
-    qDebug() << "on_tabWidget_currentChanged";
-}

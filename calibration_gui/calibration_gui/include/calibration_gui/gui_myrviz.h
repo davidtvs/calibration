@@ -19,6 +19,8 @@ public:
   MyViz( QWidget* parent = 0 );
   virtual ~MyViz();
 
+  void subscribeTopics(const QString qnode_name);
+
 private Q_SLOTS:
   //void setThickness( int thickness_percent );
   //void setCellSize( int cell_size_percent );

@@ -97,8 +97,8 @@ void QNode::run() {
     qDebug() << num_of_points;
 
 
-    markers_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers3", 10000);
-    car_pub = n.advertise<visualization_msgs::Marker>("/ATLASCAR1", 1);
+    markers_pub = n.advertise<visualization_msgs::MarkerArray>( node_name + "/CalibrationPoints", 10000);
+    car_pub = n.advertise<visualization_msgs::Marker>(node_name + "/3DModel", 1);
 
     CircleCentroids centroids(calibrationNodes, isCamera);
     int count=0;
@@ -124,7 +124,7 @@ void QNode::run() {
         bool found = false;
         while ( finder < centroids.sensors_ball_centers.size()-1 )
         {
-            if (centroids.sensors_ball_centers[finder].x == 9999)
+            if (centroids.sensors_ball_centers[finder].x == -999)
             {
                 found = true;
                 break;

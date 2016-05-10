@@ -86,6 +86,9 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
 	t0 = get_timestamp();
 
 	geometry_msgs::PointStamped sphereCenter;
+	sphereCenter.point.x = -999;
+	sphereCenter.point.y = -999;
+	sphereCenter.point.z = -999;
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(SwissRanger_cloud));
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
@@ -114,51 +117,32 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
     secs = (t1 - t0) / 1000000.0L;
     std::cout << secs << std::endl;
 
-		if(sphereCoeffsRefined(3)<0.6)
+		if(sphereCoeffsRefined(3)<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && sphereCoeffsRefined(3)<BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2) // +- 5% of BALL_DIAMETER is admissable
 		{
 			sphereCenter.point.x = sphereCoeffsRefined(0);
 			sphereCenter.point.y = sphereCoeffsRefined(1);
 			sphereCenter.point.z = sphereCoeffsRefined(2);
-			sphereCenter.header.stamp = ros::Time::now();
-			sphereCenter_pub.publish(sphereCenter);
 			//writeFile(sphereCoeffsRefined);
 			cout<<"z "<<sphereCoeffsRefined(2)<<endl;
 		}
-		else
-		{
-			sphereCenter.point.x = 0;
-			sphereCenter.point.y = 0;
-			sphereCenter.point.z = 0;
-			sphereCenter.header.stamp = ros::Time::now();
-			sphereCenter_pub.publish(sphereCenter);
-		}
-
 		cout<<"radius "<<sphereCoeffsRefined(3)<<endl;
 
-		pcl::PointCloud<pcl::PointXYZ> cloud;
+		/*pcl::PointCloud<pcl::PointXYZ> cloud;
 		for(int i=0; i<inlierPoints->points.size(); i++)
-			cloud.push_back(inlierPoints->points[i]);
-
-		pcl::PointXYZ center;
-		center.x = sphereCenter.point.x;
-		center.y = sphereCenter.point.y;
-		center.z = sphereCenter.point.z;
-
-		visualization_msgs::MarkerArray targets_markers;
-		targets_markers.markers = createTargetMarkers(center);
-		markers_pub.publish(targets_markers);
-
-	}
-	else
-	{
-		sphereCenter.point.x = 0;
-		sphereCenter.point.y = 0;
-		sphereCenter.point.z = -10;
-		sphereCenter.header.stamp = ros::Time::now();
-		sphereCenter_pub.publish(sphereCenter);
+			cloud.push_back(inlierPoints->points[i]);*/
 	}
 
+	sphereCenter.header.stamp = ros::Time::now();
+	sphereCenter_pub.publish(sphereCenter);
 
+	pcl::PointXYZ center;
+	center.x = sphereCenter.point.x;
+	center.y = sphereCenter.point.y;
+	center.z = sphereCenter.point.z;
+
+	visualization_msgs::MarkerArray targets_markers;
+	targets_markers.markers = createTargetMarkers(center);
+	markers_pub.publish(targets_markers);
 
 }
 
@@ -178,7 +162,7 @@ int main(int argc, char **argv)
 
 	std::cout << sub_node_name << std::endl;
 
-	markers_pub = n.advertise<visualization_msgs::MarkerArray>( "/markers4", 10000);
+	markers_pub = n.advertise<visualization_msgs::MarkerArray>( "BallDetection", 10000);
 	sphereCenter_pub = n.advertise<geometry_msgs::PointStamped>("SphereCentroid",1000);
 	pointCloud_pub = n.advertise<sensor_msgs::PointCloud>("Pointcloud",10000);
 
@@ -188,7 +172,6 @@ int main(int argc, char **argv)
 
 	while(ros::ok())
 	{
-		cout<<"size "<<cloud.cloud.points.size()<<endl;
 		if(cloud.cloud.points.size()>0)
 		{
 			pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud;

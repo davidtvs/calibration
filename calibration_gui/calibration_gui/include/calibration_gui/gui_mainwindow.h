@@ -54,14 +54,14 @@ private slots:
 
     void on_actionOptions_triggered();
 
-    void on_tabWidget_currentChanged(int index);
+    //void on_tabWidget_currentChanged(int index);
+
+    void on_bt_make_reference_clicked();
 
 private:
     Ui::MainWindow *ui;
     QNode *qnode;
     MyViz *mRviz;
-    MyViz *mRviz2;
-    MyViz *mRviz3;
     QVector<QProcess*> processes;
     std::vector<bool> isCamera;
 
