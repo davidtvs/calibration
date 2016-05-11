@@ -127,7 +127,7 @@ target_link_libraries(sick_ldmrs ${catkin_LIBRARIES}
 				 ${lidar_segmentation_LIBRARIES}
 				 ${roscpp_LIBRARIES})
 
-add_executable(sick_lms151 src/visualization_rviz_lms.cpp src/sick_lms151_1.cpp src/common_functions.cpp)
+add_executable(sick_lms151 src/visualization_rviz_lms.cpp src/sick_lms151.cpp src/common_functions.cpp)
 
 target_link_libraries(sick_lms151 ${catkin_LIBRARIES}
 				    ${PCL_LIBRARIES}

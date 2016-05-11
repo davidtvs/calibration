@@ -84,11 +84,13 @@ set (MyProject_src src/gui_main.cpp
 		src/calibration_utils.cpp
 		src/visualization_rviz_calibration.cpp
 		src/gui_options.cpp
+		src/gui_supportedsensors.cpp
 		)
 set (MyProjectLib_hdr include/calibration_gui/gui_mainwindow.h
 			include/calibration_gui/gui_myrviz.h
 			include/calibration_gui/gui_calibration_node.hpp
 			include/calibration_gui/gui_options.h
+			include/calibration_gui/gui_supportedsensors.h
 			)
 					  
 set (MyProjectLib_ui  ui/mainwindow.ui

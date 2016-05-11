@@ -5,8 +5,6 @@
 #include <QTreeWidget>
 #include <QStyledItemDelegate>
 #include <QItemDelegate>
-#include <QPainter>
-#include <QSignalMapper>
 #include <QList>
 #include <QProcess>
 #include <QVector>
@@ -14,6 +12,8 @@
 #include "ui_mainwindow.h"
 #include "calibration_gui/gui_calibration_node.hpp"
 #include "calibration_gui/gui_myrviz.h"
+#include "calibration_gui/gui_options.h"
+#include "calibration_gui/gui_supportedsensors.h"
 
 namespace Ui {
 class MainWindow;
@@ -22,13 +22,6 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
-    void setQStrings();
-    void addCalibOptions();
-    void AddRoot ();
-    void AddChildIP (QTreeWidgetItem *parent);
-    //void AddChildTopic (QTreeWidgetItem *parent);
-
 
 public:
     MainWindow(QNode *node, QWidget *parent = 0);
@@ -40,28 +33,31 @@ private slots:
 
     void on_bt_remove_clicked();
 
+    void on_bt_make_reference_clicked();
+
+    void on_actionOptions_triggered();
+
     void on_treeWidget_itemChanged(QTreeWidgetItem *item, int column);
 
-    void on_bt_start_nodes_clicked();
+    void on_treeWidget_itemSelectionChanged();
 
-    void NodeFinished(int exit_code, QProcess::ExitStatus exit_status);
+    void combobox_itemChanged(const QString &text);
+
+    void on_bt_start_nodes_clicked();
 
     void on_bt_stop_nodes_clicked();
 
     void on_bt_calibrate_clicked();
 
-    void on_treeWidget_itemSelectionChanged();
+    void NodeFinished(int exit_code, QProcess::ExitStatus exit_status);
 
-    void on_actionOptions_triggered();
-
-    //void on_tabWidget_currentChanged(int index);
-
-    void on_bt_make_reference_clicked();
 
 private:
     Ui::MainWindow *ui;
     QNode *qnode;
     MyViz *mRviz;
+    Options *mOptions;
+    SupportedSensors *mSensors;
     QVector<QProcess*> processes;
     std::vector<bool> isCamera;
 
@@ -71,6 +67,7 @@ private:
     QList<QString> supportedSensors;
     QList<QString> supportedSensorsNodes;
     QList<QString> launchedNodes;
+
 };
 
 
