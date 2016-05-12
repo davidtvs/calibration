@@ -143,7 +143,7 @@ void QNode::run() {
             dist=sqrt(pow((P[0].x-P[1].x),2) + pow((P[0].y-P[1].y),2)); // X-Y distance
             cout<<"dist = "<<dist<<endl;
 
-            if(dist>0.15) // If the ball hasn't moved more than 0.15 meters the points are discarded          // MAKE THIS A VARIABLE
+            if(dist > min_distance) // If the ball hasn't moved more than 0.15 meters the points are discarded          // MAKE THIS A VARIABLE
             {
                 float diff_dist_mean=0;
                 if(count>0) // code beow is skipped on the first cycle (count = 0)
@@ -292,13 +292,8 @@ void QNode::run() {
     emit rosShutdown(); // used to signal the gui for a shutdown (useful to roslaunch)
 }
 
-void QNode::setCalibrationPoints(int numPoints)
-{
-    qDebug() << "setCalibrationPoints";
-    num_of_points=numPoints;
-}
 
-void QNode::setLaunchedNodes(vector<string> nodes, vector<bool> camera)
+void QNode::setLaunchedNodes(const vector<string> nodes, const vector<bool> camera)
 {
     qDebug() << "setLaunchedNodes";
     calibrationNodes=nodes;

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>885</width>
+    <width>642</width>
     <height>586</height>
    </rect>
   </property>
@@ -21,7 +21,7 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_2">
-    <item row="0" column="1" colspan="6">
+    <item row="0" column="0" colspan="2">
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -101,7 +101,7 @@
            <number>2</number>
           </property>
           <attribute name="headerVisible">
-           <bool>true</bool>
+           <bool>false</bool>
           </attribute>
           <column>
            <property name="text">
@@ -133,39 +133,50 @@
       </widget>
      </widget>
     </item>
-    <item row="3" column="4">
-     <widget class="QPushButton" name="bt_start_nodes">
-      <property name="text">
-       <string>Start Nodes</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="6">
-     <widget class="QPushButton" name="bt_calibrate">
-      <property name="text">
-       <string>Calibrate</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="5">
-     <widget class="QPushButton" name="bt_stop_nodes">
-      <property name="text">
-       <string>Stop Nodes</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="3">
+    <item row="1" column="0">
      <spacer name="horizontalSpacer">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>401</width>
-        <height>20</height>
+        <width>247</width>
+        <height>24</height>
        </size>
       </property>
      </spacer>
+    </item>
+    <item row="1" column="1">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_start_nodes">
+        <property name="text">
+         <string>Start Nodes</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_stop_nodes">
+        <property name="text">
+         <string>Stop Nodes</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_calibrate">
+        <property name="text">
+         <string>Calibrate</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -174,7 +185,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>885</width>
+     <width>642</width>
      <height>25</height>
     </rect>
    </property>

@@ -14,6 +14,7 @@
 #include "calibration_gui/gui_myrviz.h"
 #include "calibration_gui/gui_options.h"
 #include "calibration_gui/gui_supportedsensors.h"
+#include "calibration_gui/gui_QProgressIndicator.h"
 
 namespace Ui {
 class MainWindow;
@@ -57,6 +58,7 @@ private:
     QNode *qnode;
     MyViz *mRviz;
     Options *mOptions;
+    QProgressIndicator* mProgress;
     SupportedSensors *mSensors;
     QVector<QProcess*> processes;
     std::vector<bool> isCamera;
@@ -76,15 +78,15 @@ private:
 class MyItemDelegate : public QItemDelegate
 {
 public:
-MyItemDelegate(QObject* parent = 0) : QItemDelegate(parent) {}
+    MyItemDelegate(QObject* parent = 0) : QItemDelegate(parent) {}
 
-QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
-{
-// allow only specific column to be edited, second column in this example
-if (index.column() == 1)
-return QItemDelegate::createEditor(parent, option, index);
-return 0;
-}
+    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
+    {
+        // allow only specific column to be edited, second column in this example
+        if (index.column() == 1)
+            return QItemDelegate::createEditor(parent, option, index);
+        return 0;
+    }
 };
 
 #endif // MAINWINDOW_H

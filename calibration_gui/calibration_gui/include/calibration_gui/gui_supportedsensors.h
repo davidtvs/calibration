@@ -23,7 +23,7 @@ public:
 
     void resetLaunchedLists();
 
-
+    void setBallDiameter(const int diameter) { ballDiameter = diameter; }
 
 private:
     QList<QString> supportedSensors;
@@ -31,6 +31,7 @@ private:
     QList<QString> launchedNodes;
     QList<int> sensorCounter;
     std::vector<bool> isCamera;
+    int ballDiameter;
 
     void makeChild (QTreeWidgetItem *parent, const QString text, int column);
 

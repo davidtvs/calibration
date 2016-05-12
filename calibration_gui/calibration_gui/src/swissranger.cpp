@@ -47,6 +47,12 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/PointStamped.h>
 
+
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/features/normal_3d.h>
+
 ros::Publisher markers_pub;
 ros::Publisher sphereCenter_pub;
 ros::Publisher pointCloud_pub;
@@ -90,47 +96,129 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
 	sphereCenter.point.y = -999;
 	sphereCenter.point.z = -999;
 
+	/* METHOD #1 ================================================================
+	 * Detects the ball up to 2-2.5 meters, very slow
+
+	   pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(SwissRanger_cloud));
+	   pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
+
+	   pcl::SampleConsensusModelSphere<pcl::PointXYZ>::Ptr sphereModel(new pcl::SampleConsensusModelSphere<pcl::PointXYZ>(cloudPtr));
+	   pcl::RandomSampleConsensus<pcl::PointXYZ> ransac(sphereModel);
+	   // Set the maximum allowed distance to the model.
+	   ransac.setDistanceThreshold(0.05);
+	   //ransac.setMaxIterations(1000);
+	   ransac.computeModel();
+
+	   vector<int> inlierIndices;
+	   ransac.getInliers(inlierIndices);
+	   cout<<" number od inliers "<<inlierIndices.size()<<endl;
+
+	   if(inlierIndices.indices.size()>0)
+	   {
+	        // Copy all inliers of the model to another cloud.
+	        pcl::copyPointCloud<pcl::PointXYZ>(*cloudPtr, inlierIndices, *inlierPoints);
+
+	        Eigen::VectorXf sphereCoeffs;
+	        ransac.getModelCoefficients (sphereCoeffs);
+
+	        Eigen::VectorXf sphereCoeffsRefined;
+	        sphereModel->optimizeModelCoefficients (inlierIndices, sphereCoeffs, sphereCoeffsRefined);
+
+
+	        if(sphereCoeffsRefined(3)<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && sphereCoeffsRefined(3)>BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2)    // +- 5% of BALL_DIAMETER is admissable
+	        {
+	                sphereCenter.point.x = sphereCoeffsRefined(0);
+	                sphereCenter.point.y = sphereCoeffsRefined(1);
+	                sphereCenter.point.z = sphereCoeffsRefined(2);
+	                //writeFile(sphereCoeffsRefined);
+	                cout<<"z "<<sphereCoeffsRefined(2)<<endl;
+	        }
+	        cout<<"radius "<<sphereCoeffsRefined(3)<<endl;
+	   }*/
+
+
+	/* METHOD #2 ================================================================
+	 * Detects the ball up to 1.8-2 meters, slowish
+	 * Source: http://www.pointclouds.org/documentation/tutorials/cylinder_segmentation.php#cylinder-segmentation
+	 * http://answers.ros.org/question/229784/detecting-spheres-using-ransac-in-pcl/
+
+	   pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(SwissRanger_cloud));
+	   pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
+
+	   pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normals;
+	   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ> ());
+	   pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>);
+	   // Estimate point normals
+	   normals.setSearchMethod (tree);
+	   normals.setInputCloud (cloudPtr);
+	   normals.setKSearch (50);
+	   normals.compute (*cloud_normals);
+
+	   pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+	   pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal> segmentation;
+	   segmentation.setInputCloud(cloudPtr);
+	   segmentation.setInputNormals (cloud_normals);
+	   segmentation.setModelType(pcl::SACMODEL_NORMAL_SPHERE);
+	   segmentation.setMethodType(pcl::SAC_RANSAC);
+	   segmentation.setDistanceThreshold(0.01);
+	   segmentation.setOptimizeCoefficients(true);
+
+	   pcl::PointIndices inlierIndices;
+	   segmentation.segment(inlierIndices, *coefficients);
+
+	   if(inlierIndices.indices.size()>0)
+	   {
+
+	        if (coefficients->values[3]<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && coefficients->values[3]>BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2)
+	        {
+	                sphereCenter.point.x = coefficients->values[0];
+	                sphereCenter.point.y = coefficients->values[1];
+	                sphereCenter.point.z = coefficients->values[2];
+	        }
+	        cout << coefficients->values[0] << ", "
+	                                                << coefficients->values[1] << ", "
+	                                                << coefficients->values[2] << ", "
+	                                                << coefficients->values[3] << endl;
+	   }*/
+
+	/* METHOD #3 ================================================================
+	 * Detects the ball up to 2-2.3 meters, very fast
+	 * Source: http://robotica.unileon.es/mediawiki/index.php/PCL/OpenNI_tutorial_3:_Cloud_processing_%28advanced%29
+	 */
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(SwissRanger_cloud));
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
 
-	pcl::SampleConsensusModelSphere<pcl::PointXYZ>::Ptr sphereModel(new pcl::SampleConsensusModelSphere<pcl::PointXYZ>(cloudPtr));
-	pcl::RandomSampleConsensus<pcl::PointXYZ> ransac(sphereModel);
-	// Set the maximum allowed distance to the model.
-	ransac.setDistanceThreshold(0.01);
-	ransac.computeModel();
+	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+	pcl::SACSegmentation<pcl::PointXYZ> segmentation;
+	segmentation.setInputCloud(cloudPtr);
+	segmentation.setModelType(pcl::SACMODEL_SPHERE);
+	segmentation.setMethodType(pcl::SAC_RANSAC);
+	segmentation.setDistanceThreshold(0.01);
+	segmentation.setOptimizeCoefficients(true);
+
+	pcl::PointIndices inlierIndices;
+	segmentation.segment(inlierIndices, *coefficients);
+
 	t1 = get_timestamp();
 	secs = (t1 - t0) / 1000000.0L;
 	std::cout << secs << std::endl;
-	vector<int> inlierIndices;
-	ransac.getInliers(inlierIndices);
-	cout<<" number od inliers "<<inlierIndices.size()<<endl;
 
-	if(inlierIndices.size()>0)
+	if(inlierIndices.indices.size()>0)
 	{
-		// Copy all inliers of the model to another cloud.
-		pcl::copyPointCloud<pcl::PointXYZ>(*cloudPtr, inlierIndices, *inlierPoints);
 
-		Eigen::VectorXf sphereCoeffs;
-		ransac.getModelCoefficients (sphereCoeffs);
-
-		Eigen::VectorXf sphereCoeffsRefined;
-		sphereModel->optimizeModelCoefficients (inlierIndices, sphereCoeffs, sphereCoeffsRefined);
-
-
-		if(sphereCoeffsRefined(3)<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && sphereCoeffsRefined(3)>BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2) // +- 5% of BALL_DIAMETER is admissable
+		if (coefficients->values[3]<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && coefficients->values[3]>BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2)
 		{
-			sphereCenter.point.x = sphereCoeffsRefined(0);
-			sphereCenter.point.y = sphereCoeffsRefined(1);
-			sphereCenter.point.z = sphereCoeffsRefined(2);
-			//writeFile(sphereCoeffsRefined);
-			cout<<"z "<<sphereCoeffsRefined(2)<<endl;
+			sphereCenter.point.x = coefficients->values[0];
+			sphereCenter.point.y = coefficients->values[1];
+			sphereCenter.point.z = coefficients->values[2];
 		}
-		cout<<"radius "<<sphereCoeffsRefined(3)<<endl;
-
-		/*pcl::PointCloud<pcl::PointXYZ> cloud;
-		for(int i=0; i<inlierPoints->points.size(); i++)
-			cloud.push_back(inlierPoints->points[i]);*/
+		cout << coefficients->values[0] << ", "
+		     << coefficients->values[1] << ", "
+		     << coefficients->values[2] << ", "
+		     << coefficients->values[3] << endl;
 	}
+
+
 
 	sphereCenter.header.stamp = ros::Time::now();
 	sphereCenter_pub.publish(sphereCenter);

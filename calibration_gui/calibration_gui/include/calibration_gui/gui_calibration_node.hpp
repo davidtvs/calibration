@@ -34,8 +34,9 @@ public:
     QPixmap PixmapModel (){return px;}
     const std::string& nodeName() { return node_name; }
 
-    void setCalibrationPoints(int numPoints);
-    void setLaunchedNodes(std::vector<std::string> sensors, std::vector<bool> camera);
+    void setCalibrationPoints(const int numPoints) { num_of_points = numPoints; }
+    void setMinDistance (const int distance) { min_distance = distance; }
+    void setLaunchedNodes(const std::vector<std::string> sensors, const std::vector<bool> camera);
 
 Q_SIGNALS:
     void loggingUpdated();
@@ -43,6 +44,7 @@ Q_SIGNALS:
 
 private:
     int num_of_points;
+    int min_distance;
     std::vector<std::string> calibrationNodes;
     std::vector<bool> isCamera;
 

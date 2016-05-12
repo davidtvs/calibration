@@ -25,6 +25,7 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
     mRviz = new MyViz();
     mOptions = new Options();
     mSensors = new SupportedSensors();
+    mProgress = new QProgressIndicator();
 
     supportedSensors = mSensors->getSupportedSensors();
     supportedSensorsNodes = mSensors->getSupportedSensorsNodes();
@@ -179,6 +180,8 @@ void MainWindow::on_actionOptions_triggered()
 {
     mOptions->setModal(true);
     mOptions->exec();
+
+
 }
 
 
@@ -188,9 +191,6 @@ void MainWindow::on_treeWidget_itemChanged(QTreeWidgetItem *item, int column)
     QString changedText = item->text(column); // column should always be 1, but this is more generic
     QString parameter = item->text(0); // get changed paremeter name
     qDebug() << changedText << " " << column << " " << parameter;
-    if (parameter == parameterNumPoints)
-        qnode->setCalibrationPoints(changedText.toInt());
-
 }
 
 void MainWindow::on_treeWidget_itemSelectionChanged()
@@ -243,6 +243,9 @@ void MainWindow::on_bt_start_nodes_clicked()
 
     ui->bt_start_nodes->setEnabled(false);
 
+    int ballDiameter = mOptions->getBallDiameter().toInt();
+    mSensors->setBallDiameter(ballDiameter);
+
     processes.clear();
 
     QString program = "roslaunch";
@@ -287,6 +290,10 @@ void MainWindow::on_bt_stop_nodes_clicked()
     ui->bt_stop_nodes->setEnabled(false);
     ui->bt_calibrate->setEnabled(false);
 
+    ui->horizontalLayout->insertWidget(0, mProgress);
+
+    mProgress->startAnimation();
+
     foreach (QProcess *process, processes)
     {
         QString nodeName = "/" + launchedNodes.first() + "/" + launchedNodes.first();
@@ -313,6 +320,11 @@ void MainWindow::on_bt_calibrate_clicked()
     }
 
     qnode->setLaunchedNodes(vec, isCamera);
+
+    int num_calib_points = mOptions->getNumCalibPoints().toInt();
+    qnode->setCalibrationPoints(num_calib_points);
+    int min_distance = mOptions->getMinDistance().toInt();
+    qnode->setMinDistance(min_distance);
 
     // start() is a QThread function. It calls QNode::run automatically
     qnode->start();
@@ -347,10 +359,14 @@ void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
         ui->bt_stop_nodes->setEnabled(false);
         ui->bt_calibrate->setEnabled(false);
         ui->bt_start_nodes->setEnabled(true);
+
+        if (mProgress->isAnimated())
+        {
+            ui->horizontalLayout->removeWidget(mProgress);
+        }
     }
     qDebug() << processes;
 }
-
 
 
 /*void MainWindow::AddChildTopic (QTreeWidgetItem *parent)

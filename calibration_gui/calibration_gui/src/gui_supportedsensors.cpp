@@ -7,8 +7,8 @@ SupportedSensors::SupportedSensors()
     supportedSensors = QList<QString>() << "Sick LMS151"
                                         << "Sick LD-MRS400001"
                                         << "Point Grey FL3-GE-28S4-C"
-                                        << "SwissRanger SR40000_(Ethernet)"
-                                        << "SwissRanger SR40000_(USB)";
+                                        << "SwissRanger SR40000_Ethernet"
+                                        << "SwissRanger SR40000_USB";
 
     supportedSensorsNodes = QList<QString>() << "lms151"
                                              << "ldmrs"
