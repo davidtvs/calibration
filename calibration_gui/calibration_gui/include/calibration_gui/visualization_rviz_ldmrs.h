@@ -31,8 +31,8 @@
  \date   December, 2015
 */
 
-#ifndef _COIMBRA_VISUALIZATION_RVIZ_H_
-#define _COIMBRA_VISUALIZATION_RVIZ_H_
+#ifndef _LDMRS_VISUALIZATION_RVIZ_H_
+#define _LDMRS_VISUALIZATION_RVIZ_H_
 
 #include <vector>
 
@@ -99,5 +99,3 @@ class Markers
 vector<visualization_msgs::Marker> createTargetMarkers(vector<LidarClustersPtr>& sickLidarClusters_nn, vector<LidarClustersPtr>& circlePoints , Point sphere, vector<double> radius);
 
 #endif
-
-

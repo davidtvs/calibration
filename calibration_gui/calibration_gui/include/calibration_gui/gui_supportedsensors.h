@@ -15,7 +15,7 @@ public:
 
     void addTreeChilds(QTreeWidgetItem *parent, const QString sensorID);
 
-    QStringList roslaunchManager(QTreeWidgetItem * item, QString sensor);
+    QStringList roslaunchManager(QTreeWidgetItem * item, QString sensor, double ballDiameter);
 
     QList<QString> getLaunchedNodes() { return launchedNodes; }
 
@@ -23,15 +23,12 @@ public:
 
     void resetLaunchedLists();
 
-    void setBallDiameter(const int diameter) { ballDiameter = diameter; }
-
 private:
     QList<QString> supportedSensors;
     QList<QString> supportedSensorsNodes;
     QList<QString> launchedNodes;
     QList<int> sensorCounter;
     std::vector<bool> isCamera;
-    int ballDiameter;
 
     void makeChild (QTreeWidgetItem *parent, const QString text, int column);
 

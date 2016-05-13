@@ -11,7 +11,7 @@
         </node>
         <node name="BD_$(arg node_name)" pkg="calibration_gui" type="sick_lms151" required="true" output="screen">
             <param name="sub_node_name" value="$(arg node_name)"/>
-            <param name="ballDiameter" type="double" value="$(arg ball_diameter)"/>
+            <param name="ballDiameter" value="$(arg ball_diameter)"/>
         </node>
     </group>
 </launch>

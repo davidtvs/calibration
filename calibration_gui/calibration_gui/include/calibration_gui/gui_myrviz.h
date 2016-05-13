@@ -28,8 +28,6 @@ private Q_SLOTS:
 private:
   rviz::VisualizationManager* manager_;
   rviz::RenderPanel* render_panel_;
-  rviz::Display* grid_;
-  rviz::Display* markerarray_;
 };
 // END_TUTORIAL
 #endif // MYVIZ_H

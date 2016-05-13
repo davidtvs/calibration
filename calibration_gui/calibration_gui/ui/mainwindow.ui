@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>642</width>
-    <height>586</height>
+    <width>960</width>
+    <height>540</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,13 +28,6 @@
       </property>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QGridLayout" name="gridLayout">
-        <item row="1" column="6">
-         <widget class="QPushButton" name="bt_options">
-          <property name="text">
-           <string>Options</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="4">
          <widget class="QPushButton" name="bt_remove">
           <property name="text">
@@ -52,29 +45,41 @@
         <item row="1" column="5">
          <widget class="QPushButton" name="bt_make_reference">
           <property name="text">
-           <string>Make Reference</string>
+           <string>Reference</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="6">
+         <widget class="QPushButton" name="bt_options">
+          <property name="text">
+           <string>Options</string>
           </property>
          </widget>
         </item>
         <item row="0" column="3" colspan="4">
          <widget class="QTreeWidget" name="treeWidget">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="minimumSize">
            <size>
-            <width>400</width>
+            <width>350</width>
             <height>0</height>
            </size>
           </property>
           <property name="baseSize">
            <size>
-            <width>300</width>
+            <width>0</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
           </property>
           <property name="frameShadow">
            <enum>QFrame::Sunken</enum>
@@ -140,8 +145,8 @@
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>247</width>
-        <height>24</height>
+        <width>381</width>
+        <height>26</height>
        </size>
       </property>
      </spacer>
@@ -149,7 +154,13 @@
     <item row="1" column="1">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="label_kill_nodes">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string>TextLabel</string>
         </property>
@@ -172,7 +183,14 @@
       <item>
        <widget class="QPushButton" name="bt_calibrate">
         <property name="text">
-         <string>Calibrate</string>
+         <string>Start Calibration</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_stop_calibrate">
+        <property name="text">
+         <string>Stop Calibration</string>
         </property>
        </widget>
       </item>
@@ -185,7 +203,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>642</width>
+     <width>960</width>
      <height>25</height>
     </rect>
    </property>

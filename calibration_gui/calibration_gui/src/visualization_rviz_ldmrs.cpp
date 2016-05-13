@@ -32,6 +32,8 @@
  \date   December, 2015
 */
 
+#define _LDMRS_VISUALIZATION_RVIZ_CPP_
+
 #include <lidar_segmentation/lidar_segmentation.h>
 #include <lidar_segmentation/clustering.h>
 #include "calibration_gui/common_functions.h"

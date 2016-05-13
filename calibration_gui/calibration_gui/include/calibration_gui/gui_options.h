@@ -21,6 +21,8 @@ public:
 
     QString getMinDistance(){ return min_distance; }
 
+    bool getAutoAcquisition(){ return auto_acquisition; }
+
 private slots:
     void on_buttonBox_accepted();
 
@@ -30,6 +32,7 @@ private:
     QString ball_diameter;
     QString num_calibration_points;
     QString min_distance;
+    bool auto_acquisition;
 };
 
 #endif // OPTIONS_H

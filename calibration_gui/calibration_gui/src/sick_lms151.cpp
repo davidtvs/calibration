@@ -332,7 +332,9 @@ int main(int argc, char **argv)
 	ros::NodeHandle n("~");
 	string sub_node_name;
 	n.getParam("sub_node_name", sub_node_name);
-	std::cout << sub_node_name << std::endl;
+	n.getParam("ballDiameter", BALL_DIAMETER);
+	cout << "Subscribe node:" << sub_node_name << endl;
+	cout << "Ball diameter:" << BALL_DIAMETER << endl;
 
 	sickLMSscan scan(sub_node_name);
 

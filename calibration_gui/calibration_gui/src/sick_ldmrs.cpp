@@ -31,6 +31,8 @@
    \date   December, 2015
  */
 
+#define _LDMRS_CPP_
+
 #include <lidar_segmentation/lidar_segmentation.h>
 #include "calibration_gui/sick_ldmrs.h"
 #include "calibration_gui/common_functions.h"
@@ -60,6 +62,7 @@
 //Marker's publisher
 ros::Publisher markers_ldmrs_pub;
 ros::Publisher sphereCentroid_pub;
+
 geometry_msgs::PointStamped sphereCentroid;
 vector <int> scan_ldmrs_header;
 
@@ -492,6 +495,9 @@ int main(int argc, char **argv)
 	ros::NodeHandle n("~");
 	string sub_node_name;
 	n.getParam("sub_node_name", sub_node_name);
+	n.getParam("ballDiameter", BALL_DIAMETER);
+	cout << "Subscribe node:" << sub_node_name << endl;
+	cout << "Ball diameter:" << BALL_DIAMETER << endl;
 
 	std::cout << sub_node_name << std::endl;
 

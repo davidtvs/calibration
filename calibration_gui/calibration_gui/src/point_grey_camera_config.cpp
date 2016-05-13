@@ -31,7 +31,7 @@
  \author Marcelo Pereira
 */
 
-#include "calibration_gui/camera_config.h"
+#include "calibration_gui/point_grey_camera_config.h"
 
 /**
 @brief Confifuration of the camera image format

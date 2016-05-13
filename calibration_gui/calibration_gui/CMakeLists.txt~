@@ -85,12 +85,14 @@ set (MyProject_src src/gui_main.cpp
 		src/visualization_rviz_calibration.cpp
 		src/gui_options.cpp
 		src/gui_supportedsensors.cpp
+		src/gui_QProgressIndicator.cpp
 		)
 set (MyProjectLib_hdr include/calibration_gui/gui_mainwindow.h
 			include/calibration_gui/gui_myrviz.h
 			include/calibration_gui/gui_calibration_node.hpp
 			include/calibration_gui/gui_options.h
 			include/calibration_gui/gui_supportedsensors.h
+			include/calibration_gui/gui_QProgressIndicator.h
 			)
 					  
 set (MyProjectLib_ui  ui/mainwindow.ui
@@ -117,9 +119,9 @@ else()
 endif()
 
 target_link_libraries (calibration_gui ${QT_LIBRARIES}
-						#default_plugin 
-						${catkin_LIBRARIES})
-
+					#default_plugin 
+					${catkin_LIBRARIES}
+					)
 
 
 add_executable(sick_ldmrs src/visualization_rviz_ldmrs.cpp src/sick_ldmrs.cpp src/common_functions.cpp)
@@ -127,80 +129,45 @@ add_executable(sick_ldmrs src/visualization_rviz_ldmrs.cpp src/sick_ldmrs.cpp sr
 target_link_libraries(sick_ldmrs ${catkin_LIBRARIES}
 			         ${PCL_LIBRARIES}
 				 ${lidar_segmentation_LIBRARIES}
-				 ${roscpp_LIBRARIES})
+				 ${roscpp_LIBRARIES}
+				)
+
 
 add_executable(sick_lms151 src/visualization_rviz_lms.cpp src/sick_lms151.cpp src/common_functions.cpp)
 
 target_link_libraries(sick_lms151 ${catkin_LIBRARIES}
 				    ${PCL_LIBRARIES}
 				    ${lidar_segmentation_LIBRARIES}
-				    ${roscpp_LIBRARIES})
+				    ${roscpp_LIBRARIES}
+					)
 
-#add_executable(sick_lms151_2 src/visualization_rviz_lms2.cpp src/sick_lms151_2.cpp src/common_functions.cpp)
-
-#target_link_libraries(sick_lms151_2 ${catkin_LIBRARIES}
-#				    ${PCL_LIBRARIES}
-#				    ${lidar_segmentation_LIBRARIES}
-#				    ${roscpp_LIBRARIES})
-
-add_executable(calibration_pcd src/calibration_pcd.cpp src/calibration_utils.cpp src/visualization_rviz_calibration.cpp)
-
-target_link_libraries(calibration_pcd ${catkin_LIBRARIES}
-				  ${PCL_LIBRARIES}
-				  ${lidar_segmentation_LIBRARIES}
-				  ${roscpp_LIBRARIES})
 
 add_executable(swissranger src/swissranger.cpp src/visualization_rviz_swissranger.cpp)
 
 target_link_libraries(swissranger ${catkin_LIBRARIES}
 				  ${PCL_LIBRARIES}
 				  ${lidar_segmentation_LIBRARIES}
-				  ${roscpp_LIBRARIES})
+				  ${roscpp_LIBRARIES}
+					)
 
-add_executable(camera src/camera.cpp src/camera_config.cpp src/visualization_rviz_swissranger.cpp)
 
-target_link_libraries(camera ${catkin_LIBRARIES}
+add_executable(point_grey_camera src/point_grey_camera.cpp src/point_grey_camera_config.cpp)
+
+target_link_libraries(point_grey_camera ${catkin_LIBRARIES}
 			     ${OpenCV_LIBS}
 			     ${PCL_LIBRARIES}
 			     flycapture
 			     ${lidar_segmentation_LIBRARIES}
 			     ${roscpp_LIBRARIES}
-                     )
+                     		)
 
-add_executable(single_camera src/single_camera.cpp src/camera_config.cpp src/visualization_rviz_swissranger.cpp)
 
-target_link_libraries(single_camera ${catkin_LIBRARIES}
-			     ${OpenCV_LIBS}
-			     ${PCL_LIBRARIES}
-			     flycapture
-			     ${lidar_segmentation_LIBRARIES}
-			     ${roscpp_LIBRARIES}
-                     )
+add_executable(point_grey_camera_calib src/point_grey_camera_calib.cpp src/point_grey_camera_config.cpp)
 
-add_executable(camera_calib src/camera_calib.cpp src/camera_config.cpp)
-
-target_link_libraries(camera_calib ${catkin_LIBRARIES}
+target_link_libraries(point_grey_camera_calib ${catkin_LIBRARIES}
 			     ${OpenCV_LIBS}
 			     flycapture
-                     )
-
-add_executable(single_camera_calib src/single_camera_calib.cpp src/camera_config.cpp)
-
-target_link_libraries(single_camera_calib ${catkin_LIBRARIES}
-			     ${OpenCV_LIBS}
-			     flycapture
-                     )
-
-add_executable(single_camera_test src/single_camera_test.cpp src/camera_config.cpp src/visualization_rviz_swissranger.cpp)
-
-target_link_libraries(single_camera_test ${catkin_LIBRARIES}
-			     ${OpenCV_LIBS}
-			     ${PCL_LIBRARIES}
-			     flycapture
-			     ${lidar_segmentation_LIBRARIES}
-			     ${roscpp_LIBRARIES}
-                     )
-                     
+                     		)
                      
 # cmake_minimum_required(VERSION 2.8.3)
 # project(beginner_tutorials)

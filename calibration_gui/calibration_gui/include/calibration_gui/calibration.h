@@ -68,8 +68,6 @@
 #include "boost/filesystem.hpp"
 #include <boost/bind.hpp>
 
-#define BALL_DIAMETER 0.99
-
 using namespace Eigen;
 using namespace std;
 //using namespace cv; // causes errors because multiply defined FLANN headers on PCL and OpenCV

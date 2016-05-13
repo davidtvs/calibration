@@ -13,6 +13,9 @@
 #include <string>
 #include <QThread>
 #include <QStringListModel>
+#include <QMessageBox>
+#include <QMutexLocker>
+    #include <QWaitCondition>
 
 /*****************************************************************************
 ** Class
@@ -37,16 +40,27 @@ public:
     void setCalibrationPoints(const int numPoints) { num_of_points = numPoints; }
     void setMinDistance (const int distance) { min_distance = distance; }
     void setLaunchedNodes(const std::vector<std::string> sensors, const std::vector<bool> camera);
+    void setAutoAcquisition(const bool acquisition_type) { acquisitionIsAuto = acquisition_type; }
+    void setDoCalibration(const bool calibration_state) { doCalibration = calibration_state; }
 
-Q_SIGNALS:
+signals:
     void loggingUpdated();
-    void rosShutdown();
+    void calibrationComplete();
+    void showMsg( const QString& msg, QMessageBox::StandardButton* answer);
+
+private slots:
+    void msgShower(const QString& msg, QMessageBox::StandardButton* answer);
 
 private:
     int num_of_points;
-    int min_distance;
+    double min_distance;
     std::vector<std::string> calibrationNodes;
     std::vector<bool> isCamera;
+    bool acquisitionIsAuto;
+    bool doCalibration;
+
+    QWaitCondition waitCondition;
+    QMutex mutex;
 
 protected:
     int init_argc;

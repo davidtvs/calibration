@@ -26,8 +26,8 @@
  ***************************************************************************************************/
 /**
    \file  camera_calib.cpp
-   \brief Calibration of the stereo system using OpenCV
-   \author Marcelo Pereira
+   \brief Intrinc calibration of the Point Grey FL3-GE-28S4-C using OpenCV
+   \author Marcelo Pereira, David Silva
    \date   December, 2015
  */
 
@@ -39,7 +39,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
-#include "calibration_gui/camera_config.h"
+#include "calibration_gui/point_grey_camera_config.h"
 #include <stdlib.h>
 
 /**

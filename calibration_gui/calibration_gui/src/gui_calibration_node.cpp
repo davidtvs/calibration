@@ -20,6 +20,7 @@
 #include <sstream>
 #include <QDebug>
 
+
 /*****************************************************************************
 ** Implementation
 *****************************************************************************/
@@ -28,7 +29,11 @@ QNode::QNode(int argc, char** argv, const std::string &name ) :
     init_argc(argc),
     init_argv(argv),
     node_name(name)
-{}
+{
+    connect(this, SIGNAL(showMsg( const QString&, QMessageBox::StandardButton*)),
+            this, SLOT(msgShower( const QString&, QMessageBox::StandardButton*)));
+
+}
 
 QNode::~QNode() {
     shutdown();
@@ -118,8 +123,9 @@ void QNode::run() {
 
     ros::Rate loop_rate(50);
 
-    while(count < num_of_points && ros::ok())
+    while(count < num_of_points && ros::ok() && doCalibration)
     {
+
         int finder = 0;
         bool found = false;
         while ( finder < centroids.sensors_ball_centers.size()-1 )
@@ -131,7 +137,7 @@ void QNode::run() {
             }
             finder++;
         }
-        // Change condition below when subscribing is generic
+
         if(!found)
         {
 
@@ -141,7 +147,7 @@ void QNode::run() {
 
             double dist;
             dist=sqrt(pow((P[0].x-P[1].x),2) + pow((P[0].y-P[1].y),2)); // X-Y distance
-            cout<<"dist = "<<dist<<endl;
+            //cout<<"dist = "<<dist<<endl;
 
             if(dist > min_distance) // If the ball hasn't moved more than 0.15 meters the points are discarded          // MAKE THIS A VARIABLE
             {
@@ -160,7 +166,7 @@ void QNode::run() {
                     diff_dist_mean = diff_dist_mean/centroids.sensors_ball_centers.size();
                 }
                 std::cout << "diff_dist_mean = " << diff_dist_mean << std::endl;
-                if(diff_dist_mean<0.15)    // the limit is 0.15 meters. If it's higher these points will be discarded
+                if(diff_dist_mean < 0.15)    // the limit is 0.15 meters. If it's higher these points will be discarded
                 {
 
                     for ( int i = 0; i < centroids.sensors_ball_centers.size(); i++ )
@@ -211,44 +217,23 @@ void QNode::run() {
                     P[1].z=centroids.sensors_ball_centers[0].z;
                     cout<<"count "<<count+1<<endl;
 
-                    cout<<"Press to select another point";
-                    cin.ignore();
                     count++;
+                    if (count < num_of_points && !acquisitionIsAuto) // If acquisitionIsAuto is false then the user is prompted before acquiring points.
+                    {
+                        QMessageBox::StandardButton reply;
+
+                        QMutexLocker locker(&mutex);
+                        QString msg = "Point " + QString::number(count) + " of " + QString::number(num_of_points)
+                                + " done.\nPress OK to acquire the next point.";
+                        emit showMsg(msg, &reply);
+                        waitCondition.wait(&mutex);
+                    }
                 }
             }
         }
         ros::spinOnce();
         loop_rate.sleep();
     }
-
-
-    cout<<"Press Enter to Continue";
-    cin.ignore();
-
-    /*// What happens below????
-    vector<pcl::PointCloud<pcl::PointXYZ> > cloudss;
-    cloudss.push_back(lms1PointCloud);
-    cloudss.push_back(lms2PointCloud);
-    cloudss.push_back(ldmrPointCloud);
-    //cloudss.push_back(swissrangerCloud);
-    //cloudss.push_back(camera1Cloud);
-    cloudss.push_back(singleCamCloud);
-    cloudss.push_back(singleCamCloudPnP); // for SolvePnP
-    cloudss.push_back(singleCamCloudPnP); // for SolvePnPRansac
-
-    vector<geometry_msgs::Pose> laserss;
-    laserss.push_back(laser_lms151_1);
-    laserss.push_back(laser_lms151_2);
-    laserss.push_back(laser_ldmrs);
-    //laserss.push_back(swissranger);
-    //laserss.push_back(stereo);
-    laserss.push_back(singleCam);
-    laserss.push_back(singleCamPnP);
-    laserss.push_back(singleCamPnPRansac);
-
-    visualization_msgs::MarkerArray targets_markerss;
-    targets_markerss.markers = createTargetMarkers(cloudss,laserss);
-    markers_pub.publish(targets_markerss);*/
 
     // Estimating rigid transform between target sensor and other sensors
     for (int i = 1; i < centroids.sensors_ball_centers.size(); i++) // starts with i=1 because for i=0 the target and uncalibrated sensor are the same
@@ -262,34 +247,36 @@ void QNode::run() {
     estimateTransformationCamera(singleCamPnPRansac, objectPoints, imagePoints, "lms1_camera_calib", true, true); // Transformation estimation with solvePnPRansac
     */
 
+    if (doCalibration)
+    {
+        vector<double> RPY;
+        // ATLASCAR model rotations
+        RPY.push_back(M_PI/2); // X-rotation
+        RPY.push_back(0.0); // Y-rotation
+        RPY.push_back(M_PI); // Z-rotation
 
-    vector<double> RPY;
-    // ATLASCAR model rotations
-    RPY.push_back(M_PI/2); // X-rotation
-    RPY.push_back(0.0); // Y-rotation
-    RPY.push_back(M_PI); // Z-rotation
+        vector<double> translation;
+        translation.push_back(-4.387/2+ 0.05); // X translation. 4.387 is the car's length
+        translation.push_back(-1.702/2 + 0.05 ); // Y translation. 1.702 is the car's width
+        translation.push_back(-0.46); // Z translation. 0.46 is the height of the reference LMS sensor
 
-    vector<double> translation;
-    translation.push_back(-4.387/2+ 0.05); // X translation. 4.387 is the car's length
-    translation.push_back(-1.702/2 + 0.05 ); // Y translation. 1.702 is the car's width
-    translation.push_back(-0.46); // Z translation. 0.46 is the height of the reference LMS sensor
+        visualization_msgs::Marker atlascar = addCar(RPY, translation); // builds the marker to publish
+        car_pub.publish( atlascar );
 
-    visualization_msgs::Marker atlascar = addCar(RPY, translation); // builds the marker to publish
-    car_pub.publish( atlascar );
+        RPY.clear();
+        // Clouds and lasers rotations so point cloud is aligned with Rviz grid
+        RPY.push_back(0.0);
+        RPY.push_back(0.0);
+        RPY.push_back(55 * M_PI/180);
 
-    RPY.clear();
-    // Clouds and lasers rotations so point cloud is aligned with Rviz grid
-    RPY.push_back(0.0);
-    RPY.push_back(0.0);
-    RPY.push_back(55 * M_PI/180);
+        visualization_msgs::MarkerArray targets_markers;
+        targets_markers.markers = createTargetMarkers(sensorClouds, sensorPoses, RPY);
+        markers_pub.publish(targets_markers);
 
-    visualization_msgs::MarkerArray targets_markers;
-    targets_markers.markers = createTargetMarkers(sensorClouds, sensorPoses, RPY);
-    markers_pub.publish(targets_markers);
+        cout<<"Calibration complete!"<<endl;
+    }
 
-    cout<<"Calibration complete!"<<endl;
-
-    emit rosShutdown(); // used to signal the gui for a shutdown (useful to roslaunch)
+    emit calibrationComplete(); // used to signal the gui that the calibration is complete
 }
 
 
@@ -298,4 +285,12 @@ void QNode::setLaunchedNodes(const vector<string> nodes, const vector<bool> came
     qDebug() << "setLaunchedNodes";
     calibrationNodes=nodes;
     isCamera=camera;
+}
+
+
+void QNode::msgShower(const QString& msg, QMessageBox::StandardButton* answer)
+{
+    QMutexLocker locker(&mutex);
+    *answer = QMessageBox::information(0, "Next Point", msg);
+    waitCondition.wakeOne();
 }

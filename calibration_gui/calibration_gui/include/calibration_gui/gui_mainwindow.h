@@ -50,8 +50,11 @@ private slots:
 
     void on_bt_calibrate_clicked();
 
+    void on_bt_stop_calibrate_clicked();
+
     void NodeFinished(int exit_code, QProcess::ExitStatus exit_status);
 
+    void calibrationFinished();
 
 private:
     Ui::MainWindow *ui;

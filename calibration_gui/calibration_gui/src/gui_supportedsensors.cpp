@@ -57,14 +57,25 @@ void SupportedSensors::makeChild (QTreeWidgetItem *parent, const QString text, i
     item->parent()->setExpanded(true);
 }
 
-QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString sensor)
+
+
+// ====================================================================================
+// References:
+// http://stackoverflow.com/questions/36156519/set-qstring-to-qprocess-properly
+// http://stackoverflow.com/questions/24771293/how-to-get-parameter-from-ros-launch-file-and-use-it-in-qt
+// http://stackoverflow.com/questions/10098980/real-time-display-of-qprocess-output-in-a-textbrowser
+// http://doc.qt.io/qt-4.8/qprocess.html
+// ====================================================================================
+
+QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString sensor, double ballDiameter)
 {
+    QString ball_diameter = "ball_diameter:=" + QString::number(ballDiameter);
     QString node_name = "node_name:=";
     QString sensorIP = "host:=";
 
     QTreeWidgetItem *itemchild;
 
-    QStringList roslaunch_params;
+    QStringList roslaunch_params = QStringList() << ball_diameter;
 
     if (sensor == supportedSensors[0]) // Sick LMS151
     {

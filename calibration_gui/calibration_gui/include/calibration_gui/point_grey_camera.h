@@ -25,14 +25,14 @@
  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************************************/
 /**
-\file  camera_config.h
+\file  point_grey_camera.h
 \brief Global include file
-\author Marcelo Pereira
+\author Marcelo Pereira, David Silva
 \date   December, 2015
 */
 
-#ifndef _MARCELO_CAMERA_CONFIG_H_
-#define _MARCELO_CAMERA_CONFIG_H_
+#ifndef _POINT_GREY_CAMERA_H_
+#define _POINT_GREY_CAMERA_H_
 
 #include <stdio.h>
 #include <string>
@@ -56,20 +56,32 @@
 #include <pcl/conversions.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/segmentation/sac_segmentation.h>
+#include <visualization_msgs/MarkerArray.h>
+#include "visualization_rviz_swissranger.h"
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <ros/package.h>
 
-#define BALL_DIAMETER 0.99
+double BALL_DIAMETER;
 
 using namespace cv;
 using namespace std;
 using namespace FlyCapture2;
 
-bool SetConfiguration(Camera &camera);
+void BallCoord(vector<Vec3f> circle, int numCamera);
+
+void HoughDetection(const Mat& src_gray, const Mat& src_display, int cannyThreshold, int accumulatorThreshold, int numCamera);
+
+void reconstrution3D(Mat image1, Mat image2);
+
+void CreatePointCloud(Mat XYZ);
 
 void PolygonalCurveDetection( Mat &img, Mat &imgBinary, int valCanny );
+
+void HoughDetection(const Mat &img, const Mat& imgBinary, int valCanny, int valAccumulator, int minRadius, int maxRadius);
+
+void ballDetection(sensor_msgs::PointCloud cloud);
 
 void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& contour);
 

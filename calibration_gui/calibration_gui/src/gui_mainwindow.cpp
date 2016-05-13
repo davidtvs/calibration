@@ -10,6 +10,8 @@
 #include <QFileDialog>
 #include <QMdiArea>
 #include <QTreeView>
+#include <QMessageBox>
+
 
 MainWindow::MainWindow(QNode *node, QWidget *parent)
     :QMainWindow(parent)
@@ -20,6 +22,8 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
 
     // Start Calibration node
     qnode->on_init();
+
+    connect(qnode, SIGNAL(calibrationComplete()), this, SLOT(calibrationFinished()));
 
     // Initialise classes
     mRviz = new MyViz();
@@ -59,9 +63,13 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
     // Resize Columns to fit text
     ui->treeWidget->resizeColumnToContents(0);
 
+    // Set label text to empty
+    ui->label_kill_nodes->setText("");
+
     // Disable buttons
     ui->bt_stop_nodes->setEnabled(false);
     ui->bt_calibrate->setEnabled(false);
+    ui->bt_stop_calibrate->setEnabled(false);
 
     // Connecting signals to slots
     connect(ui->bt_options, SIGNAL(clicked()), this,
@@ -75,7 +83,6 @@ MainWindow::~MainWindow()
     delete mRviz;
     delete ui;
 }
-
 
 
 
@@ -99,7 +106,8 @@ void MainWindow::on_bt_add_clicked()
     ui->treeWidget->setItemWidget(item,1,deviceCheckBox);
 
     // Connect newly created combobox signal to a slot
-    connect(deviceComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(combobox_itemChanged(QString)));
+    connect(deviceComboBox, SIGNAL(currentIndexChanged(QString)), this,
+            SLOT(combobox_itemChanged(QString)));
 
 
     // Add root's childs
@@ -108,7 +116,6 @@ void MainWindow::on_bt_add_clicked()
      * so we add the childs of the first item on the supportedSensors list
      */
     mSensors->addTreeChilds(item, supportedSensors[0]);
-
 
 }
 
@@ -180,8 +187,6 @@ void MainWindow::on_actionOptions_triggered()
 {
     mOptions->setModal(true);
     mOptions->exec();
-
-
 }
 
 
@@ -225,15 +230,15 @@ void MainWindow::combobox_itemChanged(const QString &text)
 {
     // Source: http://stackoverflow.com/questions/26212722/how-to-get-index-of-rows-on-click-event-of-qpushbutton-in-qtreewidget
     for(int i = 0 ; i < ui->treeWidget->topLevelItemCount() ; i++)
-       {
-          QTreeWidgetItem* item = ui->treeWidget->topLevelItem(i);
-          if (ui->treeWidget->itemWidget(item, 0) == sender())
-          {
-              qDebug() << i << " " << text;
-              item->takeChildren();
-              mSensors->addTreeChilds(item, text);
-          }
-       }
+    {
+        QTreeWidgetItem* item = ui->treeWidget->topLevelItem(i);
+        if (ui->treeWidget->itemWidget(item, 0) == sender())
+        {
+            qDebug() << i << " " << text;
+            item->takeChildren();
+            mSensors->addTreeChilds(item, text);
+        }
+    }
 }
 
 
@@ -241,96 +246,134 @@ void MainWindow::on_bt_start_nodes_clicked()
 {
     qDebug() << "in start nodes";
 
-    ui->bt_start_nodes->setEnabled(false);
+    double ballDiameter = mOptions->getBallDiameter().toDouble();
 
-    int ballDiameter = mOptions->getBallDiameter().toInt();
-    mSensors->setBallDiameter(ballDiameter);
+    QString msg = "Ball diameter is set to " + QString::number(ballDiameter) + " meters.\nDo you wish to continue?";
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Start Nodes", msg,
+                                  QMessageBox::Yes | QMessageBox::No);
 
-    processes.clear();
-
-    QString program = "roslaunch";
-    QStringList arguments;
-
-    // Go trough the QTreewidget and launch nodes according to the user-selected sensors
-    for (int i=0; i < ui->treeWidget->topLevelItemCount(); i++)
+    if (reply == QMessageBox::Yes)
     {
+        ui->bt_start_nodes->setEnabled(false);
 
-        QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i); // Get item containing combobox
-        QWidget *widget = ui->treeWidget->itemWidget(item, 1);
+        processes.clear();
 
-        // For i=1 there is no checkbox because the reference sensor will always be launched
-        if (i==0 || qobject_cast<QCheckBox*>(widget)->checkState() == Qt::Checked) // Do not reverse the order, for i=1, widget is NULL
+        QString program = "roslaunch";
+        QStringList arguments;
+
+        // Go trough the QTreewidget and launch nodes according to the user-selected sensors
+        for (int i=0; i < ui->treeWidget->topLevelItemCount(); i++)
         {
-            widget = ui->treeWidget->itemWidget(item, 0); // ComboBox widget is in column 0
-            QString sensor = qobject_cast<QComboBox*>(widget)->currentText(); // Gets ComboBox current text, which is a sensor
 
-            arguments = mSensors->roslaunchManager(item, sensor);
+            QTreeWidgetItem *item = ui->treeWidget->topLevelItem(i); // Get item containing combobox
+            QWidget *widget = ui->treeWidget->itemWidget(item, 1);
 
-            qDebug() << "Launching with:" << program << arguments.join(" ");
+            // For i=1 there is no checkbox because the reference sensor will always be launched
+            if (i==0 || qobject_cast<QCheckBox*>(widget)->checkState() == Qt::Checked) // Do not reverse the order, for i=1, widget is NULL
+            {
+                widget = ui->treeWidget->itemWidget(item, 0); // ComboBox widget is in column 0
+                QString sensor = qobject_cast<QComboBox*>(widget)->currentText(); // Gets ComboBox current text, which is a sensor
 
-            processes.push_back(new QProcess(this));
-            connect(processes.last(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(NodeFinished(int, QProcess::ExitStatus)));
+                arguments = mSensors->roslaunchManager(item, sensor, ballDiameter);
 
-            processes.last()->start(program, arguments);
+                qDebug() << "Launching with:" << program << arguments.join(" ");
+
+                processes.push_back(new QProcess(this));
+                connect(processes.last(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(NodeFinished(int, QProcess::ExitStatus)));
+
+                processes.last()->start(program, arguments);
+            }
         }
+
+        launchedNodes = mSensors->getLaunchedNodes();
+        isCamera = mSensors->getIsCamera();
+
+        ui->bt_stop_nodes->setEnabled(true);
+        ui->bt_calibrate->setEnabled(true);
     }
-
-    launchedNodes = mSensors->getLaunchedNodes();
-    isCamera = mSensors->getIsCamera();
-
-    ui->bt_stop_nodes->setEnabled(true);
-    ui->bt_calibrate->setEnabled(true);
-
 }
 
 void MainWindow::on_bt_stop_nodes_clicked()
 {
     qDebug() << "Nodes to be killed" << launchedNodes;
 
-    ui->bt_stop_nodes->setEnabled(false);
-    ui->bt_calibrate->setEnabled(false);
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Stop Nodes", "Are you sure you want to stop all launched nodes?",
+                                  QMessageBox::Yes | QMessageBox::No);
 
-    ui->horizontalLayout->insertWidget(0, mProgress);
-
-    mProgress->startAnimation();
-
-    foreach (QProcess *process, processes)
+    if (reply == QMessageBox::Yes)
     {
-        QString nodeName = "/" + launchedNodes.first() + "/" + launchedNodes.first();
-        QProcess nodeKiller;
-        nodeKiller.start("rosnode", QStringList() << "kill" << nodeName);
-        if (nodeKiller.waitForStarted(-1))
+
+        ui->bt_stop_nodes->setEnabled(false);
+        ui->bt_calibrate->setEnabled(false);
+
+        ui->horizontalLayout->insertWidget(0, mProgress);
+
+        mProgress->startAnimation();
+        ui->label_kill_nodes->setText("Killing nodes...Please wait.");
+
+        foreach (QProcess *process, processes)
         {
-            while(nodeKiller.waitForReadyRead(-1))
-                qDebug() <<  nodeKiller.readAllStandardOutput();
+            QString nodeName = "/" + launchedNodes.first() + "/" + launchedNodes.first();
+            QProcess nodeKiller;
+            nodeKiller.start("rosnode", QStringList() << "kill" << nodeName);
+            if (nodeKiller.waitForStarted(-1))
+            {
+                while(nodeKiller.waitForReadyRead(-1))
+                    qDebug() <<  nodeKiller.readAllStandardOutput();
+            }
+            launchedNodes.removeFirst();
+            qDebug() << "Kill order to node:" << nodeName;
+            qDebug() << "Nodes remaining:" << launchedNodes;
         }
-        launchedNodes.removeFirst();
-        qDebug() << "Kill order to node:" << nodeName;
-        qDebug() << "Nodes remaining:" << launchedNodes;
+        qDebug() << "Sent kill orders to all nodes" << launchedNodes;
     }
-    qDebug() << "Sent kill orders to all nodes" << launchedNodes;
 }
 
 void MainWindow::on_bt_calibrate_clicked()
 {
-    std::vector<std::string> vec;
-
-    foreach( QString str, launchedNodes) {
-        vec.push_back(str.toStdString());
-    }
-
-    qnode->setLaunchedNodes(vec, isCamera);
-
     int num_calib_points = mOptions->getNumCalibPoints().toInt();
-    qnode->setCalibrationPoints(num_calib_points);
-    int min_distance = mOptions->getMinDistance().toInt();
-    qnode->setMinDistance(min_distance);
+    double min_distance = mOptions->getMinDistance().toDouble();
+    bool auto_acquisition = mOptions->getAutoAcquisition();
 
-    // start() is a QThread function. It calls QNode::run automatically
-    qnode->start();
+    QString msg = "Number of calibration points set to " + QString::number(num_calib_points)
+            + ".\nMinimum distance between calibration points set to " + QString::number(min_distance)
+            + " meters.\nDo you wish to continue?";
 
-    QString qnode_name = QString::fromStdString(qnode->nodeName());
-    mRviz->subscribeTopics(qnode_name);
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Start Calibration", msg,
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes)
+    {
+        ui->bt_calibrate->setEnabled(false);
+
+        std::vector<std::string> vec;
+
+        foreach( QString str, launchedNodes) {
+            vec.push_back(str.toStdString());
+        }
+
+        qnode->setLaunchedNodes(vec, isCamera);
+        qnode->setCalibrationPoints(num_calib_points);
+        qnode->setMinDistance(min_distance);
+        qnode->setAutoAcquisition(auto_acquisition);
+        qnode->setDoCalibration(true);
+
+        // start() is a QThread function. It calls QNode::run automatically
+        qnode->start();
+
+        ui->bt_stop_calibrate->setEnabled(true);
+
+        QString qnode_name = QString::fromStdString(qnode->nodeName());
+        mRviz->subscribeTopics(qnode_name);
+    }
+}
+
+void MainWindow::on_bt_stop_calibrate_clicked()
+{
+    qnode->setDoCalibration(false);
 }
 
 
@@ -358,66 +401,24 @@ void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
 
         ui->bt_stop_nodes->setEnabled(false);
         ui->bt_calibrate->setEnabled(false);
+        ui->bt_stop_calibrate->setEnabled(false);
         ui->bt_start_nodes->setEnabled(true);
 
         if (mProgress->isAnimated())
         {
             ui->horizontalLayout->removeWidget(mProgress);
+            mProgress->deleteLater();
+            ui->label_kill_nodes->setText("");
         }
     }
     qDebug() << processes;
 }
 
-
-/*void MainWindow::AddChildTopic (QTreeWidgetItem *parent)
+void MainWindow::calibrationFinished()
 {
-    QString descr_topic = "Topic";
-    QTreeWidgetItem *item = new QTreeWidgetItem(parent);
-
-    parent->addChild(item);
-
-    item->setText(0, descr_topic);
-}*/
-
-
-/*void MainWindow::toolButton_clicked(int rowNumber)
-{
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open File"));
-    QPoint point = QPoint(1, 2);
-    QTreeWidgetItem *treeWidgetItem = ui->treeWidget->itemAt(1, rowNumber);
-
-     QTreeWidgetItem * line = treeWidgetItem->child(0);
-
-     line->setText(0, "TESSATYSTAY");
-
-    qDebug() << filename << "rowNumber = " << rowNumber;
-}*/
-
-
-// ====================================================================================
-// References:
-// http://stackoverflow.com/questions/36156519/set-qstring-to-qprocess-properly
-// http://stackoverflow.com/questions/24771293/how-to-get-parameter-from-ros-launch-file-and-use-it-in-qt
-// http://stackoverflow.com/questions/10098980/real-time-display-of-qprocess-output-in-a-textbrowser
-// http://doc.qt.io/qt-4.8/qprocess.html
-// ====================================================================================
-
-/*void MainWindow::on_bt_add_clicked()
-{
-    QProcess process;
-    QString program = "roslaunch";
-    QStringList arguments;
-    arguments << "calibration_gui" << "lasers.launch";
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    process.setProcessEnvironment(env);
-    process.start(program, arguments);
-
-    qDebug()<< "PID: " << process.pid();
-    int count = 0;
-    if (process.waitForStarted(-1)) {
-        while(process.waitForReadyRead(-1)) {
-            qDebug() <<  process.readAllStandardOutput();
-        }
-    }
-    qDebug() << "Process ended";
-}*/
+    ui->bt_stop_nodes->setEnabled(true);
+    ui->bt_calibrate->setEnabled(true);
+    ui->bt_stop_calibrate->setEnabled(false);
+    ui->bt_start_nodes->setEnabled(false);
+    QMessageBox::information(0, "Calibration Complete", "Sensor calibration has finished.");
+}

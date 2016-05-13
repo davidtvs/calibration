@@ -41,13 +41,9 @@ MyViz::MyViz( QWidget* parent )
   manager_->startUpdate();
 
   // Create a Grid display.
+  rviz::Display* grid_;
   grid_ = manager_->createDisplay( "rviz/Grid", "adjustable grid", true );
   ROS_ASSERT( grid_ != NULL );
-
-  markerarray_= manager_->createDisplay( "rviz/Marker", "Marker", true );
-
-  ROS_ASSERT( markerarray_ != NULL );
-
 }
 
 // Destructor.
@@ -64,8 +60,16 @@ void MyViz::subscribeTopics(const QString qnode_name)
     qDebug() << "Calibration points topic:" + Model3DTopic;
 
 
-    markerarray_= manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
-    markerarray_->subProp( "Marker Topic" )->setValue(calibPointsTopic);
+    rviz::Display* markerarray;
 
-    markerarray_->subProp( "Marker Topic" )->setValue( Model3DTopic );
+    markerarray= manager_->createDisplay( "rviz/MarkerArray", "MarkerArray", true );
+    markerarray->subProp( "Marker Topic" )->setValue(calibPointsTopic);
+
+    ROS_ASSERT( markerarray != NULL );
+
+    rviz::Display* marker;
+    marker= manager_->createDisplay( "rviz/Marker", "Marker", true );
+    marker->subProp( "Marker Topic" )->setValue( Model3DTopic );
+
+    ROS_ASSERT( marker != NULL );
 }

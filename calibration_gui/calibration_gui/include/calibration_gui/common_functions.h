@@ -42,7 +42,9 @@
 #include <string>
 #include "lidar_segmentation/lidar_segmentation.h"
 
-#define BALL_DIAMETER 0.99
+#if !defined _LDMRS_VISUALIZATION_RVIZ_CPP_
+double BALL_DIAMETER;
+#endif
 
 using namespace std;
 

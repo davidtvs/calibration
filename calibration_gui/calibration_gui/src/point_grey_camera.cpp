@@ -31,7 +31,8 @@
    \date   December, 2015
  */
 
-#include "calibration_gui/camera_config.h"
+#include "calibration_gui/point_grey_camera_config.h"
+#include "calibration_gui/point_grey_camera.h"
 #include <sys/time.h>
 
 
@@ -451,7 +452,9 @@ void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& cont
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "Point_Grey");
-	ros::NodeHandle n;
+	ros::NodeHandle n("~");
+	n.getParam("ballDiameter", BALL_DIAMETER);
+	cout << "Ball diameter:" << BALL_DIAMETER << endl;
 
 	//read calibration paraneters
 	string a="/src/mystereocalib.yml";
