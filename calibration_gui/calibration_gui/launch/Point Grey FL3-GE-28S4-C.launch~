@@ -6,7 +6,7 @@
     <group ns="$(arg node_name)">
         <node name="$(arg node_name)" pkg="calibration_gui" type="single_camera" required="true" output="screen">
             <param name="sub_node_name" value="$(arg node_name)"/>
-            <param name="ballDiameter" value="$(arg ball_diameter)"/>
+            <param name="ballDiameter" type="double" value="$(arg ball_diameter)"/>
         </node>
     </group>
 </launch>
