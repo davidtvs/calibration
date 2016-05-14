@@ -158,12 +158,15 @@ public:
       //cout << sensors_ball_centers[i] << " " << i << endl;
     }
 
+
     void camCentroidPnPUpdate(const geometry_msgs::PointStampedConstPtr& msg, int camNum)
     {
         camCentroidPnP[camNum].x = msg->point.x;
         camCentroidPnP[camNum].y = msg->point.y;
         camCentroidPnP[camNum].z = msg->point.z;
     }
+
+
     void imageUpdate(const sensor_msgs::ImageConstPtr& msg, int camNum)
     {
       camImage[camNum] = msg;
@@ -178,7 +181,7 @@ void createDirectory ( );
 void writeFile(pcl::registration::TransformationEstimationSVD<pcl::PointXYZ, pcl::PointXYZ>::Matrix4 transformation, const string filepath);
 void writeFileCamera( cv::Mat transformation, const char* transformation_name, const string filepath);
 void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName);
-int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3f> objectPoints, vector<cv::Point2f> imagePoints, const string name, const bool draw = false, const bool ransac = false);
+int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<pcl::PointXYZ> targetCloud, pcl::PointCloud<pcl::PointXYZ> cameraPnPCloud, const string targetSensorName, const string cameraName, const bool draw = true, const bool ransac = true);
 visualization_msgs::Marker addCar(const vector<double>& RPY = vector<double>(), const vector<double>& translation = vector<double>() );
 float pointEuclideanDistance (const pcl::PointXYZ &p1, const pcl::PointXYZ &p2);
 vector<float> gridEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1);

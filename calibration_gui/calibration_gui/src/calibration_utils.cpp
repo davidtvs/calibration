@@ -107,7 +107,8 @@ void writeFileCamera( cv::Mat transformation, const char* transformation_name, c
    @param[in] laserNames name of the sensor pairs
    @return void
  */
-void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName)
+void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud,
+	pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName)
 {
 	//Eigen::Matrix4d transformation of laser lms151 to ldmrs
 	pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,pcl::PointXYZ> TESVD;
@@ -176,8 +177,8 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 	laser.orientation.w=q[3];
 }
 
-int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3f> objectPoints,
-	vector<cv::Point2f> imagePoints, const string name, const bool draw, const bool ransac)
+int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<pcl::PointXYZ> targetCloud,
+	pcl::PointCloud<pcl::PointXYZ> cameraPnPCloud, const string targetSensorName, const string cameraName, const bool draw, const bool ransac)
 {
 	//read calibration paraneters
 	string a="/src/mystereocalib.yml";
@@ -204,10 +205,20 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3
 	// cout << imagePoints << endl;
 	// DEBUGGING =================================================================
 
-	string method;
+	string name = targetSensorName + "_" + cameraName + "_";
 
 	cv::Mat rotation_vector(1,3,cv::DataType<double>::type);
 	cv::Mat translation_vector(1,3,cv::DataType<double>::type);
+
+	vector<cv::Point3f> objectPoints;
+  vector<cv::Point2f> imagePoints;
+
+	for (int i = 0; i < targetCloud.size(); i++)
+	{
+		objectPoints.push_back(cv::Point3f(targetCloud[i].x, targetCloud[i].y, targetCloud[i].z));
+		imagePoints.push_back(cv::Point2f(cameraPnPCloud[i].x, cameraPnPCloud[i].y));
+	}
+
 
 	//rotation_vector = (cv::Mat_<double>(1,3) << 0, 0, 0); // DEBUGGING - solvePnP extrinsicGuess
 	//translation_vector = (cv::Mat_<double>(1,3) << -1, 0, 2); // DEBUGGING - solvePnP extrinsicGuess
@@ -225,7 +236,7 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3
 		translation_vector,
 		false,
 		100);
-		method = "solvePnPRansac_";
+		name += "solvePnPRansac_";
 	}
 	else
 	{
@@ -237,7 +248,7 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3
 						translation_vector,
 						false,
 						CV_ITERATIVE);
-		method = "solvePnP_";
+		name += "solvePnP_";
 	}
 	// No distortion coefficients are given because imagePoints are already undistorted
 
@@ -265,13 +276,13 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3
     cv::line(test_image, cv::Point(imagePoints[i].x, imagePoints[i].y - 5), cv::Point(imagePoints[i].x, imagePoints[i].y + 5), cv::Scalar(0,255,0), 2);  //crosshair vertical
 		//cv::circle(test_image, cv::Point(imagePoints[i].x, imagePoints[i].y), myradius, cv::Scalar(0,255,0),-1,8,0); // Green original points
 	}
-	imwrite( file_path + method + "imagePoints.jpg", test_image );
+	imwrite( file_path + name + "imagePoints.jpg", test_image );
 	// Done with projected points ================================================
   for (int i=0; i<reprojectPoints.size(); i++)
 	{
   cv::circle(test_image, cv::Point(reprojectPoints[i].x, reprojectPoints[i].y), myradius, cv::Scalar(0,0,255),-1,8,0); // Red reprojected points
   }
-  imwrite( file_path + method + "projectPoints_imagePoints.jpg", test_image );
+  imwrite( file_path + name + "projectedPoints.jpg", test_image );
 
 	cv::Mat R(3,3,cv::DataType<double>::type);
 	cv::Rodrigues(rotation_vector, R); // transforms rotation_vector in rotation matrix R (3x3)
@@ -301,7 +312,7 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, vector<cv::Point3
 	cout << "SolvePnP LMS to Camera = " << T << endl; // writes LMS to camera transformation to terminal
 
 	// Saving transformations on files
-	string FilePath = file_path + method + name + ".txt";
+	string FilePath = file_path + name + "calib.txt";
 	writeFileCamera(C_M, "C_M", FilePath);
 	writeFileCamera(T, "M_C", FilePath);
 

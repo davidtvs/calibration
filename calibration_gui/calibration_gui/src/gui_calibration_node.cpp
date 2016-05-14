@@ -77,6 +77,13 @@ void QNode::run() {
     ros::Publisher markers_pub;
     ros::Publisher car_pub;
 
+    ros::NodeHandle n;
+
+    markers_pub = n.advertise<visualization_msgs::MarkerArray>( node_name + "/CalibrationPoints", 10000);
+    car_pub = n.advertise<visualization_msgs::Marker>(node_name + "/3DModel", 1);
+
+    CircleCentroids centroids(calibrationNodes, isCamera);
+
     // Vector for containing future pointclouds for each sensor
     vector<pcl::PointCloud<pcl::PointXYZ> > sensorClouds;
     for (int i=0; i < calibrationNodes.size(); i++)
@@ -92,30 +99,35 @@ void QNode::run() {
         geometry_msgs::Pose sensorPose;
         sensorPoses.push_back(sensorPose);
     }
-    sensorPoses[0].orientation.w = 1.0; // so it can be multiplied by transformations later
+    sensorPoses.front().orientation.w = 1.0; // so it can be multiplied by transformations later, only the reference sensor needs this
+
+    // Vector for containing image pointclouds from cameras - solvePnP method
+    vector<pcl::PointCloud<pcl::PointXYZ> > cameraCloudsPnP;
+    for (int i=0; i < centroids.camCentroidPnP.size(); i++)
+    {
+        pcl::PointCloud<pcl::PointXYZ> cameraCloudPnP;
+        cameraCloudsPnP.push_back(cameraCloudPnP);
+    }
+
+    // Vector for containing future sensor poses
+    vector<geometry_msgs::Pose> cameraPosesPnP;
+    for (int i=0; i < centroids.camCentroidPnP.size(); i++)
+    {
+        geometry_msgs::Pose cameraPosePnP;
+        cameraPosesPnP.push_back(cameraPosePnP);
+    }
 
 
-    ros::NodeHandle n;
-    // Get number of points to collect from TreeWidget
-    // Should be on cell (1,1), but just in case this is changed the code below searches for the string in the whole tree
-    //int num_of_points = MainWindow::treeWidgetFindText( "Number of Calibration Points" );
-    qDebug() << num_of_points;
+    // Pointclouds used for Rviz visualization
+    vector<geometry_msgs::Pose> visualizationPoses;
+    vector<pcl::PointCloud<pcl::PointXYZ> > visualizationClouds;
 
 
-    markers_pub = n.advertise<visualization_msgs::MarkerArray>( node_name + "/CalibrationPoints", 10000);
-    car_pub = n.advertise<visualization_msgs::Marker>(node_name + "/3DModel", 1);
-
-    CircleCentroids centroids(calibrationNodes, isCamera);
     int count=0;
     pcl::PointXYZ P[2];
     P[1].x=0;
     P[1].y=0;
     P[1].z=0;
-
-    sensorPoses.front().orientation.w=1.0; // so it can be multiplied by transformations later
-
-    vector<cv::Point3f> objectPoints;
-    vector<cv::Point2f> imagePoints;
 
     createDirectory( );
 
@@ -168,35 +180,20 @@ void QNode::run() {
                 std::cout << "diff_dist_mean = " << diff_dist_mean << std::endl;
                 if(diff_dist_mean < 0.15)    // the limit is 0.15 meters. If it's higher these points will be discarded
                 {
-
+                    int cameraCounter = 0;
                     for ( int i = 0; i < centroids.sensors_ball_centers.size(); i++ )
-                        sensorClouds[i].push_back(centroids.sensors_ball_centers[i]); // sensorCLouds now contains ball center points for every sensor
-
-                    /* FUTURE WORK - implement a way to know which type of sensor is being used (camera, laser) */
-                    for (int i = 0; i < centroids.sensors_ball_centers.size(); i++)
                     {
+                        sensorClouds[i].push_back(centroids.sensors_ball_centers[i]); // sensorCLouds now contains ball center points for every sensor
                         if (isCamera[i])
                         {
-                            /*string filename_obj_img = calibrationNodes[i] + "_obj_img_points.txt"; // file filename that stores object points and image points
-                            string tmp_str = file_path + filename_obj_img;
-
-                            const char *FilePath_obj_img = tmp_str.c_str();
-
-                            FILE* pFile = fopen(FilePath_obj_img, "w");
-                            fprintf(pFile, "ObjectPoints (m)\tImagePoints (pixel)\n");
-                            fprintf(pFile, "x;y;z\tx;y;r\n");
-
-                            pFile = fopen(FilePath_obj_img, "a");
-                            fprintf(pFile, "%F;%F;%F\t", centroids.sensors_ball_centers[0].x, centroids.sensors_ball_centers[0].y, centroids.sensors_ball_centers[0].z);
-
-                            // save imagePoints to file
-                            fprintf(pFile, "%F;%F;%F\n", centroids.sensors_ball_centers[i].x, centroids.sensors_ball_centers[i].y, centroids.sensors_ball_centers[i].z);
-                            fclose(pFile);
+                            cameraCloudsPnP[cameraCounter].push_back(centroids.camCentroidPnP[cameraCounter]);
 
                             string imgPath = file_path + "img_" + calibrationNodes[i] +"_" + boost::lexical_cast<std::string>(count) + ".jpg";
                             cv::Mat img;
-                            img = cv_bridge::toCvShare(centroids.camImage, "bgr8")->image;
-                            imwrite( imgPath, img );*/
+                            img = cv_bridge::toCvShare(centroids.camImage[cameraCounter], "bgr8")->image;
+                            imwrite( imgPath, img );
+
+                            cameraCounter++;
                         }
                     }
 
@@ -205,10 +202,23 @@ void QNode::run() {
                     for ( int i = 0; i < sensorClouds.size(); i++ )
                         pcl::io::savePCDFileASCII(file_path + calibrationNodes[i] + ".pcd", sensorClouds[i]);
 
+                    for ( int i = 0; i < cameraCloudsPnP.size(); i++ )
+                        pcl::io::savePCDFileASCII(file_path + calibrationNodes[i] + "_PnP.pcd", cameraCloudsPnP[i]);
 
+
+                    // PointClouds and Poses visualization for Rviz (vector concatenation can probably be improved)
+                    visualizationPoses.clear();
+                    visualizationClouds.clear();
+                    visualizationPoses.reserve( sensorPoses.size() + cameraPosesPnP.size() );
+                    visualizationPoses.reserve( sensorClouds.size() + cameraCloudsPnP.size() );
+
+                    visualizationPoses.insert( visualizationPoses.end(), sensorPoses.begin(), sensorPoses.end() );
+                    visualizationPoses.insert( visualizationPoses.end(), cameraPosesPnP.begin(), cameraPosesPnP.end() );
+                    visualizationClouds.insert( visualizationClouds.end(), sensorClouds.begin(), sensorClouds.end() );
+                    visualizationClouds.insert( visualizationClouds.end(), cameraCloudsPnP.begin(), cameraCloudsPnP.end() );
 
                     visualization_msgs::MarkerArray targets_markers;
-                    targets_markers.markers = createTargetMarkers(sensorClouds, sensorPoses);
+                    targets_markers.markers = createTargetMarkers(visualizationClouds, visualizationPoses);
                     markers_pub.publish(targets_markers);
 
 
@@ -235,20 +245,23 @@ void QNode::run() {
         loop_rate.sleep();
     }
 
-    // Estimating rigid transform between target sensor and other sensors
-    for (int i = 1; i < centroids.sensors_ball_centers.size(); i++) // starts with i=1 because for i=0 the target and uncalibrated sensor are the same
-    {
-        estimateTransformation(sensorPoses[i], sensorClouds.front(), sensorClouds[i],
-                               calibrationNodes.front(), calibrationNodes[i]);
-    }
-
-    // IMPLEMENT THIS
-    /*estimateTransformationCamera(singleCamPnP, objectPoints, imagePoints, "lms1_camera_calib", true, false); // Transformation estimation with solvePnP
-    estimateTransformationCamera(singleCamPnPRansac, objectPoints, imagePoints, "lms1_camera_calib", true, true); // Transformation estimation with solvePnPRansac
-    */
-
     if (doCalibration)
     {
+
+        int cameraCounter = 0;
+        for (int i = 1; i < centroids.sensors_ball_centers.size(); i++) // starts with i=1 because for i=0 the target and uncalibrated sensor are the same
+        {
+            // Estimating rigid transform between target sensor and other sensors
+            estimateTransformation(sensorPoses[i], sensorClouds.front(), sensorClouds[i],
+                                   calibrationNodes.front(), calibrationNodes[i]);
+            if (isCamera[i])
+            {
+                estimateTransformationCamera(cameraPosesPnP[cameraCounter], sensorClouds.front(), cameraCloudsPnP[cameraCounter],
+                                             calibrationNodes.front(), calibrationNodes[i], true, true);
+                cameraCounter++;
+            }
+        }
+
         vector<double> RPY;
         // ATLASCAR model rotations
         RPY.push_back(M_PI/2); // X-rotation
@@ -269,8 +282,19 @@ void QNode::run() {
         RPY.push_back(0.0);
         RPY.push_back(55 * M_PI/180);
 
+        // PointClouds and Poses visualization for Rviz (vector concatenation can probably be improved)
+        visualizationPoses.clear();
+        visualizationClouds.clear();
+        visualizationPoses.reserve( sensorPoses.size() + cameraPosesPnP.size() );
+        visualizationPoses.reserve( sensorClouds.size() + cameraCloudsPnP.size() );
+
+        visualizationPoses.insert( visualizationPoses.end(), sensorPoses.begin(), sensorPoses.end() );
+        visualizationPoses.insert( visualizationPoses.end(), cameraPosesPnP.begin(), cameraPosesPnP.end() );
+        visualizationClouds.insert( visualizationClouds.end(), sensorClouds.begin(), sensorClouds.end() );
+        visualizationClouds.insert( visualizationClouds.end(), cameraCloudsPnP.begin(), cameraCloudsPnP.end() );
+
         visualization_msgs::MarkerArray targets_markers;
-        targets_markers.markers = createTargetMarkers(sensorClouds, sensorPoses, RPY);
+        targets_markers.markers = createTargetMarkers(visualizationClouds, visualizationPoses);
         markers_pub.publish(targets_markers);
 
         cout<<"Calibration complete!"<<endl;
