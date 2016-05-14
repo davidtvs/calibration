@@ -67,6 +67,7 @@
 // Boost filesystem to get parent directory
 #include "boost/filesystem.hpp"
 
+#define BALL_DIAMETER 0.99
 
 using namespace Eigen;
 using namespace std;
