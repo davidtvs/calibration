@@ -111,7 +111,7 @@ public:
           pcl::PointXYZ allocator_ball_centers;
           sensors_ball_centers.push_back(allocator_ball_centers);
 
-          subs.push_back( n_.subscribe <geometry_msgs::PointStamped> (topic_name, 1000, boost::bind(&CircleCentroids::sensorUpdate, this, _1, i, isCamera[i])) );
+          subs.push_back( n_.subscribe <geometry_msgs::PointStamped> (topic_name, 1, boost::bind(&CircleCentroids::sensorUpdate, this, _1, i)) );
         if (isCamera[i])
           {
             // Allocating space in camImage vector
@@ -119,14 +119,15 @@ public:
             camImage.push_back(allocator_camImage);
             // Subscribing to raw image topics
             image_transport::ImageTransport it(n_);
-            subs_cam_images.push_back( it.subscribe (sensors_list[i] + "/RawImage", 1, boost::bind(&CircleCentroids::imageUpdate, this, _1, cam_count)) );
+            subs_cam_images.push_back( it.subscribe ("/" + sensors_list[i] + "/RawImage", 1, boost::bind(&CircleCentroids::imageUpdate, this, _1, cam_count)) );
 
             // Allocating space in camCentroidPnP vector
             pcl::PointXYZ allocator_camCentroidPnP;
             camCentroidPnP.push_back(allocator_camCentroidPnP);
             //Subscribing to topics containing image points for the solvepnp method
             subs_pnp.push_back( n_.subscribe <geometry_msgs::PointStamped> (topic_name + "PnP", 1, boost::bind(&CircleCentroids::camCentroidPnPUpdate, this, _1, cam_count)) );
-
+            cout << "/" << sensors_list[i] << "/RawImage" << endl;
+            cout << topic_name << "PnP" << endl;
             cam_count++;
           }
         }
@@ -135,26 +136,11 @@ public:
     ~CircleCentroids(){}
 
     // Source: https://foundry.supelec.fr/scm/viewvc.php/nouveau/ROS/koala_node/src/camera_position_node.cpp?view=markup&root=rpm_ims&sortdir=down&pathrev=2320
-    void sensorUpdate(const geometry_msgs::PointStampedConstPtr& msg, int i, bool isCamera)
+    void sensorUpdate(const geometry_msgs::PointStampedConstPtr& msg, int i)
     {
       sensors_ball_centers[i].x = msg->point.x;
       sensors_ball_centers[i].y = msg->point.y;
       sensors_ball_centers[i].z = msg->point.z;
-      if (isCamera)
-      {
-        /* Since the cameras' coordinate system is different from the lasers'
-          they need to be rotated so the pose for lasers and cameras is consistent */
-        Eigen::Affine3f cam_transform = Eigen::Affine3f::Identity();
-        cam_transform.translation() << 0.0, 0.0, 0.0;
-        cam_transform.rotate ( AngleAxisf(M_PI/2, Vector3f::UnitX())
-                              *  AngleAxisf(-M_PI/2, Vector3f::UnitY())
-                              *  AngleAxisf(0, Vector3f::UnitZ())
-                            );
-
-        cout << cam_transform.matrix() << endl;
-
-        sensors_ball_centers[i] = pcl::transformPoint(sensors_ball_centers[i], cam_transform);
-      }
       //cout << sensors_ball_centers[i] << " " << i << endl;
     }
 
@@ -180,7 +166,7 @@ extern string file_path;
 void createDirectory ( );
 void writeFile(pcl::registration::TransformationEstimationSVD<pcl::PointXYZ, pcl::PointXYZ>::Matrix4 transformation, const string filepath);
 void writeFileCamera( cv::Mat transformation, const char* transformation_name, const string filepath);
-void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName);
+void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName, const bool isCamera);
 int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<pcl::PointXYZ> targetCloud, pcl::PointCloud<pcl::PointXYZ> cameraPnPCloud, const string targetSensorName, const string cameraName, const bool draw = true, const bool ransac = true);
 visualization_msgs::Marker addCar(const vector<double>& RPY = vector<double>(), const vector<double>& translation = vector<double>() );
 float pointEuclideanDistance (const pcl::PointXYZ &p1, const pcl::PointXYZ &p2);

@@ -38,7 +38,7 @@ public:
     const std::string& nodeName() { return node_name; }
 
     void setCalibrationPoints(const int numPoints) { num_of_points = numPoints; }
-    void setMinDistance (const int distance) { min_distance = distance; }
+    void setMinDistance (const double distance) { min_distance = distance; }
     void setLaunchedNodes(const std::vector<std::string> sensors, const std::vector<bool> camera);
     void setAutoAcquisition(const bool acquisition_type) { acquisitionIsAuto = acquisition_type; }
     void setDoCalibration(const bool calibration_state) { doCalibration = calibration_state; }

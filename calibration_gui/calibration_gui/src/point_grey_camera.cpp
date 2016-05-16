@@ -198,7 +198,7 @@ void ImageCapture(Camera &Camera)
 	sensor_msgs::ImagePtr image_msg;
 
 	// capture loop
-	ros::Rate loop_rate(30);
+	ros::Rate loop_rate(15);
 	timestamp_t t0, t1;
 	double secs;
 	int key = 0;
@@ -261,7 +261,7 @@ void ImageCapture(Camera &Camera)
 
 		PolygonalCurveDetection(unImg, imgBinary, valC);
 
-		// get user key
+		// get user key*/
 		key = waitKey(1);
 		ros::spinOnce();
 		loop_rate.sleep();
@@ -455,11 +455,12 @@ int main(int argc, char **argv)
 	ros::NodeHandle n("~");
 	n.getParam("ballDiameter", BALL_DIAMETER);
 	cout << "Ball diameter:" << BALL_DIAMETER << endl;
+	string node_namespace = ros::this_node::getNamespace();
 
 	//read calibration paraneters
-	string a="/src/mystereocalib.yml";
+	string a="/intrinsic_calibrations/ros_calib.yaml";
 	string path = ros::package::getPath("calibration_gui");
-	path=path+a;
+	path += a;
 	FileStorage fs(path, FileStorage::READ);
 	if(!fs.isOpened())
 	{
@@ -469,12 +470,15 @@ int main(int argc, char **argv)
 
 	fs["CM1"] >> CameraMatrix1;
 	fs["D1"] >> disCoeffs1;
+	std::cout << CameraMatrix1 << std::endl;
+	std::cout << disCoeffs1 << std::endl;
+
 
 	image_transport::ImageTransport it(n);
-	rawImage_pub = it.advertise("RawImage", 2);
-	ballCentroidImage_pub = it.advertise("BallDetection", 2);
-	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroid", 7);
-	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroidPnP", 7);
+	rawImage_pub = it.advertise("/" + node_namespace + "/RawImage", 1);
+	ballCentroidImage_pub = it.advertise("BallDetection", 1);
+	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroid", 1);
+	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroidPnP", 1);
 
 	Camera Camera;
 	try

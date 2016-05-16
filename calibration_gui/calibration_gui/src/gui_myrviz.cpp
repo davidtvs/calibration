@@ -43,6 +43,7 @@ MyViz::MyViz( QWidget* parent )
   // Create a Grid display.
   rviz::Display* grid_;
   grid_ = manager_->createDisplay( "rviz/Grid", "adjustable grid", true );
+
   ROS_ASSERT( grid_ != NULL );
 }
 

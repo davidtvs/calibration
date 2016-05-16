@@ -176,24 +176,31 @@ void QNode::run() {
                     }
                     // Mean squared distance - high diff_dist_mean means that the ball displacement was not equal for every sensor, which means something is wrong
                     diff_dist_mean = diff_dist_mean/centroids.sensors_ball_centers.size();
+                    qDebug() << centroids.sensors_ball_centers.size();
                 }
-                std::cout << "diff_dist_mean = " << diff_dist_mean << std::endl;
+                cout << "diff_dist_mean = " << diff_dist_mean << endl;
                 if(diff_dist_mean < 0.15)    // the limit is 0.15 meters. If it's higher these points will be discarded
                 {
                     int cameraCounter = 0;
                     for ( int i = 0; i < centroids.sensors_ball_centers.size(); i++ )
                     {
+                        qDebug() << "crash";
                         sensorClouds[i].push_back(centroids.sensors_ball_centers[i]); // sensorCLouds now contains ball center points for every sensor
+                        qDebug() << "nocrash";
                         if (isCamera[i])
                         {
+                            qDebug() << "crash1";
                             cameraCloudsPnP[cameraCounter].push_back(centroids.camCentroidPnP[cameraCounter]);
-
+                            cout << "nocrash1" << centroids.camCentroidPnP[cameraCounter] << endl;
                             string imgPath = file_path + "img_" + calibrationNodes[i] +"_" + boost::lexical_cast<std::string>(count) + ".jpg";
-                            cv::Mat img;
-                            img = cv_bridge::toCvShare(centroids.camImage[cameraCounter], "bgr8")->image;
-                            imwrite( imgPath, img );
+                            cout << imgPath << "\n" << centroids.camImage.size() << endl;
+                            //cv::Mat img;
+                            //img = cv_bridge::toCvShare(centroids.camImage[cameraCounter], "bgr8")->image;
+                            //imwrite( imgPath, img );
+                            qDebug() << "nocrash save img";
 
                             cameraCounter++;
+                            qDebug() << cameraCounter;
                         }
                     }
 
@@ -205,6 +212,7 @@ void QNode::run() {
                     for ( int i = 0; i < cameraCloudsPnP.size(); i++ )
                         pcl::io::savePCDFileASCII(file_path + calibrationNodes[i] + "_PnP.pcd", cameraCloudsPnP[i]);
 
+                    qDebug() << "pcd save";
 
                     // PointClouds and Poses visualization for Rviz (vector concatenation can probably be improved)
                     visualizationPoses.clear();
@@ -253,7 +261,7 @@ void QNode::run() {
         {
             // Estimating rigid transform between target sensor and other sensors
             estimateTransformation(sensorPoses[i], sensorClouds.front(), sensorClouds[i],
-                                   calibrationNodes.front(), calibrationNodes[i]);
+                                   calibrationNodes.front(), calibrationNodes[i], isCamera[i]);
             if (isCamera[i])
             {
                 estimateTransformationCamera(cameraPosesPnP[cameraCounter], sensorClouds.front(), cameraCloudsPnP[cameraCounter],

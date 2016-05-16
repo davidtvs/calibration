@@ -108,7 +108,7 @@ void writeFileCamera( cv::Mat transformation, const char* transformation_name, c
    @return void
  */
 void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud,
-	pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName)
+	pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName, const bool isCamera)
 {
 	//Eigen::Matrix4d transformation of laser lms151 to ldmrs
 	pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,pcl::PointXYZ> TESVD;
@@ -134,18 +134,18 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 
 	string name = targetSensorName + "_" + sensorName + "_calib.txt";
 
-	/*else if (laserNames=="lms1_camera")
+	if (isCamera)
 	{
-		name="lms1_camera_calib.txt";
-		// Rotation matrix around the X axis so the pose represents the Z axis
+		// Rotation matrix so the pose arrow points in the Z direction
 		double alpha = -M_PI/2;
-		MatrixXd R_y(4,4);
-		R_y << cos(alpha), 0, sin(alpha), 0,
+		MatrixXd R(4,4);
+		R << cos(alpha), 0, sin(alpha), 0,
 		        0,        1,     0,      0,
 		        -sin(alpha), 0, cos(alpha), 0,
 		        0,           0,     0,      1;
-		Trans=Trans*R_y;
-	}*/
+		Trans=Trans*R;
+
+	}
 
 	/* Visualization of camera position and orientation
 	   Convert the opencv matrices to tf compatible ones */
@@ -181,9 +181,9 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<p
 	pcl::PointCloud<pcl::PointXYZ> cameraPnPCloud, const string targetSensorName, const string cameraName, const bool draw, const bool ransac)
 {
 	//read calibration paraneters
-	string a="/src/mystereocalib.yml";
+	string a="/intrinsic_calibrations/ros_calib.yaml";
 	string path = ros::package::getPath("calibration_gui");
-	path=path+a;
+	path += a;
 	cv::FileStorage fs(path, cv::FileStorage::READ);
 	if(!fs.isOpened())
 	{
@@ -322,12 +322,12 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<p
 	if (draw)
 	{
 		double alpha = -M_PI/2;
-		cv::Mat R_y = (cv::Mat_<double>(4, 4) <<
-		               cos(alpha), 0, sin(alpha), 0,
-		               0,          1,     0,       0,
-		               -sin(alpha), 0, cos(alpha), 0,
-		               0,           0,     0,      1);
-		T=T*R_y;
+		cv::Mat R = (cv::Mat_<double>(4, 4) <<
+					cos(alpha), 0, sin(alpha), 0,
+					 0,        1,     0,      0,
+					 -sin(alpha), 0, cos(alpha), 0,
+					 0,           0,     0,      1);
+		T=T*R;
 
 		tf::Matrix3x3 rot;
 		rot[0][0] = T.at<double>(0,0);
