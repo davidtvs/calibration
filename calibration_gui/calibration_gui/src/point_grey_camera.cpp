@@ -26,8 +26,8 @@
  ***************************************************************************************************/
 /**
    \file  camera.cpp
-   \brief Ball detection with a stereo system
-   \author Marcelo Pereira
+   \brief Ball detection with a Point Grey
+   \author Marcelo Pereira, David Silva
    \date   December, 2015
  */
 
@@ -455,7 +455,10 @@ int main(int argc, char **argv)
 	ros::NodeHandle n("~");
 	n.getParam("ballDiameter", BALL_DIAMETER);
 	cout << "Ball diameter:" << BALL_DIAMETER << endl;
-	string node_namespace = ros::this_node::getNamespace();
+
+	string sub_node_name;
+	n.getParam("sub_node_name", sub_node_name);
+	cout << "sub_node_name:" << sub_node_name << endl;
 
 	//read calibration paraneters
 	string a="/intrinsic_calibrations/ros_calib.yaml";
@@ -475,10 +478,14 @@ int main(int argc, char **argv)
 
 
 	image_transport::ImageTransport it(n);
-	rawImage_pub = it.advertise("/" + node_namespace + "/RawImage", 1);
-	ballCentroidImage_pub = it.advertise("BallDetection", 1);
-	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroid", 1);
-	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( "SphereCentroidPnP", 1);
+
+	string raw_data_topic = "/" + sub_node_name;
+	rawImage_pub = it.advertise(raw_data_topic + "/RawImage", 1);
+
+	string ballDetection_topic = raw_data_topic + "/BD_" + sub_node_name;
+	ballCentroidImage_pub = it.advertise(ballDetection_topic + "/BallDetection", 1);
+	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( ballDetection_topic + "/SphereCentroid", 1);
+	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( ballDetection_topic + "/SphereCentroidPnP", 1);
 
 	Camera Camera;
 	try
