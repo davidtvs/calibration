@@ -29,7 +29,9 @@ void SupportedSensors::addTreeChilds(QTreeWidgetItem *item, const QString sensor
     else if (sensorID == supportedSensors[1]) //Sick LD-MRS400001
         makeChild(item, ask_IP, 0);
     else if (sensorID == supportedSensors[2]) //Point Grey FL3-GE-28S4-C
-        makeChild(item, ask_IP, 0);
+    {
+        // Nothing for now...IP is changed through FlyCap2 software
+    }
     else if (sensorID == supportedSensors[3]) //SwissRanger SR40000_(Ethernet)
         makeChild(item, ask_IP, 0);
     else if (sensorID == supportedSensors[4]) //"SwissRanger SR40000_(USB)"
@@ -109,10 +111,9 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
         launchedNodes.push_back(supportedSensorsNodes[2] + "_" + QString::number(sensorCounter[2]));
         node_name += launchedNodes.last();
 
-        itemchild = item->child(0); // Get child item (itemchild) of top level item (item)
-        sensorIP += itemchild->text(1);
+        // No childs
 
-        roslaunch_params << sensorIP << node_name;
+        roslaunch_params << node_name;
 
         isCamera.push_back(true);
     }
