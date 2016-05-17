@@ -44,15 +44,6 @@ ros::Publisher pointCloud_pub;
 
 pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
 
-typedef unsigned long long timestamp_t;
-
-static timestamp_t get_timestamp ()
-{
-	struct timeval now;
-	gettimeofday (&now, NULL);
-	return now.tv_usec + (timestamp_t)now.tv_sec * 1000000;
-}
-
 
 /**
    @brief write in a file the center of the sphere
@@ -74,62 +65,13 @@ void writeFile(Eigen::VectorXf sphereCoeffsRefined)
 void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
 {
 
-	timestamp_t t0, t1;
-	double secs;
-	t0 = get_timestamp();
+	ros::Time start = ros::Time::now();
 
 	geometry_msgs::PointStamped sphereCenter;
 	sphereCenter.point.x = -999;
 	sphereCenter.point.y = -999;
 	sphereCenter.point.z = -999;
 
-
-/*
-
-	pcl::PointCloud<pcl::PointXYZ>::Ptr Kinect_cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(Kinect_cloud));
-
-
-
-	pcl::ExtractIndices<pcl::PointXYZ> extract_indices;
-  pcl::ExtractIndices<pcl::Normal> extract_normals;
-
-	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normal_estimation;
-  pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal> segmentation_from_normals;
-
-pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal> ());
-	pcl::SACSegmentation<pcl::PointXYZ> seg;
-	 pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ> ());
-pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
-pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
-
-
-pcl::PointCloud<pcl::PointXYZ> Kinect_cloud_filtered;
-pcl::VoxelGrid<pcl::PointXYZ> sor;
-sor.setInputCloud (Kinect_cloudPtr);
-sor.setLeafSize (0.1, 0.1, 0.1);
-sor.filter (Kinect_cloud_filtered);
-
-// Estimate point normals
-  normal_estimation.setSearchMethod (tree);
-  normal_estimation.setInputCloud (Kinect_cloudPtr);
-  normal_estimation.setKSearch (25);
-  normal_estimation.compute (*cloud_normals);
-
-	// Create the segmentation object for sphere segmentation and set all the paopennirameters
-segmentation_from_normals.setOptimizeCoefficients (true);
-//segmentation_from_normals.setModelType (pcl::SACMODEL_SPHERE);
-segmentation_from_normals.setModelType (pcl::SACMODEL_SPHERE);
-segmentation_from_normals.setMethodType (pcl::SAC_RANSAC);
-segmentation_from_normals.setNormalDistanceWeight (0.1);
-segmentation_from_normals.setMaxIterations (1000);
-segmentation_from_normals.setDistanceThreshold (0.05);
-segmentation_from_normals.setRadiusLimits (0.45, 0.5);
-segmentation_from_normals.setInputCloud (Kinect_cloudPtr);
-segmentation_from_normals.setInputNormals (cloud_normals);
-
-
-  // Obtain the sphere inliers and coefficients
-  segmentation_from_normals.segment (*inliers, *coefficients);*/
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr Kinect_cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(Kinect_cloud));
 
@@ -141,7 +83,7 @@ segmentation_from_normals.setInputNormals (cloud_normals);
 
 	pcl::VoxelGrid<pcl::PointXYZ> sor;
 	sor.setInputCloud (Kinect_cloudPtr);
-	sor.setLeafSize (0.01, 0.01, 0.01);
+	sor.setLeafSize (0.01f, 0.01f, 0.01f);
 	sor.filter (*Kinect_cloud_filtered);
 
 	viewer.showCloud(Kinect_cloud_filtered);
@@ -157,68 +99,16 @@ segmentation_from_normals.setInputNormals (cloud_normals);
   // Mandatory
   seg.setModelType (pcl::SACMODEL_SPHERE);
   seg.setMethodType (pcl::SAC_RANSAC);
-  seg.setMaxIterations (500);
-  seg.setDistanceThreshold (0.05);
-  seg.setRadiusLimits (0.4, 0.6);
+  seg.setMaxIterations (1000);
+  seg.setDistanceThreshold (0.02);
+  seg.setRadiusLimits (BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2, BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2);
 
-  // Create the filtering object
-  pcl::ExtractIndices<pcl::PointXYZ> extract;
+	seg.setInputCloud (Kinect_cloud_filtered);
+	seg.segment (*inliers, *coefficients);
 
-  int i = 0, nr_points = Kinect_cloud_filtered->points.size ();
-  // While 30% of the original cloud is still there
-  while (Kinect_cloud_filtered->points.size () > 0.3 * nr_points)
-  {
-    // Segment the largest planar component from the remaining cloud
-    seg.setInputCloud (Kinect_cloud_filtered);
-    seg.segment (*inliers, *coefficients);
-    if (inliers->indices.size () == 0)
-    {
-      std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
-      break;
-    }
+	ros::Time end = ros::Time::now();
 
-    // Extract the inliers
-    extract.setInputCloud (Kinect_cloud_filtered);
-    extract.setIndices (inliers);
-    extract.setNegative (false);
-    extract.filter (*cloud_p);
-    if (cloud_p->points.size () < 1000)
-      continue;
-    std::cerr << "PointCloud representing the planar component: " << cloud_p->width * cloud_p->height << " data points." << std::endl;
-
-		cout << coefficients->values[0] << ", "
-				 << coefficients->values[1] << ", "
-				 << coefficients->values[2] << ", "
-				 << coefficients->values[3] << endl;
-
-    // Create the filtering object
-    extract.setNegative (true);
-    extract.filter (*Kinect_cloud_filtered);
-
-    i++;
-  }
-
-	/*
-	 * Source: http://robotica.unileon.es/mediawiki/index.php/PCL/OpenNI_tutorial_3:_Cloud_processing_%28advanced%29
-	 */
-	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(Kinect_cloud));
-	pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
-
-	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
-	pcl::SACSegmentation<pcl::PointXYZ> segmentation;
-	segmentation.setInputCloud(cloudPtr);
-	segmentation.setModelType(pcl::SACMODEL_SPHERE);
-	segmentation.setMethodType(pcl::SAC_RANSAC);
-	segmentation.setDistanceThreshold(0.01);
-	segmentation.setRadiusLimits(BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2, BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2);
-	segmentation.setOptimizeCoefficients(true);
-
-	pcl::PointIndices inlierIndices;
-	segmentation.segment(inlierIndices, *coefficients);*/
-
-	t1 = get_timestamp();
-	secs = (t1 - t0) / 1000000.0L;
-	std::cout << secs << std::endl;
+	cout << "Ball detection time filtered: " <<  (end - start).toNSec() * 1e-6 << " msec"  << endl;
 
 	if(inliers->indices.size ()>0)
 	{
@@ -234,6 +124,45 @@ segmentation_from_normals.setInputNormals (cloud_normals);
 		     << coefficients->values[2] << ", "
 		     << coefficients->values[3] << endl;
 	}
+
+	start = ros::Time::now();
+
+	/*
+	 * Source: http://robotica.unileon.es/mediawiki/index.php/PCL/OpenNI_tutorial_3:_Cloud_processing_%28advanced%29
+	 */
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(Kinect_cloud));
+	pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
+
+	pcl::ModelCoefficients::Ptr coefficients_(new pcl::ModelCoefficients);
+	pcl::SACSegmentation<pcl::PointXYZ> segmentation;
+	segmentation.setInputCloud(cloudPtr);
+	segmentation.setModelType(pcl::SACMODEL_SPHERE);
+	segmentation.setMethodType(pcl::SAC_RANSAC);
+	segmentation.setDistanceThreshold(0.02);
+	segmentation.setRadiusLimits(BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2, BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2);
+	segmentation.setOptimizeCoefficients(true);
+
+	pcl::PointIndices inlierIndices;
+	segmentation.segment(inlierIndices, *coefficients_);
+
+	end = ros::Time::now();
+
+	if(inliers->indices.size ()>0)
+	{
+
+		if (coefficients_->values[3]<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && coefficients_->values[3]>BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2)
+		{
+			sphereCenter.point.x = coefficients_->values[0];
+			sphereCenter.point.y = coefficients_->values[1];
+			sphereCenter.point.z = coefficients_->values[2];
+		}
+		cout << coefficients_->values[0] << ", "
+		     << coefficients_->values[1] << ", "
+		     << coefficients_->values[2] << ", "
+		     << coefficients_->values[3] << endl;
+	}
+
+	cout << "Ball detection time full: " <<  (end - start).toNSec() * 1e-6 << " msec"  << endl;
 
 
 
