@@ -31,8 +31,8 @@
  \date   May, 2016
 */
 
-#ifndef _VISUALIZATION_RVIZ_SWISSRANGER_H_
-#define _VISUALIZATION_RVIZ_SWISSRANGER_H_
+#ifndef _VISUALIZATION_RVIZ_KINECT_H_
+#define _VISUALIZATION_RVIZ_KINECT_H_
 
 #include <vector>
 #include <visualization_msgs/Marker.h>

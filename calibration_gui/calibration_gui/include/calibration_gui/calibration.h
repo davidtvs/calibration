@@ -80,7 +80,7 @@ extern string file_path;
 /**
   \class CircleCentroids
   \brief Class to handle the ball center coordinates from the different sensors
-  \author Marcelo Pereira
+  \author David Silva
  */
 class CircleCentroids
 {

@@ -27,8 +27,8 @@
 /**
    \file  sick_lms151_1.cpp
    \brief Algorithm for the ball center detection with one of the Sick LMS151 laser
-   \author Marcelo Pereira
-   \date   December, 2015
+   \author Marcelo Pereira, David Silva
+   \date   May, 2016
  */
 
 #include <lidar_segmentation/lidar_segmentation.h>

@@ -27,8 +27,8 @@
 /**
    \file  swissranger.cpp
    \brief Algorithm for the ball center detection with the SwissRanger
-   \author Marcelo Pereira
-   \date   December, 2015
+   \author Marcelo Pereira, David Silva
+   \date   May, 2016
  */
 
 #include "ros/ros.h"

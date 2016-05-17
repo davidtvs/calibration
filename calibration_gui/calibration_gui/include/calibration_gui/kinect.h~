@@ -27,13 +27,36 @@
 /**
 \file  swissranger.h
 \brief Global include file
-\author Marcelo Pereira, David Silva
+\author David Silva
 \date   Maio, 2016
 */
-#ifndef _SWISSRANGER_H_
-#define _SWISSRANGER_H_
+#ifndef _KINECT_H_
+#define _KINECT_H_
 
+#include "ros/ros.h"
+#include <cmath>
+#include <algorithm>
+#include <geometry_msgs/Point32.h>
 #include <eigen3/Eigen/Dense>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_sphere.h>
+#include <pcl/io/pcd_io.h>
+#include <visualization_msgs/MarkerArray.h>
+#include <geometry_msgs/PointStamped.h>
+
+
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/features/normal_3d.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <eigen3/Eigen/Dense>
+
+#include <pcl/conversions.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 double BALL_DIAMETER;
 
@@ -42,29 +65,40 @@ using namespace std;
 /**
   \class swissranger
   \brief Class to handle the point cloud from the swissranger
-  \author Marcelo Pereira
+  \author Marcelo Pereira, David Silva
  */
-class swissranger
+class kinect
 {
 public:
     ros::NodeHandle n_;
     ros::Subscriber pointCloud_subscriber;
-    sensor_msgs::PointCloud cloud; /**< point cloud from the swissranger. */
+    pcl::PointCloud<pcl::PointXYZ> cloud;
+    pcl::PointCloud<pcl::PointXYZ> cloud_filtered;
 
 /**
 @brief constructer - subscription of the point cloud from the swissranger
 */
-    swissranger(const string &nodeToSub)
+    kinect(const string &nodeToSub)
     {
         //Topics I want to subscribe
-        pointCloud_subscriber=n_.subscribe("/" + nodeToSub + "/pointcloud_raw", 10000, &swissranger::pointCloudUpdate, this);
+        pointCloud_subscriber=n_.subscribe("/" + nodeToSub + "/camera/depth/points",
+                              10000, &kinect::pointCloudUpdate, this);
+        cout << "/" << nodeToSub << "/camera/depth/points" << endl;
     }
 
-    ~swissranger(){}
+    ~kinect(){}
 
-    void pointCloudUpdate(const sensor_msgs::PointCloud & msg)
+    void pointCloudUpdate(const sensor_msgs::PointCloud2ConstPtr & msg)
     {
-        cloud=msg;
+		pcl::fromROSMsg(*msg, cloud);
+		
+		
+		sensor_msgs::PointCloud2::Ptr pointcloud_filtered (new sensor_msgs::PointCloud2);
+		pcl::VoxelGrid<sensor_msgs::PointCloud2> sor;
+  sor.setInputCloud (msg);
+  sor.setLeafSize (0.01, 0.01, 0.01);
+  sor.filter (*pointcloud_filtered);
+      
         //ROS_INFO("Scan time: %lf ", msg.data[0]);
     }
 };

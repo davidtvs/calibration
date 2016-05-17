@@ -25,49 +25,65 @@
  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************************************/
 /**
-\file  swissranger.h
-\brief Global include file
-\author Marcelo Pereira, David Silva
-\date   Maio, 2016
+ \file  visualization_rviz_swissranger.cpp
+ \brief Illustration of the ball detection on the sensor data
+ \details It is represented the segmentation of the sensor data, and the ball when detected
+ \author Marcelo Pereira
+ \date   December, 2015
 */
-#ifndef _SWISSRANGER_H_
-#define _SWISSRANGER_H_
 
-#include <eigen3/Eigen/Dense>
-
-double BALL_DIAMETER;
-
-using namespace std;
+#include <lidar_segmentation/lidar_segmentation.h>
+#include <lidar_segmentation/clustering.h>
+#include "calibration_gui/visualization_rviz_swissranger.h"
+#include <vector>
 
 /**
-  \class swissranger
-  \brief Class to handle the point cloud from the swissranger
-  \author Marcelo Pereira
- */
-class swissranger
+@brief Markers publication for the visualization of the ball detected
+@param[in] sphereCenter center coordinates of the ball
+@return vector<visualization_msgs::Marker>
+*/
+vector<visualization_msgs::Marker> createTargetMarkers(pcl::PointXYZ sphereCenter )
 {
-public:
-    ros::NodeHandle n_;
-    ros::Subscriber pointCloud_subscriber;
-    sensor_msgs::PointCloud cloud; /**< point cloud from the swissranger. */
 
-/**
-@brief constructer - subscription of the point cloud from the swissranger
-*/
-    swissranger(const string &nodeToSub)
+    static Markers marker_list;
+
+    //Reduce the elements status, ADD to REMOVE and REMOVE to delete
+    marker_list.decrement();
+
+    visualization_msgs::Marker marker_sphere;
+
+    marker_sphere.header.frame_id = "/my_frame";
+    marker_sphere.header.stamp = ros::Time::now();
+
+    marker_sphere.ns = "sphere";
+    marker_sphere.action = visualization_msgs::Marker::ADD;
+
+    marker_sphere.type = visualization_msgs::Marker::SPHERE_LIST;
+
+    marker_sphere.scale.x = 0.9;
+    marker_sphere.scale.y = 0.9;
+    marker_sphere.scale.z = 0.9;
+
+
+    //sphere
+
+    if(sphereCenter.x!=0)
     {
-        //Topics I want to subscribe
-        pointCloud_subscriber=n_.subscribe("/" + nodeToSub + "/pointcloud_raw", 10000, &swissranger::pointCloudUpdate, this);
+        geometry_msgs::Point pt;
+        pt.x=sphereCenter.x;
+        pt.y=sphereCenter.y;
+        pt.z=sphereCenter.z;
+        marker_sphere.points.push_back(pt);
+        marker_sphere.color.a=1;
+        marker_sphere.color.g=1;
+
+        marker_list.update(marker_sphere);
     }
 
-    ~swissranger(){}
+    //Remove markers that should not be transmitted
+    marker_list.clean();
 
-    void pointCloudUpdate(const sensor_msgs::PointCloud & msg)
-    {
-        cloud=msg;
-        //ROS_INFO("Scan time: %lf ", msg.data[0]);
-    }
-};
+    //Clean the marker_vector and put new markers in it;
+    return marker_list.getOutgoingMarkers();
 
-void writeFile(Eigen::VectorXf sphereCoeffsRefined);
-#endif
+} //end function

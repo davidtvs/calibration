@@ -151,6 +151,14 @@ target_link_libraries(swissranger ${catkin_LIBRARIES}
 					)
 
 
+add_executable(kinect src/kinect.cpp src/visualization_rviz_kinect.cpp)
+
+target_link_libraries(swissranger ${catkin_LIBRARIES}
+				  ${PCL_LIBRARIES}
+				  ${lidar_segmentation_LIBRARIES}
+				  ${roscpp_LIBRARIES}
+					)
+
 add_executable(point_grey_camera src/point_grey_camera.cpp src/point_grey_camera_config.cpp)
 
 target_link_libraries(point_grey_camera ${catkin_LIBRARIES}

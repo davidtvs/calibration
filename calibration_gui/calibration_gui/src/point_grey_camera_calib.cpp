@@ -50,16 +50,29 @@
  */
 int main(int argc, char **argv)
 {
+	ros::init(argc, argv, "Point_Grey");
+	ros::NodeHandle n("~");
+	image_transport::ImageTransport it(n);
+	image_transport::Publisher rawImage_pub = it.advertise("/RawImage", 1);
+
+	sensor_msgs::ImagePtr image_msg;
+
 	//PointGrey
 	Error error;
 
 	BusManager busManager;
-	unsigned int numCameras;
-	error = busManager.GetNumOfCameras(&numCameras);
-	if(error != PGRERROR_OK)
+	unsigned int numCameras=0, count=0;
+	while(numCameras!=1 && ros::ok())
 	{
-		cout<<"Failed to get number of cameras"<<endl;
-		return false;
+		error = busManager.GetNumOfCameras(&numCameras);
+		if(error != PGRERROR_OK || count==10)
+		{
+			cout<<"Failed to get number of cameras"<<endl;
+			throw exception();
+		}
+		cout<<numCameras<<"cameras detected"<<endl;
+		count++;
+		ros::Duration(2).sleep(); // sleep for two seconds
 	}
 	cout<<"number of cameras "<<numCameras<<endl;
 
@@ -115,7 +128,7 @@ int main(int argc, char **argv)
 	Mat imgGRAY1, imgGRAY2;
 
 	// create the main window, and attach the trackbars
-	namedWindow( "Camera 1", CV_WINDOW_NORMAL );
+	/*namedWindow( "Camera 1", CV_WINDOW_NORMAL );
 
 	int numBoards = 0;
 	int numCornersHor;
@@ -144,19 +157,21 @@ int main(int argc, char **argv)
 
 	vector<Point3f> obj;
 	for(int j=0; j<numSquares; j++)
-		obj.push_back(Point3f(j/numCornersHor, j%numCornersHor, 0.0f));
+		obj.push_back(Point3f(j/numCornersHor, j%numCornersHor, 0.0f));*/
 
 	Mat image1;
+	// capture loop
+	ros::Rate loop_rate(15);
 
 	// capture loop
-	while(successes<numBoards)
+	while(ros::ok())
 	{
 		// Get the image camera 1
 		Image rawImage1;
 		Error error = Camera.RetrieveBuffer( &rawImage1 );
 		if ( error != PGRERROR_OK )
 		{
-			//cout << "capture error" << endl;
+			cout << "capture error" << endl;
 			continue;
 		}
 
@@ -168,7 +183,12 @@ int main(int argc, char **argv)
 		unsigned int rowBytes1 = (double)rgbImage1.GetReceivedDataSize()/(double)rgbImage1.GetRows();
 		image1 = Mat(rgbImage1.GetRows(), rgbImage1.GetCols(), CV_8UC3, rgbImage1.GetData(),rowBytes1);
 
-		cvtColor(image1, imgGRAY1, CV_BGR2GRAY);//convert the image from BGR to Gray scale
+		if(!image1.empty()) {
+			image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image1).toImageMsg();
+			rawImage_pub.publish(image_msg);
+		}
+
+		/*cvtColor(image1, imgGRAY1, CV_BGR2GRAY);//convert the image from BGR to Gray scale
 
 		bool found1 = findChessboardCorners(imgGRAY1, board_sz, corners, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);
 
@@ -190,14 +210,16 @@ int main(int argc, char **argv)
 
 		imshow("Camera 1", image1);
 
-		int key = waitKey(1);
+		/*int key = waitKey(1);
 		if(key==27)
 			return 0;
 
-		sleep(5);
+		sleep(5);*/
+		ros::spinOnce();
+		loop_rate.sleep();
 	}
 
-	Mat intrinsic = Mat(3, 3, CV_64FC1);
+	/*Mat intrinsic = Mat(3, 3, CV_64FC1);
 	Mat distCoeffs;
 	vector<Mat> rvecs;
 	vector<Mat> tvecs;
@@ -220,7 +242,7 @@ int main(int argc, char **argv)
 	fs1 << "CM1" << intrinsic;
 	fs1 << "D1" << distCoeffs;
 
-	fs1.release();
+	fs1.release();*/
 
 	//destroyWindow("Hough Circle Transform Demo"); //destroy the window with the name, "MyWindow"
 
