@@ -1,35 +1,35 @@
 /**************************************************************************************************
- Software License Agreement (BSD License)
+   Software License Agreement (BSD License)
 
- Copyright (c) 2014-2015, LAR toolkit developers - University of Aveiro - http://lars.mec.ua.pt
- All rights reserved.
+   Copyright (c) 2014-2015, LAR toolkit developers - University of Aveiro - http://lars.mec.ua.pt
+   All rights reserved.
 
- Redistribution and use in source and binary forms, with or without modification, are permitted
- provided that the following conditions are met:
+   Redistribution and use in source and binary forms, with or without modification, are permitted
+   provided that the following conditions are met:
 
-  *Redistributions of source code must retain the above copyright notice, this list of
+ * Redistributions of source code must retain the above copyright notice, this list of
    conditions and the following disclaimer.
-  *Redistributions in binary form must reproduce the above copyright notice, this list of
+ * Redistributions in binary form must reproduce the above copyright notice, this list of
    conditions and the following disclaimer in the documentation and/or other materials provided
    with the distribution.
-  *Neither the name of the University of Aveiro nor the names of its contributors may be used to
+ * Neither the name of the University of Aveiro nor the names of its contributors may be used to
    endorse or promote products derived from this software without specific prior written permission.
 
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
- IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
- IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-***************************************************************************************************/
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+   IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+   FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+   IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ***************************************************************************************************/
 /**
-\file  point_grey_camera.h
-\brief Global include file
-\author Marcelo Pereira, David Silva
-\date   December, 2015
-*/
+   \file  point_grey_camera.h
+   \brief Global include file
+   \author Marcelo Pereira, David Silva
+   \date   December, 2015
+ */
 
 #ifndef _POINT_GREY_CAMERA_H_
 #define _POINT_GREY_CAMERA_H_
@@ -67,26 +67,49 @@ double BALL_DIAMETER;
 
 using namespace cv;
 using namespace std;
-using namespace FlyCapture2;
 
-void BallCoord(vector<Vec3f> circle, int numCamera);
+/**
+   \class sickLMSscan
+   \brief Class to subscribe the scans from the two sick lms151 lasers
+   \author Marcelo Pereira
+ */
+class CameraRaw
+{
+public:
+	ros::NodeHandle n_;
+	image_transport::Subscriber subs_cam_image;
+	Mat camImage;
 
-void HoughDetection(const Mat& src_gray, const Mat& src_display, int cannyThreshold, int accumulatorThreshold, int numCamera);
+	CameraRaw(const string &nodeToSub)
+	{
+		image_transport::ImageTransport it(n_);
+		subs_cam_image = it.subscribe ("/" + nodeToSub + "/RawImage", 1, &CameraRaw::imageUpdate, this);
+	}
 
-void reconstrution3D(Mat image1, Mat image2);
+	void imageUpdate(const sensor_msgs::ImageConstPtr& msg)
+	{
+		try
+		{
+			camImage = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
+		}
+		catch (cv_bridge::Exception &e)
+		{
+			ROS_ERROR("cv_bridge exception: %s", e.what());
+		}
+		//ROS_INFO("Scan time: %lf ", msg.ranges[1]);
+	}
+};
 
-void CreatePointCloud(Mat XYZ);
+void CreateTrackbarsAndWindows ();
 
-void PolygonalCurveDetection( Mat &img, Mat &imgBinary, int valCanny );
+void ImageProcessing(Mat &img);
 
 void HoughDetection(const Mat &img, const Mat& imgBinary, int valCanny, int valAccumulator, int minRadius, int maxRadius);
 
-void ballDetection(sensor_msgs::PointCloud cloud);
+void PolygonalCurveDetection( Mat &img, Mat &imgBinary, int valCanny );
+
+void CentroidPub( const pcl::PointXYZ centroid, const pcl::PointXYZ centroidRadius );
 
 void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& contour);
-
-void CentroidPub( const pcl::PointXYZ centroid, const pcl::PointXYZ centroidRadius);
-
-void ImageCapture_bag(const sensor_msgs::ImageConstPtr& msg, int lowH, int lowS, int lowV, int highH, int highS, int highV, int valC);
 
 #endif

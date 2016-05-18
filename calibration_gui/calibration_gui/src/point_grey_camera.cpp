@@ -31,117 +31,29 @@
    \date   December, 2015
  */
 
-#include "calibration_gui/point_grey_camera_config.h"
 #include "calibration_gui/point_grey_camera.h"
-#include <sys/time.h>
-
 
 //Marker's publisher
 ros::Publisher ballCentroidCam_pub;
 ros::Publisher ballCentroidCamPnP_pub;
-image_transport::Publisher rawImage_pub;
 image_transport::Publisher ballCentroidImage_pub;
 
-Mat CameraMatrix1, CameraMatrix2, disCoeffs1, disCoeffs2, R1, R2, P1, P2, Q, T;
+Mat CameraMatrix1, disCoeffs1;
 
-typedef unsigned long long timestamp_t;
+int lowH;
+int highH;
+int lowS;
+int highS;
+int lowV;
+int highV;
+int valC;
+int valA;
+int maxR;
+int minR;
 
-static timestamp_t get_timestamp ()
+
+void CreateTrackbarsAndWindows ()
 {
-	struct timeval now;
-	gettimeofday (&now, NULL);
-	return now.tv_usec + (timestamp_t)now.tv_sec * 1000000;
-}
-
-/**
-   @brief Cameras connection
-   @param[out] ppCameras
-   @return void
- */
-void ConnectCameras(Camera &Camera)
-{
-	//PointGrey
-
-	Error error;
-
-	BusManager busManager;
-	unsigned int numCameras=0, count=0;
-	while(numCameras!=1 && ros::ok())
-	{
-		error = busManager.GetNumOfCameras(&numCameras);
-		if(error != PGRERROR_OK || count==10)
-		{
-			cout<<"Failed to get number of cameras"<<endl;
-			throw exception();
-		}
-		cout<<numCameras<<"cameras detected"<<endl;
-		count++;
-		ros::Duration(2).sleep(); // sleep for two seconds
-	}
-
-	//Camera camera1;
-
-	PGRGuid pGuid;
-	error = busManager.GetCameraFromIndex(0,&pGuid);
-	if(error != PGRERROR_OK)
-	{
-		cout<<"Failed to get index of camera 1"<<endl;
-		exit(1);
-	}
-
-
-	CameraInfo camInfo;
-
-	//connect the camera
-	error=Camera.Connect(&pGuid);
-	if ( error != PGRERROR_OK )
-	{
-		cout << "Failed to connect to camera" <<endl;
-		exit(1);
-	}
-
-	// Get the camera info and print it out
-	error = Camera.GetCameraInfo( &camInfo );
-	if ( error != PGRERROR_OK )
-	{
-		cout << "Failed to get camera info from camera" << endl;
-		exit(1);
-	}
-	cout << camInfo.vendorName << " "
-	     << camInfo.modelName << " "
-	     << camInfo.serialNumber << endl;
-
-
-	SetConfiguration(Camera);
-
-
-	error = Camera.StartCapture();
-	if ( error == PGRERROR_ISOCH_BANDWIDTH_EXCEEDED )
-	{
-		cout << "Bandwidth exceeded" << endl;
-		exit(1);
-	}
-	else if ( error != PGRERROR_OK )
-	{
-		cout << "Failed to start image capture" << endl;
-		exit(1);
-	}
-}
-
-/**
-   @brief Image capture
-   @param[in] ppCameras
-   @return void
- */
-void ImageCapture(Camera &Camera)
-{
-	Mat img;
-	Mat imgHSV;
-	Mat unImg;
-	Mat imgBinary;
-	Image rawImage;
-	Image rgbImage;
-
 	// create the main window, and attach the trackbars
 	namedWindow( "Camera", CV_WINDOW_NORMAL );
 	namedWindow( "Binarized Image", CV_WINDOW_NORMAL );
@@ -150,21 +62,21 @@ void ImageCapture(Camera &Camera)
 	namedWindow( "Canny", CV_WINDOW_NORMAL );
 
 	/* Trackbars for Hue, Saturation and Value (HSV) in "Camera 1" window */
-	int lowH = 0;
-	int highH = 179;
+	lowH = 0;
+	highH = 179;
 
-	int lowS = 101;
-	int highS = 255;
+	lowS = 101;
+	highS = 255;
 
-	int lowV = 37;
-	int highV = 255;
+	lowV = 37;
+	highV = 255;
 
-	int valC = 200;
+	valC = 200;
 
-	int valA = 150;
+	valA = 150;
 
-	int maxR = 300;
-	int minR = 150;
+	maxR = 300;
+	minR = 150;
 
 	// Hue 0-179
 	cvCreateTrackbar("Upper Hue        ", "Control", &highH, 179);
@@ -188,93 +100,58 @@ void ImageCapture(Camera &Camera)
 	// =========================================================================
 	// Uncomment above if using Hough Circles
 	// =========================================================================
+}
 
-
-	Property properties;
-	properties.type=FRAME_RATE;
-	Camera.GetProperty(&properties);
-	cout<<"Frame rate "<<properties.absValue<<endl;
-
-	sensor_msgs::ImagePtr image_msg;
+/**
+   @brief Image capture
+   @param[in] ppCameras
+   @return void
+ */
+void ImageProcessing(Mat &img)
+{
+	Mat imgHSV;
+	Mat unImg;
+	Mat imgBinary;
 
 	// capture loop
-	ros::Rate loop_rate(15);
-	timestamp_t t0, t1;
-	double secs;
-	int key = 0;
-	while(key != 1048689 && key != 1114193 && ros::ok())
-	{
-		// Get the image camera 1
-		t0 = get_timestamp();
-		Error error = Camera.RetrieveBuffer( &rawImage );
-		if ( error != PGRERROR_OK )
-		{
-			cout << "capture error 1" << endl;
-			continue;
-		}
 
-		// convert to rgb
-		rawImage.Convert(PIXEL_FORMAT_BGR, &rgbImage );
+	imshow("Camera", img);         // untouched image
 
-		// convert to OpenCV Mat
-		unsigned int rowBytes = (double)rgbImage.GetReceivedDataSize()/(double)rgbImage.GetRows();
-		img = Mat(rgbImage.GetRows(), rgbImage.GetCols(), CV_8UC3, rgbImage.GetData(),rowBytes);
+	// =========================================================================
+	// Pre-processing
+	// =========================================================================
 
-		if(!img.empty()) {
-			image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-			rawImage_pub.publish(image_msg);
-		}
+	// Convert the captured image frame BGR to HSV
+	undistort(img,unImg,CameraMatrix1,disCoeffs1);
+	cvtColor(unImg, imgHSV, COLOR_BGR2HSV);
 
-		imshow("Camera", img); // untouched image
+	// Threshold the image
+	inRange(imgHSV, Scalar(lowH, lowS, lowV), Scalar(highH, highS, highV), imgBinary);
 
-		// =========================================================================
-		// Pre-processing
-		// =========================================================================
+	//morphological closing (fill small holes in the foreground)
+	dilate( imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
+	erode(imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
 
-		// Convert the captured image frame BGR to HSV
-		undistort(img,unImg,CameraMatrix1,disCoeffs1);
-		cvtColor(unImg, imgHSV, COLOR_BGR2HSV);
+	//morphological opening (remove small objects from the foreground)
+	erode(imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
+	dilate( imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
 
-		// Threshold the image
-		inRange(imgHSV, Scalar(lowH, lowS, lowV), Scalar(highH, highS, highV), imgBinary);
-
-		//morphological closing (fill small holes in the foreground)
-		dilate( imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
-		erode(imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
-
-		//morphological opening (remove small objects from the foreground)
-		erode(imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
-		dilate( imgBinary, imgBinary, getStructuringElement(MORPH_RECT, Size(5, 5)) );
-
-		GaussianBlur( imgBinary, imgBinary, Size(5, 5), 2, 2 );
+	GaussianBlur( imgBinary, imgBinary, Size(5, 5), 2, 2 );
 
 
 
-		imshow("Binarized Image", imgBinary);
+	imshow("Binarized Image", imgBinary);
 
-		// =====================================================================
-		// Circle detection
-		// Hough Circles or Polygonal Curve fitting algorithm, pick one
-		// =====================================================================
+	// =====================================================================
+	// Circle detection
+	// Hough Circles or Polygonal Curve fitting algorithm, pick one
+	// =====================================================================
 
-		//HoughCircles(unImg, imgBinary, valC, valA, minRadius, maxRadius);
+	//HoughCircles(unImg, imgBinary, valC, valA, minRadius, maxRadius);
 
-		PolygonalCurveDetection(unImg, imgBinary, valC);
+	PolygonalCurveDetection(unImg, imgBinary, valC);
 
-		// get user key*/
-		key = waitKey(1);
-		ros::spinOnce();
-		loop_rate.sleep();
-
-		t1 = get_timestamp();
-		secs = (t1 - t0) / 1000000.0L;
-		std::cout << secs << std::endl;
-	}
-
-	destroyWindow("Camera"); //destroy the window
-	destroyWindow("Binarized Image");
-	destroyWindow("Control");
-	destroyWindow("Circle");
+	char key = waitKey(1);
 }
 
 
@@ -480,24 +357,37 @@ int main(int argc, char **argv)
 	image_transport::ImageTransport it(n);
 
 	string raw_data_topic = "/" + sub_node_name;
-	rawImage_pub = it.advertise(raw_data_topic + "/RawImage", 1);
 
 	string ballDetection_topic = raw_data_topic + "/BD_" + sub_node_name;
 	ballCentroidImage_pub = it.advertise(ballDetection_topic + "/BallDetection", 1);
 	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( ballDetection_topic + "/SphereCentroid", 1);
 	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( ballDetection_topic + "/SphereCentroidPnP", 1);
 
-	Camera Camera;
-	try
+	CameraRaw cameraRaw(sub_node_name);
+
+	CreateTrackbarsAndWindows ();
+
+	ros::Rate loop_rate(15);
+
+	std::cout << "test" << std::endl;
+	while (ros::ok())
 	{
-		ConnectCameras(Camera);
-	}
-	catch (const exception&)
-	{
-		return EXIT_FAILURE;
+		std::cout << "test2" << std::endl;
+
+		if(!cameraRaw.camImage.empty()) {
+		 	ImageProcessing(cameraRaw.camImage);
+		}
+
+
+std::cout << "test3" << std::endl;
+		ros::spinOnce();
+		loop_rate.sleep();
 	}
 
-	ImageCapture(Camera);
+	destroyWindow("Camera"); //destroy the window
+	destroyWindow("Binarized Image");
+	destroyWindow("Control");
+	destroyWindow("Circle");
 
 	return 0;
 }

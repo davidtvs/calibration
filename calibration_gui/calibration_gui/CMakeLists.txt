@@ -31,9 +31,9 @@ endif( NOT lidar_segmentation_FOUND )
 
 link_directories(
     ${GTKMM_LIBRARY_DIRS}
-    ${catkin_LIBRARY_DIRS}  
+    ${catkin_LIBRARY_DIRS}
     )
-    
+
 include_directories(${catkin_INCLUDE_DIRS}
 	            ${PCL_INCLUDE_DIRS}
 		    ${OpenCV_INCLUDE_DIRS}
@@ -42,7 +42,7 @@ include_directories(${catkin_INCLUDE_DIRS}
 		    /usr/include/flycapture
 		    include
                    )
-                   
+
                    		    #${Qt5Widgets_INCLUDE_DIRS}
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
@@ -62,11 +62,11 @@ else()
   set(QT_LIBRARIES Qt5::Widgets)
 endif()
 
-                   
+
 find_library(FLYCAPTURE2 flycapture)
 
 ##############################################################################
-# Qt 
+# Qt
 ##############################################################################
 
 # References:
@@ -94,7 +94,7 @@ set (MyProjectLib_hdr include/calibration_gui/gui_mainwindow.h
 			include/calibration_gui/gui_supportedsensors.h
 			include/calibration_gui/gui_QProgressIndicator.h
 			)
-					  
+
 set (MyProjectLib_ui  ui/mainwindow.ui
 			ui/options.ui
 			)
@@ -110,16 +110,16 @@ if(rviz_QT_VERSION VERSION_LESS "5")
   message(STATUS "Using Qt4 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
   QT4_WRAP_UI(MyProjectLib_ui_moc ${MyProjectLib_ui})
   QT4_WRAP_CPP(MyProjectLib_hdr_moc ${MyProjectLib_hdr})
-  
+
   add_executable(calibration_gui ${MyProject_src} ${MyProjectLib_ui_moc} ${MyProjectLib_hdr_moc})
 else()
   message(STATUS "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
-  
+
   add_executable(calibration_gui ${MyProject_src})
 endif()
 
 target_link_libraries (calibration_gui ${QT_LIBRARIES}
-					#default_plugin 
+					#default_plugin
 					${catkin_LIBRARIES}
 					)
 
@@ -159,24 +159,23 @@ target_link_libraries(kinect ${catkin_LIBRARIES}
 				  ${roscpp_LIBRARIES}
 					)
 
-add_executable(point_grey_camera src/point_grey_camera.cpp src/point_grey_camera_config.cpp)
+add_executable(point_grey_FL3_28S4 src/point_grey_FL3-GE-28S4-C_driver.cpp)
 
-target_link_libraries(point_grey_camera ${catkin_LIBRARIES}
+target_link_libraries(point_grey_FL3_28S4 ${catkin_LIBRARIES}
 			     ${OpenCV_LIBS}
-			     ${PCL_LIBRARIES}
 			     flycapture
-			     ${lidar_segmentation_LIBRARIES}
 			     ${roscpp_LIBRARIES}
                      		)
 
 
-add_executable(point_grey_camera_calib src/point_grey_camera_calib.cpp src/point_grey_camera_config.cpp)
+add_executable(point_grey_camera src/point_grey_camera.cpp)
 
-target_link_libraries(point_grey_camera_calib ${catkin_LIBRARIES}
+target_link_libraries(point_grey_camera ${catkin_LIBRARIES}
 			     ${OpenCV_LIBS}
 			     flycapture
+            ${roscpp_LIBRARIES}
                      		)
-                     
+
 # cmake_minimum_required(VERSION 2.8.3)
 # project(beginner_tutorials)
 
@@ -364,4 +363,4 @@ target_link_libraries(point_grey_camera_calib ${catkin_LIBRARIES}
 # endif()
 
 ## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)                
+# catkin_add_nosetests(test)
