@@ -53,7 +53,7 @@ void createDirectory ( )
   fs::path pkg_path = ros::package::getPath("calibration_gui"); // get calibration package path
   string path = pkg_path.parent_path().string(); // get parent path and convert to string
 
-	file_path=path + "/calib_results_pcd/" + date; // complete filepath where results will be saved
+	file_path=path + "/calib_results/" + date; // complete filepath where results will be saved
 	const char *file_path_dir = file_path.c_str(); // converts to char*
 
   // Create directory
@@ -253,7 +253,9 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<p
 	// No distortion coefficients are given because imagePoints are already undistorted
 
 	// Project objectPoints to the image to check if solvePnP results are good ===
-	cv::Mat test_image = cv::imread("img.jpg", CV_LOAD_IMAGE_COLOR);
+	cv::Mat test_image;
+	//test_image = cv::imread("img.jpg", CV_LOAD_IMAGE_COLOR);
+	test_image = cv::Scalar(0, 0, 0);
 	vector<cv::Point2f> reprojectPoints;
 
 	cv::projectPoints(objectPoints, rotation_vector, translation_vector,

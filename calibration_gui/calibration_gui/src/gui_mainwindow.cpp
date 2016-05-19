@@ -31,6 +31,9 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
     mSensors = new SupportedSensors();
     mProgress = new QProgressIndicator();
 
+    mProgress->hide();
+    ui->horizontalLayout->insertWidget(0, mProgress);
+
     supportedSensors = mSensors->getSupportedSensors();
     supportedSensorsNodes = mSensors->getSupportedSensorsNodes();
 
@@ -308,23 +311,24 @@ void MainWindow::on_bt_stop_nodes_clicked()
         ui->bt_stop_nodes->setEnabled(false);
         ui->bt_calibrate->setEnabled(false);
 
-        ui->horizontalLayout->insertWidget(0, mProgress);
-
         mProgress->startAnimation();
-        ui->label_kill_nodes->setText("Killing nodes...Please wait.");
+        mProgress->show();
+
+        ui->label_kill_nodes->setText("Stopping nodes...Please wait.");
 
         foreach (QProcess *process, processes)
         {
-            QString nodeName = "/" + launchedNodes.first() + "/" + launchedNodes.first();
+            qDebug() << "Sending terminate order to nodes:" << launchedNodes.first();
+            process->terminate();
+            /*QString nodeName = "/" + launchedNodes.first() + "/" + launchedNodes.first();
             QProcess nodeKiller;
             nodeKiller.start("rosnode", QStringList() << "kill" << nodeName);
             if (nodeKiller.waitForStarted(-1))
             {
                 while(nodeKiller.waitForReadyRead(-1))
                     qDebug() <<  nodeKiller.readAllStandardOutput();
-            }
+            }*/
             launchedNodes.removeFirst();
-            qDebug() << "Kill order to node:" << nodeName;
             qDebug() << "Nodes remaining:" << launchedNodes;
         }
         qDebug() << "Sent kill orders to all nodes" << launchedNodes;
@@ -406,8 +410,9 @@ void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
 
         if (mProgress->isAnimated())
         {
-            ui->horizontalLayout->removeWidget(mProgress);
-            mProgress->deleteLater();
+            //ui->horizontalLayout->removeWidget(mProgress);
+            mProgress->stopAnimation();
+            mProgress->hide();
             ui->label_kill_nodes->setText("");
         }
     }

@@ -207,10 +207,13 @@ void QNode::run() {
 
                     // Saving all point clouds to a PCD file
                     for ( int i = 0; i < sensorClouds.size(); i++ )
+                    {
                         pcl::io::savePCDFileASCII(file_path + calibrationNodes[i] + ".pcd", sensorClouds[i]);
-
-                    for ( int i = 0; i < cameraCloudsPnP.size(); i++ )
-                        pcl::io::savePCDFileASCII(file_path + calibrationNodes[i] + "_PnP.pcd", cameraCloudsPnP[i]);
+                        if (isCamera[i])
+                        {
+                            pcl::io::savePCDFileASCII(file_path + calibrationNodes[i] + "_PnP.pcd", cameraCloudsPnP[i]);
+                        }
+                    }
 
                     qDebug() << "pcd save";
 

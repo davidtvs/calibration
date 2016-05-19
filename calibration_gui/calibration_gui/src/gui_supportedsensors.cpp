@@ -7,14 +7,16 @@ SupportedSensors::SupportedSensors()
     supportedSensors = QList<QString>() << "Sick LMS151"
                                         << "Sick LD-MRS400001"
                                         << "Point Grey FL3-GE-28S4-C"
-                                        << "SwissRanger SR40000_Ethernet"
-                                        << "SwissRanger SR40000_USB";
+                                        << "SwissRanger SR4000_Ethernet"
+                                        << "SwissRanger SR4000_USB"
+                                        << "Microsoft Kinect";
 
     supportedSensorsNodes = QList<QString>() << "lms151"
                                              << "ldmrs"
                                              << "pointgrey"
                                              << "swissranger_eth"
-                                             << "swissranger_usb";
+                                             << "swissranger_usb"
+                                             << "kinect_ir";
 
     for (int i = 0; i < supportedSensors.size(); i++)
         sensorCounter.push_back(0);
@@ -32,11 +34,15 @@ void SupportedSensors::addTreeChilds(QTreeWidgetItem *item, const QString sensor
     {
         // Nothing for now...IP is changed through FlyCap2 software
     }
-    else if (sensorID == supportedSensors[3]) //SwissRanger SR40000_(Ethernet)
+    else if (sensorID == supportedSensors[3]) //SwissRanger SR4000_(Ethernet)
         makeChild(item, ask_IP, 0);
-    else if (sensorID == supportedSensors[4]) //"SwissRanger SR40000_(USB)"
+    else if (sensorID == supportedSensors[4]) // SwissRanger SR4000_(USB)
     {
-        // It's only here for consistency. No properties for now.
+        // Nothing for now
+    }
+    else if (sensorID == supportedSensors[5]) // Microsoft Kinect
+    {
+        // Nothing for now
     }
     else
     {
@@ -117,7 +123,7 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
 
         isCamera.push_back(true);
     }
-    else if (sensor == supportedSensors[3]) // SwissRanger SR40000_(Ethernet)
+    else if (sensor == supportedSensors[3]) // SwissRanger SR4000_(Ethernet)
     {
         sensorCounter[3] += 1;
         launchedNodes.push_back(supportedSensorsNodes[3] + "_" + QString::number(sensorCounter[3]));
@@ -130,10 +136,22 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
 
         isCamera.push_back(false);
     }
-    else if (sensor == supportedSensors[4]) // SwissRanger SR40000_(USB)
+    else if (sensor == supportedSensors[4]) // SwissRanger SR4000_(USB)
     {
         sensorCounter[4] += 1;
         launchedNodes.push_back(supportedSensorsNodes[4] + "_" + QString::number(sensorCounter[4]));
+        node_name += launchedNodes.last();
+
+        // No childs
+
+        roslaunch_params << node_name;
+
+        isCamera.push_back(false);
+    }
+    else if (sensor == supportedSensors[5]) // Microsoft Kinect
+    {
+        sensorCounter[5] += 1;
+        launchedNodes.push_back( supportedSensorsNodes[5] + "_" + QString::number(sensorCounter[5]) );
         node_name += launchedNodes.last();
 
         // No childs

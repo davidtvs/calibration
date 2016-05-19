@@ -33,16 +33,11 @@
 
 #include "calibration_gui/kinect.h"
 #include "calibration_gui/visualization_rviz_kinect.h"
-#include <pcl/visualization/cloud_viewer.h>
-
-#include <pcl/features/normal_3d.h>
 
 
 ros::Publisher markers_pub;
 ros::Publisher sphereCenter_pub;
 ros::Publisher pointCloud_pub;
-
-pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
 
 
 /**
@@ -79,16 +74,16 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p (new pcl::PointCloud<pcl::PointXYZ>);
 
-	std::cerr << "PointCloud before filtering: " << Kinect_cloudPtr->width * Kinect_cloudPtr->height << " data points." << std::endl;
+	//std::cerr << "PointCloud before filtering: " << Kinect_cloudPtr->width * Kinect_cloudPtr->height << " data points." << std::endl;
 
 	pcl::VoxelGrid<pcl::PointXYZ> sor;
 	sor.setInputCloud (Kinect_cloudPtr);
-	sor.setLeafSize (0.01f, 0.01f, 0.01f);
+	sor.setFilterFieldName ("z");
+	sor.setFilterLimits (0, 5);
+	sor.setLeafSize (0.005f, 0.005f, 0.005f);
 	sor.filter (*Kinect_cloud_filtered);
 
-	viewer.showCloud(Kinect_cloud_filtered);
-
-  std::cerr << "PointCloud after filtering: " << Kinect_cloud_filtered->width * Kinect_cloud_filtered->height << " data points." << std::endl;
+  //std::cerr << "PointCloud after filtering: " << Kinect_cloud_filtered->width * Kinect_cloud_filtered->height << " data points." << std::endl;
 
   pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
   pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
@@ -99,16 +94,18 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
   // Mandatory
   seg.setModelType (pcl::SACMODEL_SPHERE);
   seg.setMethodType (pcl::SAC_RANSAC);
-  seg.setMaxIterations (1000);
-  seg.setDistanceThreshold (0.02);
+  //seg.setMaxIterations (1000);
+  seg.setDistanceThreshold (0.005);
   seg.setRadiusLimits (BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2, BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2);
 
+	//std::cout << "min: " << BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2 << "max: " << BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 << std::endl;
 	seg.setInputCloud (Kinect_cloud_filtered);
 	seg.segment (*inliers, *coefficients);
 
 	ros::Time end = ros::Time::now();
 
-	cout << "Ball detection time filtered: " <<  (end - start).toNSec() * 1e-6 << " msec"  << endl;
+	//cout << "Ball detection time filtered: " <<  (end - start).toNSec() * 1e-6 << " msec"  << endl;
+
 
 	if(inliers->indices.size ()>0)
 	{
@@ -118,11 +115,14 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
 			sphereCenter.point.x = coefficients->values[0];
 			sphereCenter.point.y = coefficients->values[1];
 			sphereCenter.point.z = coefficients->values[2];
+
+
+				cout << coefficients->values[0] << ", "
+						 << coefficients->values[1] << ", "
+						 << coefficients->values[2] << ", "
+						 << coefficients->values[3] << endl;
 		}
-		cout << coefficients->values[0] << ", "
-		     << coefficients->values[1] << ", "
-		     << coefficients->values[2] << ", "
-		     << coefficients->values[3] << endl;
+
 	}
 
 	start = ros::Time::now();
@@ -130,7 +130,7 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
 	/*
 	 * Source: http://robotica.unileon.es/mediawiki/index.php/PCL/OpenNI_tutorial_3:_Cloud_processing_%28advanced%29
 	 */
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(Kinect_cloud));
+	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(Kinect_cloud));
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
 
 	pcl::ModelCoefficients::Ptr coefficients_(new pcl::ModelCoefficients);
@@ -162,21 +162,21 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
 		     << coefficients_->values[3] << endl;
 	}
 
-	cout << "Ball detection time full: " <<  (end - start).toNSec() * 1e-6 << " msec"  << endl;
+	cout << "Ball detection time full: " <<  (end - start).toNSec() * 1e-6 << " msec"  << endl;*/
 
 
 
-	// sphereCenter.header.stamp = ros::Time::now();
-	// sphereCenter_pub.publish(sphereCenter);
-	//
-	// pcl::PointXYZ center;
-	// center.x = sphereCenter.point.x;
-	// center.y = sphereCenter.point.y;
-	// center.z = sphereCenter.point.z;
-	//
-	// visualization_msgs::MarkerArray targets_markers;
-	// targets_markers.markers = createTargetMarkers(center);
-	// markers_pub.publish(targets_markers);
+	sphereCenter.header.stamp = ros::Time::now();
+	sphereCenter_pub.publish(sphereCenter);
+
+	pcl::PointXYZ center;
+	center.x = sphereCenter.point.x;
+	center.y = sphereCenter.point.y;
+	center.z = sphereCenter.point.z;
+
+	visualization_msgs::MarkerArray targets_markers;
+	targets_markers.markers = createTargetMarkers(center);
+	markers_pub.publish(targets_markers);
 
 }
 
@@ -208,10 +208,10 @@ int main(int argc, char **argv)
 
 	ros::Rate loop_rate(30);
 
-	while(ros::ok())
+	while( ros::ok() )
 	{
-		//if(cloud.cloud->points.size()>0)
-		//{
+		if(cloud.cloud.points.size())
+		{
 
 			sphereDetection(cloud.cloud);
 
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 			rosPointCloud2.header.frame_id = "/my_frame";
 			rosPointCloud2.header.stamp = ros::Time::now();
 			pointCloud_pub.publish(rosPointCloud2);
-		//}
+		}
 		ros::spinOnce();
 		loop_rate.sleep();
 	}

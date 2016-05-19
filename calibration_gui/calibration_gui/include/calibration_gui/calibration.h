@@ -94,7 +94,7 @@ public:
     vector<pcl::PointXYZ> camCentroidPnP; /**< ball center coordinates on single camera image. */
 
     vector<image_transport::Subscriber> subs_cam_images;
-    vector<sensor_msgs::ImageConstPtr> camImage;
+    vector<cv::Mat> camImage;
 /**
 @brief constructer - subscription of the topics with the ball center coordinates in the different sensors
 */
@@ -115,7 +115,7 @@ public:
         if (isCamera[i])
           {
             // Allocating space in camImage vector
-            sensor_msgs::ImageConstPtr allocator_camImage;
+            cv::Mat allocator_camImage;
             camImage.push_back(allocator_camImage);
             // Subscribing to raw image topics
             image_transport::ImageTransport it(n_);
@@ -155,7 +155,14 @@ public:
 
     void imageUpdate(const sensor_msgs::ImageConstPtr& msg, int camNum)
     {
-      camImage[camNum] = msg;
+      try
+  		{
+  			camImage[camNum] = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
+  		}
+  		catch (cv_bridge::Exception &e)
+  		{
+  			ROS_ERROR("cv_bridge exception: %s", e.what());
+  		}
     }
 };
 
