@@ -75,12 +75,12 @@ bool QNode::on_init(const std::string &master_url, const std::string &host_url) 
 
 void QNode::run() {
     ros::Publisher markers_pub;
-    ros::Publisher car_pub;
+    //ros::Publisher car_pub;
 
     ros::NodeHandle n;
 
     markers_pub = n.advertise<visualization_msgs::MarkerArray>( node_name + "/CalibrationPoints", 10000);
-    car_pub = n.advertise<visualization_msgs::Marker>(node_name + "/3DModel", 1);
+    //car_pub = n.advertise<visualization_msgs::Marker>(node_name + "/3DModel", 1);
 
     CircleCentroids centroids(calibrationNodes, isCamera);
 
@@ -161,7 +161,7 @@ void QNode::run() {
             dist=sqrt(pow((P[0].x-P[1].x),2) + pow((P[0].y-P[1].y),2)); // X-Y distance
             //cout<<"dist = "<<dist<<endl;
 
-            if(dist > min_distance) // If the ball hasn't moved more than 0.15 meters the points are discarded          // MAKE THIS A VARIABLE
+            if(dist > min_distance) // If the ball hasn't moved more than 0.15 meters the points are discarded
             {
                 float diff_dist_mean=0;
                 if(count>0) // code beow is skipped on the first cycle (count = 0)
@@ -189,15 +189,12 @@ void QNode::run() {
                         qDebug() << "nocrash";
                         if (isCamera[i])
                         {
-                            qDebug() << "crash1";
                             cameraCloudsPnP[cameraCounter].push_back(centroids.camCentroidPnP[cameraCounter]);
-                            cout << "nocrash1" << centroids.camCentroidPnP[cameraCounter] << endl;
                             string imgPath = file_path + "img_" + calibrationNodes[i] +"_" + boost::lexical_cast<std::string>(count) + ".jpg";
                             cout << imgPath << "\n" << centroids.camImage.size() << endl;
                             //cv::Mat img;
                             //img = cv_bridge::toCvShare(centroids.camImage[cameraCounter], "bgr8")->image;
                             //imwrite( imgPath, img );
-                            qDebug() << "nocrash save img";
 
                             cameraCounter++;
                             qDebug() << cameraCounter;
@@ -273,7 +270,7 @@ void QNode::run() {
             }
         }
 
-        vector<double> RPY;
+        /*vector<double> RPY;
         // ATLASCAR model rotations
         RPY.push_back(M_PI/2); // X-rotation
         RPY.push_back(0.0); // Y-rotation
@@ -291,7 +288,7 @@ void QNode::run() {
         // Clouds and lasers rotations so point cloud is aligned with Rviz grid
         RPY.push_back(0.0);
         RPY.push_back(0.0);
-        RPY.push_back(55 * M_PI/180);
+        RPY.push_back(55 * M_PI/180);*/
 
         // PointClouds and Poses visualization for Rviz (vector concatenation can probably be improved)
         visualizationPoses.clear();

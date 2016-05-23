@@ -57,8 +57,8 @@ void MyViz::subscribeTopics(const QString qnode_name)
 {
     QString calibPointsTopic = "/" + qnode_name + "/CalibrationPoints";
     qDebug() << "Calibration points topic:" + calibPointsTopic;
-    QString Model3DTopic = "/" + qnode_name + "/3DModel";
-    qDebug() << "Calibration points topic:" + Model3DTopic;
+   // QString Model3DTopic = "/" + qnode_name + "/3DModel";
+    //qDebug() << "Calibration points topic:" + Model3DTopic;
 
 
     rviz::Display* markerarray;
@@ -68,9 +68,9 @@ void MyViz::subscribeTopics(const QString qnode_name)
 
     ROS_ASSERT( markerarray != NULL );
 
-    rviz::Display* marker;
+    /*rviz::Display* marker;
     marker= manager_->createDisplay( "rviz/Marker", "Marker", true );
     marker->subProp( "Marker Topic" )->setValue( Model3DTopic );
 
-    ROS_ASSERT( marker != NULL );
+    ROS_ASSERT( marker != NULL );*/
 }
