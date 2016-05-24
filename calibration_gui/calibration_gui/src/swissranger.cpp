@@ -269,14 +269,17 @@ int main(int argc, char **argv)
 			pcl::PointXYZ p;
 			for(int i=0; i<cloud.cloud.points.size(); i++)
 			{
-				p.x=cloud.cloud.points[i].z;
-				p.y=-cloud.cloud.points[i].y;
-				p.z=cloud.cloud.points[i].x;
+				// p.x=cloud.cloud.points[i].z;
+				// p.y=-cloud.cloud.points[i].y;
+				// p.z=cloud.cloud.points[i].x;
+				p.x=cloud.cloud.points[i].x;
+				p.y=cloud.cloud.points[i].y;
+				p.z=cloud.cloud.points[i].z;
 				SwissRanger_cloud.push_back(p);
 			}
 			sphereDetection(SwissRanger_cloud);
-			cloud.cloud.header.frame_id="/my_frame";
-			cloud.cloud.header.stamp= ros::Time::now();
+			cloud.cloud.header.frame_id = "/my_frame";
+			cloud.cloud.header.stamp = ros::Time::now();
 			pointCloud_pub.publish(cloud.cloud);
 		}
 		ros::spinOnce();

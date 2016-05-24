@@ -21,6 +21,8 @@ public:
 
     QString getMinDistance(){ return min_distance; }
 
+    QString getMaxDisplacement(){ return max_displacement; }
+
     bool getAutoAcquisition(){ return auto_acquisition; }
 
 private slots:
@@ -32,6 +34,7 @@ private:
     QString ball_diameter;
     QString num_calibration_points;
     QString min_distance;
+    QString max_displacement;
     bool auto_acquisition;
 };
 

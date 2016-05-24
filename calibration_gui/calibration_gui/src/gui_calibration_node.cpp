@@ -179,7 +179,7 @@ void QNode::run() {
                     qDebug() << centroids.sensors_ball_centers.size();
                 }
                 cout << "diff_dist_mean = " << diff_dist_mean << endl;
-                if(diff_dist_mean < 0.15)    // the limit is 0.15 meters. If it's higher these points will be discarded
+                if(diff_dist_mean <= max_displacement)    // the limit is set by the max_displacement variable in meters. If it's higher these points will be discarded
                 {
                     int cameraCounter = 0;
                     for ( int i = 0; i < centroids.sensors_ball_centers.size(); i++ )
@@ -192,9 +192,7 @@ void QNode::run() {
                             cameraCloudsPnP[cameraCounter].push_back(centroids.camCentroidPnP[cameraCounter]);
                             string imgPath = file_path + "img_" + calibrationNodes[i] +"_" + boost::lexical_cast<std::string>(count) + ".jpg";
                             cout << imgPath << "\n" << centroids.camImage.size() << endl;
-                            //cv::Mat img;
-                            //img = cv_bridge::toCvShare(centroids.camImage[cameraCounter], "bgr8")->image;
-                            //imwrite( imgPath, img );
+                            imwrite( imgPath, centroids.camImage[cameraCounter] );
 
                             cameraCounter++;
                             qDebug() << cameraCounter;
@@ -203,12 +201,14 @@ void QNode::run() {
 
 
                     // Saving all point clouds to a PCD file
+                    cameraCounter = 0;
                     for ( int i = 0; i < sensorClouds.size(); i++ )
                     {
                         pcl::io::savePCDFileASCII(file_path + calibrationNodes[i] + ".pcd", sensorClouds[i]);
                         if (isCamera[i])
                         {
-                            pcl::io::savePCDFileASCII(file_path + calibrationNodes[i] + "_PnP.pcd", cameraCloudsPnP[i]);
+                            pcl::io::savePCDFileASCII(file_path + calibrationNodes[i] + "_PnP.pcd", cameraCloudsPnP[cameraCounter]);
+                            cameraCounter++;
                         }
                     }
 
@@ -261,7 +261,7 @@ void QNode::run() {
         {
             // Estimating rigid transform between target sensor and other sensors
             estimateTransformation(sensorPoses[i], sensorClouds.front(), sensorClouds[i],
-                                   calibrationNodes.front(), calibrationNodes[i], isCamera[i]);
+                                   calibrationNodes.front(), calibrationNodes[i], isCameraFrame[i]);
             if (isCamera[i])
             {
                 estimateTransformationCamera(cameraPosesPnP[cameraCounter], sensorClouds.front(), cameraCloudsPnP[cameraCounter],
@@ -270,6 +270,7 @@ void QNode::run() {
             }
         }
 
+        // Implement 3D models with translation and rotation sliders
         /*vector<double> RPY;
         // ATLASCAR model rotations
         RPY.push_back(M_PI/2); // X-rotation
@@ -312,11 +313,12 @@ void QNode::run() {
 }
 
 
-void QNode::setLaunchedNodes(const vector<string> nodes, const vector<bool> camera)
+void QNode::setLaunchedNodes(const vector<string> nodes, const vector<bool> camera, const vector<bool> cameraFrame)
 {
     qDebug() << "setLaunchedNodes";
-    calibrationNodes=nodes;
-    isCamera=camera;
+    calibrationNodes = nodes;
+    isCamera = camera;
+    isCameraFrame = cameraFrame;
 }
 
 

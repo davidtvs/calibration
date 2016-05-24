@@ -291,6 +291,7 @@ void MainWindow::on_bt_start_nodes_clicked()
 
         launchedNodes = mSensors->getLaunchedNodes();
         isCamera = mSensors->getIsCamera();
+        isCameraFrame = mSensors->getIsCameraFrame();
 
         ui->bt_stop_nodes->setEnabled(true);
         ui->bt_calibrate->setEnabled(true);
@@ -339,11 +340,18 @@ void MainWindow::on_bt_calibrate_clicked()
 {
     int num_calib_points = mOptions->getNumCalibPoints().toInt();
     double min_distance = mOptions->getMinDistance().toDouble();
+    double max_displacement = mOptions->getMaxDisplacement().toDouble();
     bool auto_acquisition = mOptions->getAutoAcquisition();
+
+    QString str_auto_acquisition = "User prompt";
+    if (auto_acquisition)
+        str_auto_acquisition = "Automatic";
 
     QString msg = "Number of calibration points set to " + QString::number(num_calib_points)
             + ".\nMinimum distance between calibration points set to " + QString::number(min_distance)
-            + " meters.\nDo you wish to continue?";
+            + " meters.\nMaximum ball center displacement error set to " + QString::number(max_displacement)
+            + " meters.\nAquisition type set to \"" + str_auto_acquisition
+            + "\" \n\nDo you wish to continue?";
 
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this, "Start Calibration", msg,
@@ -359,9 +367,10 @@ void MainWindow::on_bt_calibrate_clicked()
             vec.push_back(str.toStdString());
         }
 
-        qnode->setLaunchedNodes(vec, isCamera);
+        qnode->setLaunchedNodes(vec, isCamera, isCameraFrame);
         qnode->setCalibrationPoints(num_calib_points);
         qnode->setMinDistance(min_distance);
+        qnode->setMaxDisplacement(max_displacement);
         qnode->setAutoAcquisition(auto_acquisition);
         qnode->setDoCalibration(true);
 

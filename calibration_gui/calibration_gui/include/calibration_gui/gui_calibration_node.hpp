@@ -39,7 +39,8 @@ public:
 
     void setCalibrationPoints(const int numPoints) { num_of_points = numPoints; }
     void setMinDistance (const double distance) { min_distance = distance; }
-    void setLaunchedNodes(const std::vector<std::string> sensors, const std::vector<bool> camera);
+    void setMaxDisplacement(const double distance) { max_displacement = distance; }
+    void setLaunchedNodes(const std::vector<std::string> nodes, const std::vector<bool> camera, const std::vector<bool> cameraFrame);
     void setAutoAcquisition(const bool acquisition_type) { acquisitionIsAuto = acquisition_type; }
     void setDoCalibration(const bool calibration_state) { doCalibration = calibration_state; }
 
@@ -54,10 +55,14 @@ private slots:
 private:
     int num_of_points;
     double min_distance;
-    std::vector<std::string> calibrationNodes;
-    std::vector<bool> isCamera;
+    double max_displacement;
     bool acquisitionIsAuto;
     bool doCalibration;
+
+    std::vector<std::string> calibrationNodes;
+    std::vector<bool> isCamera;
+    std::vector<bool> isCameraFrame;
+
 
     QWaitCondition waitCondition;
     QMutex mutex;

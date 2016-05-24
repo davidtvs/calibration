@@ -21,6 +21,8 @@ public:
 
     std::vector<bool> getIsCamera() { return isCamera; }
 
+    std::vector<bool> getIsCameraFrame() { return isCameraFrame; }
+
     void resetLaunchedLists();
 
 private:
@@ -29,6 +31,7 @@ private:
     QList<QString> launchedNodes;
     QList<int> sensorCounter;
     std::vector<bool> isCamera;
+    std::vector<bool> isCameraFrame; // needed because swissranger and kinect IR sensor use camera frames but are not cameras
 
     void makeChild (QTreeWidgetItem *parent, const QString text, int column);
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>560</width>
-    <height>350</height>
+    <height>395</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -79,13 +79,6 @@
           </item>
           <item row="1" column="0">
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="1" column="2">
-             <widget class="QLineEdit" name="ledit_min_distance">
-              <property name="inputMethodHints">
-               <set>Qt::ImhNone</set>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="1">
              <widget class="QLabel" name="label">
               <property name="text">
@@ -93,7 +86,7 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="2">
+            <item row="4" column="2">
              <widget class="QRadioButton" name="rb_prompt">
               <property name="text">
                <string>User Prompt</string>
@@ -103,17 +96,24 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="2">
+            <item row="5" column="2">
              <widget class="QRadioButton" name="rb_auto">
               <property name="text">
                <string>Automatic</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="1" rowspan="2">
+            <item row="4" column="1" rowspan="2">
              <widget class="QLabel" name="label_6">
               <property name="text">
                <string>Acquistion type:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QLineEdit" name="ledit_num_calib_points">
+              <property name="inputMethodHints">
+               <set>Qt::ImhNone</set>
               </property>
              </widget>
             </item>
@@ -124,8 +124,22 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="2">
-             <widget class="QLineEdit" name="ledit_num_calib_points">
+            <item row="1" column="2">
+             <widget class="QLineEdit" name="ledit_min_distance">
+              <property name="inputMethodHints">
+               <set>Qt::ImhNone</set>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>Maximum ball center displacement error (meters):</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QLineEdit" name="ledit_max_disp">
               <property name="inputMethodHints">
                <set>Qt::ImhNone</set>
               </property>
