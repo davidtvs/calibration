@@ -184,7 +184,7 @@ void QNode::run() {
                     int cameraCounter = 0;
                     for ( int i = 0; i < centroids.sensors_ball_centers.size(); i++ )
                     {
-                        qDebug() << "crash";
+                        cout << "crash" << centroids.sensors_ball_centers[i] << endl;
                         sensorClouds[i].push_back(centroids.sensors_ball_centers[i]); // sensorCLouds now contains ball center points for every sensor
                         qDebug() << "nocrash";
                         if (isCamera[i])
@@ -233,7 +233,7 @@ void QNode::run() {
                     P[1].x=centroids.sensors_ball_centers[0].x;
                     P[1].y=centroids.sensors_ball_centers[0].y;
                     P[1].z=centroids.sensors_ball_centers[0].z;
-                    cout<<"count "<<count+1<<endl;
+                    //cout<<"count "<<count+1<<endl;
 
                     count++;
                     if (count < num_of_points && !acquisitionIsAuto) // If acquisitionIsAuto is false then the user is prompted before acquiring points.
