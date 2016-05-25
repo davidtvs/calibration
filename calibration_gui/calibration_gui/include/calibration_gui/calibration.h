@@ -98,7 +98,7 @@ public:
 /**
 @brief constructer - subscription of the topics with the ball center coordinates in the different sensors
 */
-    CircleCentroids(const vector<string> &sensors_list, const vector<bool> &isCamera)
+    CircleCentroids(const vector<string> &sensors_list, const vector<bool> &isCamera, const vector<bool> &isCameraFrame)
     {
         //Topics I want to subscribe
         //Source: http://ros-users.122217.n3.nabble.com/How-to-identify-the-subscriber-or-the-topic-name-related-to-a-callback-td2391327.html
@@ -111,7 +111,7 @@ public:
           pcl::PointXYZ allocator_ball_centers;
           sensors_ball_centers.push_back(allocator_ball_centers);
 
-          subs.push_back( n_.subscribe <geometry_msgs::PointStamped> (topic_name, 1, boost::bind(&CircleCentroids::sensorUpdate, this, _1, i)) );
+          subs.push_back( n_.subscribe <geometry_msgs::PointStamped> (topic_name, 1, boost::bind(&CircleCentroids::sensorUpdate, this, _1, i, isCameraFrame[i])) );
         if (isCamera[i])
           {
             // Allocating space in camImage vector
@@ -136,12 +136,22 @@ public:
     ~CircleCentroids(){}
 
     // Source: https://foundry.supelec.fr/scm/viewvc.php/nouveau/ROS/koala_node/src/camera_position_node.cpp?view=markup&root=rpm_ims&sortdir=down&pathrev=2320
-    void sensorUpdate(const geometry_msgs::PointStampedConstPtr& msg, int i)
+    void sensorUpdate(const geometry_msgs::PointStampedConstPtr& msg, const int i, const bool cameraFrame)
     {
       sensors_ball_centers[i].x = msg->point.x;
       sensors_ball_centers[i].y = msg->point.y;
       sensors_ball_centers[i].z = msg->point.z;
       //cout << sensors_ball_centers[i] << " " << i << endl;
+
+      if (cameraFrame)
+      {
+        Affine3f transform = Affine3f::Identity();
+        // Define a translation
+        transform.translation() << 0.0, 0.0, 0.0;
+        // Define rotations
+        transform.rotate( AngleAxisf (M_PI/2, Vector3f::UnitY()) * AngleAxisf (-M_PI/2, Vector3f::UnitZ()) );
+        sensors_ball_centers[i] = pcl::transformPoint(sensors_ball_centers[i], transform);
+      }
     }
 
 
@@ -171,10 +181,12 @@ extern string file_path;
 #endif
 
 void createDirectory ( );
-void writeFile(pcl::registration::TransformationEstimationSVD<pcl::PointXYZ, pcl::PointXYZ>::Matrix4 transformation, const string filepath);
+void writeFile(const Matrix4f transformation, const string filepath);
 void writeFileCamera( cv::Mat transformation, const char* transformation_name, const string filepath);
-void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud, pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName, const bool isCamera);
-int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<pcl::PointXYZ> targetCloud, pcl::PointCloud<pcl::PointXYZ> cameraPnPCloud, const string targetSensorName, const string cameraName, const bool draw = true, const bool ransac = true);
+void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud,
+  pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName, const bool isCameraFrame);
+int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<pcl::PointXYZ> targetCloud,
+  pcl::PointCloud<pcl::PointXYZ> cameraPnPCloud , const string targetSensorName, const string cameraName, const cv::Mat &projImageconst, bool draw, const bool ransac);
 visualization_msgs::Marker addCar(const vector<double>& RPY = vector<double>(), const vector<double>& translation = vector<double>() );
 float pointEuclideanDistance (const pcl::PointXYZ &p1, const pcl::PointXYZ &p2);
 vector<float> gridEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1);

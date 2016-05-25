@@ -53,6 +53,8 @@
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/features/normal_3d.h>
 
+#include <pcl/common/transforms.h>
+
 ros::Publisher markers_pub;
 ros::Publisher sphereCenter_pub;
 ros::Publisher pointCloud_pub;

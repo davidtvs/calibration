@@ -76,7 +76,7 @@ void createDirectory ( )
    @param[in] name name and extension of the file
    @return void
  */
-void writeFile( pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,pcl::PointXYZ>::Matrix4 transformation, const string filepath)
+void writeFile( const Matrix4f transformation, const string filepath)
 {
   const char* FilePath = filepath.c_str();
   ofstream myfile;
@@ -108,7 +108,7 @@ void writeFileCamera( cv::Mat transformation, const char* transformation_name, c
    @return void
  */
 void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud,
-	pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName, const bool isCamera)
+	pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName, const bool isCameraFrame)
 {
 	//Eigen::Matrix4d transformation of laser lms151 to ldmrs
 	pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,pcl::PointXYZ> TESVD;
@@ -116,15 +116,15 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 	TESVD.estimateRigidTransformation (laserCloud,target_laserCloud,transformation);
 	cout<<transformation<<endl;
 
-	MatrixXd Trans(4,4);
+	Matrix4f Trans;
 	Trans<<transformation(0,0), transformation(0,1), transformation(0,2), transformation(0,3),
 	        transformation(1,0), transformation(1,1), transformation(1,2), transformation(1,3),
 	        transformation(2,0), transformation(2,1), transformation(2,2), transformation(2,3),
-	        transformation(3,0), transformation(3,1), transformation(3,2), transformation(3,3);
+					transformation(3,0), transformation(3,1), transformation(3,2), transformation(3,3);
 
 	for(int i=0; i<laserCloud.points.size(); i++)
 	{
-		Vector4d Point_in(laserCloud.points[i].x,laserCloud.points[i].y,laserCloud.points[i].z,1), Point_out;
+		Vector4f Point_in(laserCloud.points[i].x,laserCloud.points[i].y,laserCloud.points[i].z, 1), Point_out;
 
 		Point_out=Trans*Point_in;
 		laserCloud.points[i].x = Point_out(0);
@@ -132,20 +132,6 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 		laserCloud.points[i].z = Point_out(2);
 	}
 
-	string name = targetSensorName + "_" + sensorName + "_calib.txt";
-
-	if (isCamera)
-	{
-		// Rotation matrix so the pose arrow points in the Z direction
-		double alpha = -M_PI/2;
-		MatrixXd R(4,4);
-		R << cos(alpha), 0, sin(alpha), 0,
-		        0,        1,     0,      0,
-		        -sin(alpha), 0, cos(alpha), 0,
-		        0,           0,     0,      1;
-		Trans=Trans*R;
-
-	}
 
 	/* Visualization of camera position and orientation
 	   Convert the opencv matrices to tf compatible ones */
@@ -156,17 +142,13 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 	           Trans(1,0),Trans(1,1),Trans(1,2),
 	           Trans(2,0),Trans(2,1),Trans(2,2));
 
-	string FilePath = file_path + name;
-
-	writeFile(transformation, FilePath);
-
 	T.getRotation(q);
 
-	std::cout << "Quaternion " << targetSensorName + "_" + sensorName << ": " << q[0] << " "
-	<< q[1] << " "
-	<< q[2] << " "
-	<< q[3] << endl;
 
+		std::cout << "Quaternion " << targetSensorName + "_" + sensorName << ": " << q[0] << " "
+		<< q[1] << " "
+		<< q[2] << " "
+		<< q[3] << endl;
 
 	laser.position.x=Trans(0,3);
 	laser.position.y=Trans(1,3);
@@ -175,10 +157,35 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 	laser.orientation.y=q[1];
 	laser.orientation.z=q[2];
 	laser.orientation.w=q[3];
+
+	string name = targetSensorName + "_" + sensorName + "_calib.txt";
+
+	if (isCameraFrame)
+	{
+					 		// Rotation matrix so the pose arrow points in the Z direction
+					 		// double alpha = -M_PI/2;
+					 		// MatrixXd R(4,4);
+					 		// R << cos(alpha), 0, sin(alpha), 0,
+					 		//         0,        1,     0,      0,
+					 		//         -sin(alpha), 0, cos(alpha), 0,
+					 		//         0,           0,     0,      1;
+							Affine3f transform = Affine3f::Identity();
+			        // Define a translation
+			        transform.translation() << 0.0, 0.0, 0.0;
+			        // Define rotations
+			        transform.rotate( AngleAxisf (M_PI/2, Vector3f::UnitY()) * AngleAxisf (-M_PI/2, Vector3f::UnitZ()) );
+							Matrix4f R;
+							R = R * transform.matrix();
+					 		Trans=Trans*R.inverse();
+	}
+
+	string FilePath = file_path + name;
+
+	writeFile(Trans, FilePath);
 }
 
-int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<pcl::PointXYZ> targetCloud,
-	pcl::PointCloud<pcl::PointXYZ> cameraPnPCloud, const string targetSensorName, const string cameraName, const bool draw, const bool ransac)
+int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<pcl::PointXYZ> targetCloud, pcl::PointCloud<pcl::PointXYZ> cameraPnPCloud,
+	const string targetSensorName, const string cameraName, const cv::Mat &projImage, const bool draw, const bool ransac)
 {
 	//read calibration paraneters
 	string a="/intrinsic_calibrations/ros_calib.yaml";
@@ -253,9 +260,6 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<p
 	// No distortion coefficients are given because imagePoints are already undistorted
 
 	// Project objectPoints to the image to check if solvePnP results are good ===
-	cv::Mat test_image;
-	//test_image = cv::imread("img.jpg", CV_LOAD_IMAGE_COLOR);
-	test_image = cv::Scalar(0, 0, 0);
 	vector<cv::Point2f> reprojectPoints;
 
 	cv::projectPoints(objectPoints, rotation_vector, translation_vector,
@@ -270,21 +274,22 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<p
 	sum = cv::norm(reprojectPoints, imagePoints);
 	cout << "SolvePnP re-projection error = " << sum << endl;
 
-	// Draw imagePoints and projectPoints on an image ans save it
+	// Draw imagePoints and projectPoints on an image and save it
+	cv::Mat projImageCLone = projImage.clone();
 	int myradius=5;
 	for (int i=0; i<reprojectPoints.size(); i++)
 	{
-    cv::line(test_image, cv::Point(imagePoints[i].x - 5, imagePoints[i].y), cv::Point(imagePoints[i].x + 5, imagePoints[i].y), cv::Scalar(0,255,0), 2);  //crosshair horizontal
-    cv::line(test_image, cv::Point(imagePoints[i].x, imagePoints[i].y - 5), cv::Point(imagePoints[i].x, imagePoints[i].y + 5), cv::Scalar(0,255,0), 2);  //crosshair vertical
+    cv::line(projImageCLone, cv::Point(imagePoints[i].x - 5, imagePoints[i].y), cv::Point(imagePoints[i].x + 5, imagePoints[i].y), cv::Scalar(0,255,0), 2);  //crosshair horizontal
+    cv::line(projImageCLone, cv::Point(imagePoints[i].x, imagePoints[i].y - 5), cv::Point(imagePoints[i].x, imagePoints[i].y + 5), cv::Scalar(0,255,0), 2);  //crosshair vertical
 		//cv::circle(test_image, cv::Point(imagePoints[i].x, imagePoints[i].y), myradius, cv::Scalar(0,255,0),-1,8,0); // Green original points
 	}
-	imwrite( file_path + name + "imagePoints.jpg", test_image );
+	imwrite( file_path + name + "imagePoints.jpg", projImageCLone );
 	// Done with projected points ================================================
   for (int i=0; i<reprojectPoints.size(); i++)
 	{
-  cv::circle(test_image, cv::Point(reprojectPoints[i].x, reprojectPoints[i].y), myradius, cv::Scalar(0,0,255),-1,8,0); // Red reprojected points
+  cv::circle(projImageCLone, cv::Point(reprojectPoints[i].x, reprojectPoints[i].y), myradius, cv::Scalar(0,0,255),-1,8,0); // Red reprojected points
   }
-  imwrite( file_path + name + "projectedPoints.jpg", test_image );
+  imwrite( file_path + name + "projectedPoints.jpg", projImageCLone );
 
 	cv::Mat R(3,3,cv::DataType<double>::type);
 	cv::Rodrigues(rotation_vector, R); // transforms rotation_vector in rotation matrix R (3x3)
@@ -323,13 +328,23 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<p
 	// Rotation matrices around the X axis so the pose represents the Z axis
 	if (draw)
 	{
-		double alpha = -M_PI/2;
-		cv::Mat R = (cv::Mat_<double>(4, 4) <<
-					cos(alpha), 0, sin(alpha), 0,
-					 0,        1,     0,      0,
-					 -sin(alpha), 0, cos(alpha), 0,
-					 0,           0,     0,      1);
-		T=T*R;
+		// double y_angle = M_PI/2;
+		// double z_angle = -M_PI/2;
+		//
+		// cv::Mat R_y = (cv::Mat_<double>(4, 4) <<
+		// 			cos(y_angle), 0, sin(y_angle), 0,
+		// 			 0,        1,     0,      0,
+		// 			 -sin(y_angle), 0, cos(y_angle), 0,
+		// 			 0,           0,     0,      1);
+		//
+		// cv::Mat R_z = (cv::Mat_<double>(4, 4) <<
+		// 	 					cos(z_angle), -sin(z_angle), 0, 0,
+		// 	 					sin(z_angle), cos(z_angle), 0, 0,
+		// 	 					0, 						0, 					1, 0,
+		// 	 					0, 						0, 					0, 1);
+		//
+		// cv::Mat R = R_y * R_z;
+		// T=T*R.inv();
 
 		tf::Matrix3x3 rot;
 		rot[0][0] = T.at<double>(0,0);
