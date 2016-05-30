@@ -104,9 +104,9 @@ void CreateTrackbarsAndWindows ();
 
 void ImageProcessing(Mat &img);
 
-void HoughDetection(const Mat &img, const Mat& imgBinary, int valCanny, int valAccumulator, int minRadius, int maxRadius);
+void HoughDetection(const Mat &img, const Mat& imgBinary );
 
-void PolygonalCurveDetection( Mat &img, Mat &imgBinary, int valCanny );
+void PolygonalCurveDetection( Mat &img, Mat &imgBinary );
 
 void CentroidPub( const pcl::PointXYZ centroid, const pcl::PointXYZ centroidRadius );
 

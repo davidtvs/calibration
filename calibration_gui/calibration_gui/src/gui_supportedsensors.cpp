@@ -97,7 +97,6 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
         roslaunch_params << sensorIP << node_name;
 
         isCamera.push_back(false);
-        isCameraFrame.push_back(false);
     }
     else if (sensor == supportedSensors[1]) // Sick LD-MRS400001
     {
@@ -111,7 +110,6 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
         roslaunch_params << sensorIP << node_name;
 
         isCamera.push_back(false);
-        isCameraFrame.push_back(false);
     }
     else if (sensor == supportedSensors[2]) // Point Grey FL3-GE-28S4-C
     {
@@ -124,7 +122,6 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
         roslaunch_params << node_name;
 
         isCamera.push_back(true);
-        isCameraFrame.push_back(true);
     }
     else if (sensor == supportedSensors[3]) // SwissRanger SR4000_(Ethernet)
     {
@@ -138,7 +135,6 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
         roslaunch_params << sensorIP << node_name;
 
         isCamera.push_back(false);
-        isCameraFrame.push_back(true);
     }
     else if (sensor == supportedSensors[4]) // SwissRanger SR4000_(USB)
     {
@@ -151,7 +147,6 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
         roslaunch_params << node_name;
 
         isCamera.push_back(false);
-        isCameraFrame.push_back(true);
     }
     else if (sensor == supportedSensors[5]) // Microsoft Kinect IR Sensor
     {
@@ -164,7 +159,6 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
         roslaunch_params << node_name;
 
         isCamera.push_back(false);
-        isCameraFrame.push_back(true);
     }
     else
         qDebug() << sensor << "is not on" << supportedSensors;

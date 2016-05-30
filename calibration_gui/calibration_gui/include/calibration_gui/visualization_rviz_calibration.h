@@ -96,5 +96,5 @@ class Markers
         vector<visualization_msgs::Marker> markers;
 };
 
-vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pcl::PointXYZ> > clouds, vector<geometry_msgs::Pose> lasers, const vector<double>& RPY = vector<double>(), const vector<double>& translation = vector<double>() );
+vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pcl::PointXYZ> > clouds, vector<geometry_msgs::Pose> lasers );
 #endif

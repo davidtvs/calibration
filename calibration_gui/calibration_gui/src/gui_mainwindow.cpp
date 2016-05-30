@@ -291,7 +291,6 @@ void MainWindow::on_bt_start_nodes_clicked()
 
         launchedNodes = mSensors->getLaunchedNodes();
         isCamera = mSensors->getIsCamera();
-        isCameraFrame = mSensors->getIsCameraFrame();
 
         ui->bt_stop_nodes->setEnabled(true);
         ui->bt_calibrate->setEnabled(true);
@@ -367,7 +366,7 @@ void MainWindow::on_bt_calibrate_clicked()
             vec.push_back(str.toStdString());
         }
 
-        qnode->setLaunchedNodes(vec, isCamera, isCameraFrame);
+        qnode->setLaunchedNodes(vec, isCamera);
         qnode->setCalibrationPoints(num_calib_points);
         qnode->setMinDistance(min_distance);
         qnode->setMaxDisplacement(max_displacement);

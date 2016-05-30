@@ -82,7 +82,7 @@ void QNode::run() {
     markers_pub = n.advertise<visualization_msgs::MarkerArray>( node_name + "/CalibrationPoints", 10000);
     //car_pub = n.advertise<visualization_msgs::Marker>(node_name + "/3DModel", 1);
 
-    CircleCentroids centroids(calibrationNodes, isCamera, isCameraFrame);
+    CircleCentroids centroids(calibrationNodes, isCamera);
 
     // Vector for containing future pointclouds for each sensor
     vector<pcl::PointCloud<pcl::PointXYZ> > sensorClouds;
@@ -261,7 +261,7 @@ void QNode::run() {
         {
             // Estimating rigid transform between target sensor and other sensors
             estimateTransformation(sensorPoses[i], sensorClouds.front(), sensorClouds[i],
-                                   calibrationNodes.front(), calibrationNodes[i], isCameraFrame[i]);
+                                   calibrationNodes.front(), calibrationNodes[i]);
             if (isCamera[i])
             {
                 estimateTransformationCamera(cameraPosesPnP[cameraCounter], sensorClouds.front(), cameraCloudsPnP[cameraCounter],
@@ -313,12 +313,11 @@ void QNode::run() {
 }
 
 
-void QNode::setLaunchedNodes(const vector<string> nodes, const vector<bool> camera, const vector<bool> cameraFrame)
+void QNode::setLaunchedNodes(const vector<string> nodes, const vector<bool> camera)
 {
     qDebug() << "setLaunchedNodes";
     calibrationNodes = nodes;
     isCamera = camera;
-    isCameraFrame = cameraFrame;
 }
 
 

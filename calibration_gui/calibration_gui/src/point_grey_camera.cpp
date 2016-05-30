@@ -46,6 +46,7 @@ int lowS;
 int highS;
 int lowV;
 int highV;
+int valMinDist;
 int valC;
 int valA;
 int maxR;
@@ -59,7 +60,9 @@ void CreateTrackbarsAndWindows ()
 	namedWindow( "Binarized Image", CV_WINDOW_NORMAL );
 	namedWindow( "Control", CV_WINDOW_NORMAL );
 	namedWindow( "Circle", CV_WINDOW_NORMAL );
-	namedWindow( "Canny", CV_WINDOW_NORMAL );
+	// namedWindow( "Canny", CV_WINDOW_NORMAL );
+
+	char key = waitKey(1);
 
 	/* Trackbars for Hue, Saturation and Value (HSV) in "Camera 1" window */
 	lowH = 0;
@@ -88,15 +91,19 @@ void CreateTrackbarsAndWindows ()
 	cvCreateTrackbar("Upper Value     ", "Control", &highV, 255);
 	cvCreateTrackbar("Lower Value     ", "Control", &lowV, 255);
 
-	cvCreateTrackbar("Canny Threshold ", "Control", &valC, 200);
-
 	// =========================================================================
 	// Uncomment below if using Hough Circles
 	// =========================================================================
+	//
+	// cvCreateTrackbar("Minimum Distance  ", "Control", &valMinDist, 960);
+	//
+	// cvCreateTrackbar("Canny Threshold ", "Control", &valC, 200);
+	//
 	// cvCreateTrackbar("Accumulator     ", "Control", &valA, 255);
 	//
 	// cvCreateTrackbar("Max. Radius (p) ", "Control", &maxR, 720);
 	// cvCreateTrackbar("Min. Radius (p) ", "Control", &minR, 720);
+	//
 	// =========================================================================
 	// Uncomment above if using Hough Circles
 	// =========================================================================
@@ -147,38 +154,41 @@ void ImageProcessing(Mat &img)
 	// Hough Circles or Polygonal Curve fitting algorithm, pick one
 	// =====================================================================
 
-	//HoughCircles(unImg, imgBinary, valC, valA, minRadius, maxRadius);
+	//HoughCircles(unImg, imgBinary);
 
-	PolygonalCurveDetection(unImg, imgBinary, valC);
+	PolygonalCurveDetection(unImg, imgBinary);
 
 	char key = waitKey(1);
 }
 
 
-void HoughDetection(const Mat &img, const Mat& imgBinary, int valCanny, int valAccumulator, int minRadius, int maxRadius)
+void HoughDetection(const Mat &img, const Mat& imgBinary)
 {
 	Mat dst = img.clone();
 
 	vector<Vec3f> circles;
 
-	HoughCircles( imgBinary, circles, CV_HOUGH_GRADIENT, 1, imgBinary.rows/8, valCanny, valAccumulator, minRadius, maxRadius );
+	HoughCircles( imgBinary, circles, CV_HOUGH_GRADIENT, 1, valMinDist, valC, valA, minR, maxR );
 
 	for( size_t i = 0; i < circles.size(); i++ )
 	{
 		Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
 		int radius = cvRound(circles[i][2]);
 		std::cout << "HoughCircles Radius = " <<radius << std::endl;
+
 		// circle center
-		circle( dst, center, 3, Scalar(255,0,0), -1, 8, 0 );
+		cv::line(dst, cv::Point(center.x - 6, center.y), cv::Point(center.x + 6, center.y), cv::Scalar(255,255,255), 2);  //crosshair horizontal
+		cv::line(dst, cv::Point(center.x, center.y - 6), cv::Point(center.x, center.y + 6), cv::Scalar(255,255,255), 2);  //crosshair vertical
 		// circle outline
-		circle( dst, center, radius, Scalar(0,255,0), 1, 8, 0 );
-		double Dist = CameraMatrix1.at<double>(0,0)*(BALL_DIAMETER/(2*radius));
+		circle( dst, center, radius, Scalar(255,255,255), 2, 8, 0 );
+
+		double f_avg = (CameraMatrix1.at<double>(0,0) + CameraMatrix1.at<double>(1,1)) / 2;
+		double Dist = f_avg*(BALL_DIAMETER/(2*radius));
 		std::cout << "Real world diameter = " << Dist << std::endl;
 	}
 
-	imshow("Circles", dst);
+	imshow("Circle", dst);
 }
-
 
 
 /**
@@ -187,15 +197,15 @@ void HoughDetection(const Mat &img, const Mat& imgBinary, int valCanny, int valA
    @return void
  */
 //void ballDetection(sensor_msgs::PointCloud cloud)
-void PolygonalCurveDetection( Mat &img, Mat &imgBinary, int valCanny )
+void PolygonalCurveDetection( Mat &img, Mat &imgBinary)
 {
 	vector<vector<Point> > contours;
 
 	/// Detect edges using canny
 	Mat imgCanny;
-	Canny( imgBinary, imgCanny, valCanny, valCanny*2, 3 );
+	Canny( imgBinary, imgCanny, 100, 100*2, 3 ); // The canny threshold does not have significant effect on ball detection, it set at 100
 
-	imshow("Canny", imgCanny); // debug
+	//imshow("Canny", imgCanny);
 
 	findContours(imgCanny.clone(),contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
@@ -241,9 +251,11 @@ void PolygonalCurveDetection( Mat &img, Mat &imgBinary, int valCanny )
 				//cout<< "radius - "<< radius <<endl; // DEBUGGING
 
 				// Computing distnace from camera to center of detected circle
-				double Dist;
-				// + BALL_DIAMETER/4 is a correction since the sphere centroid is deeper than the center of the detected circle
-				Dist = (CameraMatrix1.at<double>(0,0)*(BALL_DIAMETER/(radius*2)));
+				double Dist, f_avg;
+
+				f_avg = (CameraMatrix1.at<double>(0,0) + CameraMatrix1.at<double>(1,1)) / 2;
+
+				Dist = (f_avg*(BALL_DIAMETER/(radius*2)));
 				std::stringstream s;
 				s<<Dist;
 				string str = s.str();
@@ -384,10 +396,11 @@ std::cout << "test3" << std::endl;
 		loop_rate.sleep();
 	}
 
-	destroyWindow("Camera"); //destroy the window
+	//destroy the windows
+	destroyWindow("Camera");
 	destroyWindow("Binarized Image");
 	destroyWindow("Control");
 	destroyWindow("Circle");
-
+	//destroyWindow("Canny");
 	return 0;
 }

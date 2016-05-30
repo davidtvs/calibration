@@ -65,7 +65,6 @@ private:
     SupportedSensors *mSensors;
     QVector<QProcess*> processes;
     std::vector<bool> isCamera;
-    std::vector<bool> isCameraFrame;
 
     // Parameter Strings
     QString parameterBallDiameter;

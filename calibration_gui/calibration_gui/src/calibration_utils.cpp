@@ -108,7 +108,7 @@ void writeFileCamera( cv::Mat transformation, const char* transformation_name, c
    @return void
  */
 void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud,
-	pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName, const bool isCameraFrame)
+	pcl::PointCloud<pcl::PointXYZ> & laserCloud, const string targetSensorName, const string sensorName)
 {
 	//Eigen::Matrix4d transformation of laser lms151 to ldmrs
 	pcl::registration::TransformationEstimationSVD<pcl::PointXYZ,pcl::PointXYZ> TESVD;
@@ -159,25 +159,6 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 	laser.orientation.w=q[3];
 
 	string name = targetSensorName + "_" + sensorName + "_calib.txt";
-
-	if (isCameraFrame)
-	{
-					 		// Rotation matrix so the pose arrow points in the Z direction
-					 		// double alpha = -M_PI/2;
-					 		// MatrixXd R(4,4);
-					 		// R << cos(alpha), 0, sin(alpha), 0,
-					 		//         0,        1,     0,      0,
-					 		//         -sin(alpha), 0, cos(alpha), 0,
-					 		//         0,           0,     0,      1;
-							Affine3f transform = Affine3f::Identity();
-			        // Define a translation
-			        transform.translation() << 0.0, 0.0, 0.0;
-			        // Define rotations
-			        transform.rotate( AngleAxisf (M_PI/2, Vector3f::UnitY()) * AngleAxisf (-M_PI/2, Vector3f::UnitZ()) );
-							Matrix4f R;
-							R = R * transform.matrix();
-					 		Trans=Trans*R.inverse();
-	}
 
 	string FilePath = file_path + name;
 
@@ -328,24 +309,6 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<p
 	// Rotation matrices around the X axis so the pose represents the Z axis
 	if (draw)
 	{
-		// double y_angle = M_PI/2;
-		// double z_angle = -M_PI/2;
-		//
-		// cv::Mat R_y = (cv::Mat_<double>(4, 4) <<
-		// 			cos(y_angle), 0, sin(y_angle), 0,
-		// 			 0,        1,     0,      0,
-		// 			 -sin(y_angle), 0, cos(y_angle), 0,
-		// 			 0,           0,     0,      1);
-		//
-		// cv::Mat R_z = (cv::Mat_<double>(4, 4) <<
-		// 	 					cos(z_angle), -sin(z_angle), 0, 0,
-		// 	 					sin(z_angle), cos(z_angle), 0, 0,
-		// 	 					0, 						0, 					1, 0,
-		// 	 					0, 						0, 					0, 1);
-		//
-		// cv::Mat R = R_y * R_z;
-		// T=T*R.inv();
-
 		tf::Matrix3x3 rot;
 		rot[0][0] = T.at<double>(0,0);
 		rot[0][1] = T.at<double>(0,1);

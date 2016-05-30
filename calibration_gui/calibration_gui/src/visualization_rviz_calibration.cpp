@@ -43,30 +43,8 @@
 @param[in] lasers position of the sensors
 @return vector<visualization_msgs::Marker>
 */
-vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pcl::PointXYZ> > clouds, vector<geometry_msgs::Pose> lasers,
-                                                       const vector<double>& RPY, const vector<double>& translation )
+vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pcl::PointXYZ> > clouds, vector<geometry_msgs::Pose> lasers)
 {
-  tf::Transform t_rpy;
-  tf::Quaternion q;
-
-  if (translation.empty() && RPY.empty()) //user does not want to translate/rotate clouds and sensors.
-  {
-    t_rpy.setOrigin( tf::Vector3 (tfScalar(0), tfScalar(0), tfScalar(0)) ); // no translation is done
-    q = tf::createQuaternionFromRPY(0.0, 0.0, 0.0 ); // no rotation
-  	t_rpy.setRotation( q );
-  }
-  else if (translation.empty()) // only rotation given by the user, no translation
-  {
-    t_rpy.setOrigin( tf::Vector3 (tfScalar(0), tfScalar(0), tfScalar(0)) ); // no translation
-    q = tf::createQuaternionFromRPY( RPY[0], RPY[1], RPY[2] ); // quaternion computation from given angles
-  	t_rpy.setRotation( q );
-  }
-  else // rotation and translation given by the user
-  {
-  	t_rpy.setOrigin( tf::Vector3 (tfScalar(translation[0]), tfScalar(translation[1]), tfScalar(translation[2])) ); // translation given by the user
-  	q = tf::createQuaternionFromRPY( RPY[0], RPY[1], RPY[2] ); // quaternion computation from given angles
-  	t_rpy.setRotation( q );
-  }
 
 	static Markers marker_list;
 	int nLasers=lasers.size();
@@ -75,7 +53,7 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pc
 	marker_list.decrement();
 
 	// Create a colormap
-	class_colormap colormap("hsv",10, 1, false);
+	class_colormap colormap("hsv",12, 1, false);
 
 	visualization_msgs::Marker marker_centers;
 	visualization_msgs::Marker marker_lasers[nLasers];
@@ -92,13 +70,7 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pc
 	marker_centers.scale.y = 0.08;
 	marker_centers.scale.z = 0.08;
 
-	marker_centers.pose.orientation.x=q[0];
-	marker_centers.pose.orientation.y=q[1];
-	marker_centers.pose.orientation.z=q[2];
-	marker_centers.pose.orientation.w=q[3];
 
-	/*marker_centers.color.b=1;
-	   marker_centers.color.a=1;*/
 	marker_lasers[0].color.a=1;
 	marker_lasers[0].color.g=1;
 	marker_lasers[1].color.b=1;
@@ -108,7 +80,6 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pc
 
 	for(int n=0; n<clouds.size(); n++)
 	{
-		{
 			pcl::PointCloud<pcl::PointXYZ> cloud = clouds[n];
 			std_msgs::ColorRGBA color;
 			color = colormap.color(n);
@@ -126,61 +97,121 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pc
 
 			} //end for
 			marker_list.update(marker_centers);
-		}
 	}
 
-	//position and orientation of laser
-	for(int n=0; n<lasers.size(); n++)
-	{
-		{
-			marker_lasers[n].header.frame_id = "/my_frame3";
-			marker_lasers[n].header.stamp = ros::Time::now();
+  //position and orientation of laser
+    int counter = 0;
+  	for(int n=0; n<lasers.size(); n++)
+  	{
 
-			std::stringstream ss;
-			ss << "Laser " << n;
+      geometry_msgs::Pose laser = lasers[n];
+      tf::Transform t_laser;
+      t_laser.setOrigin( tf::Vector3(laser.position.x, laser.position.y, laser.position.z) );
+      tf::Quaternion q_laser(laser.orientation.x, laser.orientation.y, laser.orientation.z, laser.orientation.w);
+      t_laser.setRotation(q_laser);
 
-			marker_lasers[n].ns = ss.str();
-			marker_lasers[n].action = visualization_msgs::Marker::ADD;
+      for (int k=0; k<4; k++)
+      {
+        marker_lasers[counter].header.frame_id = "/my_frame3";
+  			marker_lasers[counter].header.stamp = ros::Time::now();
 
-			marker_lasers[n].type = visualization_msgs::Marker::ARROW;
+  			std::stringstream ss;
+  			ss << "Laser " << n << "Marker: " << k;
 
-			marker_lasers[n].scale.x = 0.2;
-			marker_lasers[n].scale.y = 0.1;
-			marker_lasers[n].scale.z = 0.1;
+  			marker_lasers[counter].ns = ss.str();
+  			marker_lasers[counter].action = visualization_msgs::Marker::ADD;
 
-			geometry_msgs::Pose laser = lasers[n];
-			std_msgs::ColorRGBA color;
+        std_msgs::ColorRGBA color;
 
-			color = colormap.color(n);
+        if (k<3)
+        {
+  			marker_lasers[counter].type = visualization_msgs::Marker::ARROW;
 
-			tf::Transform t_laser;
-			t_laser.setOrigin( tf::Vector3(laser.position.x, laser.position.y, laser.position.z) );
-			tf::Quaternion q_laser(laser.orientation.x, laser.orientation.y, laser.orientation.z, laser.orientation.w);
-			t_laser.setRotation(q_laser);
+  			marker_lasers[counter].scale.x = 0.5;
+  			marker_lasers[counter].scale.y = 0.05;
+  			marker_lasers[counter].scale.z = 0.05;
 
-			t_laser= t_rpy * t_laser;
-			q_laser = t_laser.getRotation();
-			tf::Vector3 trans_laser = t_laser.getOrigin();
+        color.r = 0;
+        color.g = 0;
+        color.b = 0;
+        color.a = 1;
+      }
+      else
+      {
+        marker_lasers[counter].type = visualization_msgs::Marker::CUBE;
+        marker_lasers[counter].scale.x = 0.2;
+  			marker_lasers[counter].scale.y = 0.2;
+  			marker_lasers[counter].scale.z = 0.2;
+      }
 
-			marker_lasers[n].pose.position.x=trans_laser[0];
-			marker_lasers[n].pose.position.y=trans_laser[1];
-			marker_lasers[n].pose.position.z=trans_laser[2];
+        tf::Transform t_rpy;
+        tf::Quaternion q;
+        t_rpy.setOrigin( tf::Vector3 (tfScalar(0), tfScalar(0), tfScalar(0)) ); // no translation is done
 
-			marker_lasers[n].pose.orientation.x=q_laser[0];
-			marker_lasers[n].pose.orientation.y=q_laser[1];
-			marker_lasers[n].pose.orientation.z=q_laser[2];
-			marker_lasers[n].pose.orientation.w=q_laser[3];
+        switch (k) {
+          case 0:
+          {
+            q = tf::createQuaternionFromRPY(0.0, 0.0, 0.0 ); // no rotation->this is the X axis
+            color.r = 1.0;
+            std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
+            break;
+          }
+          case 1:
+          {
+            q = tf::createQuaternionFromRPY( 0.0, 0.0, M_PI/2 ); // rotation to get Y axis from X
+            color.g = 1.0;
+            std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
+            break;
+          }
+          case 2:
+          {
+            q = tf::createQuaternionFromRPY( 0.0, -M_PI/2, 0.0); // rotation to get Z axis from X
+            color.b = 1.0;
+            std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
+            break;
+          }
+          case 3:
+          {
+            q = tf::createQuaternionFromRPY( 0.0, 0.0, 0.0); // no rotation->this is the square at the axes origin that represents the sensor
+            color = colormap.color(n);
+            std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
+            break;
+          }
+          default:
+          {
+            std::cout << "visualization_rviz_calibration: Something is wrong, marker number " << k << " is not expected." << std::endl;
+          }
+        }
 
-			marker_lasers[n].color=color;
+      	t_rpy.setRotation( q );
 
-			marker_list.update(marker_lasers[n]);
-		}
-	}
+  			tf::Transform transform_laser = t_laser * t_rpy;
+  			tf::Quaternion rotation_laser = transform_laser.getRotation();
+  			tf::Vector3 translation_laser = transform_laser.getOrigin();
 
-	//Remove markers that should not be transmitted
-	marker_list.clean();
+        std::cout << "translation " << translation_laser[0] << " " << translation_laser[1] << " " << translation_laser[2] << std::endl;
+        std::cout << "rotation " << rotation_laser[0] << " " << rotation_laser[1] << " " << rotation_laser[2] << " " << rotation_laser[3] << std::endl;
 
-	//Clean the marker_vector and put new markers in it;
-	return marker_list.getOutgoingMarkers();
+  			marker_lasers[counter].pose.position.x=translation_laser[0];
+  			marker_lasers[counter].pose.position.y=translation_laser[1];
+  			marker_lasers[counter].pose.position.z=translation_laser[2];
 
-} //end function
+  			marker_lasers[counter].pose.orientation.x=rotation_laser[0];
+  			marker_lasers[counter].pose.orientation.y=rotation_laser[1];
+  			marker_lasers[counter].pose.orientation.z=rotation_laser[2];
+  			marker_lasers[counter].pose.orientation.w=rotation_laser[3];
+
+        marker_lasers[counter].color=color;
+
+  			marker_list.update(marker_lasers[counter]);
+        counter++;
+      }
+  	}
+
+  	//Remove markers that should not be transmitted
+  	marker_list.clean();
+
+  	//Clean the marker_vector and put new markers in it;
+  	return marker_list.getOutgoingMarkers();
+
+  } //end function
