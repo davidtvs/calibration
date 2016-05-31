@@ -232,7 +232,7 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 
 					double ballDiameter = BALL_DIAMETER;
 
-					if(radius > ballDiameter/2 + 0.075 && radius < 0) // invalid radius
+					if(radius > ballDiameter/2 + 0.075 && radius <= 0) // invalid radius
 					{
 						centroid.point.x=-999;
 						centroid.point.y=-999;

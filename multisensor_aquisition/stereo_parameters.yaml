@@ -1,0 +1,20 @@
+%YAML:1.0
+
+min_disparity: 1
+max_disparity: 11
+SAD: 7
+SGMp1: 392 #8*1*SAD*SAD
+SGMp2: 1568 #32*1*SAD*SAD
+disp12_max_diff: 5
+pre_filter_cap: 5
+unique: 15
+speckle_window: 150
+speckle_range: 1
+fullDP: 0
+
+camera_cx: 324.890561510356
+camera_cy: 246.965003418999
+
+camera_fx: 517.775207016812
+camera_fy: 518.317603746622
+base_line: 0.12

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<launch>
+        
+    <remap from="/xb3/left/image_raw" to="/rectified/left/image_raw"/>
+    <remap from="/xb3/center/image_raw" to="/rectified/right/image_raw"/>
+        
+    <!--640x480 calibration files-->
+    <node name="xb3" pkg="xb3" type="xb3_full_speed">
+        <param name="left_calibration_file" value="package://xb3/calibrations/left.yaml"/>
+        <param name="center_calibration_file" value="package://xb3/calibrations/center.yaml"/>
+        <param name="right_calibration_file" value="package://xb3/calibrations/right.yaml"/>
+    </node>
+
+    <group ns="rectified/left">
+        <node pkg="image_proc" name="left_proc" type="image_proc"/>
+    </group>
+
+    <group ns="rectified/right">
+        <node pkg="image_proc" name="right_proc" type="image_proc"/>
+    </group>
+
+    
+    <node pkg="multisensor_aquisition" name="stereo_proc" type="stereo" args="/home/jorge/workingcopies/lar4/src/sensors/multisensor_aquisition/stereo_parameters.yaml"/>
+ <!--   <group ns="stereo">
+        <node pkg="stereo_image_proc" name="stereo_proc" type="stereo_image_proc"/>
+    </group>-->
+
+</launch>

@@ -140,9 +140,14 @@ void QNode::run() {
 
         int finder = 0;
         bool found = false;
-        while ( finder < centroids.sensors_ball_centers.size()-1 )
+        while ( finder < centroids.sensors_ball_centers.size() )
         {
             if (centroids.sensors_ball_centers[finder].x == -999)
+            {
+                found = true;
+                break;
+            }
+            else if (!centroids.sensors_ball_centers[finder].x && !centroids.sensors_ball_centers[finder].y && !centroids.sensors_ball_centers[finder].z)
             {
                 found = true;
                 break;
@@ -173,12 +178,14 @@ void QNode::run() {
                         eu_dist.push_back( pointEuclideanDistance (sensorClouds[i].points[count-1], centroids.sensors_ball_centers[i]) );
                         // Sums the squared difference between the reference sensor (first sensor on sensors_ball_centers) and all the other sensors
                         diff_dist_mean += pow(eu_dist.front() - eu_dist.back(), 2);
+                        cout << endl << "points = " << i << " " << centroids.sensors_ball_centers[i] << endl;
                     }
                     // Mean squared distance - high diff_dist_mean means that the ball displacement was not equal for every sensor, which means something is wrong
                     diff_dist_mean = diff_dist_mean/centroids.sensors_ball_centers.size();
                     qDebug() << centroids.sensors_ball_centers.size();
                 }
                 cout << "diff_dist_mean = " << diff_dist_mean << endl;
+
                 if(diff_dist_mean <= max_displacement)    // the limit is set by the max_displacement variable in meters. If it's higher these points will be discarded
                 {
                     int cameraCounter = 0;

@@ -48,15 +48,16 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pc
 
 	static Markers marker_list;
 	int nLasers=lasers.size();
+	std::cout << "number of lasers: " << nLasers << std::endl;
 
 	//Reduce the elements status, ADD to REMOVE and REMOVE to delete
 	marker_list.decrement();
 
 	// Create a colormap
-	class_colormap colormap("hsv",12, 1, false);
+	class_colormap colormap("hsv", nLasers, 1, false);
 
 	visualization_msgs::Marker marker_centers;
-	visualization_msgs::Marker marker_lasers[nLasers];
+	visualization_msgs::Marker marker_lasers[nLasers*4]; // *4 to make space for Y, Z axis and square that represents the laser
 
 	marker_centers.header.frame_id = "/my_frame3";
 	marker_centers.header.stamp = ros::Time::now();
@@ -139,9 +140,9 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pc
       else
       {
         marker_lasers[counter].type = visualization_msgs::Marker::CUBE;
-        marker_lasers[counter].scale.x = 0.2;
-  			marker_lasers[counter].scale.y = 0.2;
-  			marker_lasers[counter].scale.z = 0.2;
+        marker_lasers[counter].scale.x = 0.15;
+  			marker_lasers[counter].scale.y = 0.15;
+  			marker_lasers[counter].scale.z = 0.15;
       }
 
         tf::Transform t_rpy;
