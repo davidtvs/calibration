@@ -9,14 +9,14 @@ SupportedSensors::SupportedSensors()
                                         << "Point Grey FL3-GE-28S4-C"
                                         << "SwissRanger SR4000_Ethernet"
                                         << "SwissRanger SR4000_USB"
-                                        << "Microsoft Kinect IR Sensor";
+                                        << "Microsoft Kinect 3D Sensor";
 
     supportedSensorsNodes = QList<QString>() << "lms151"
                                              << "ldmrs"
                                              << "pointgrey"
                                              << "swissranger_eth"
                                              << "swissranger_usb"
-                                             << "kinect_ir";
+                                             << "kinect_3d";
 
     for (int i = 0; i < supportedSensors.size(); i++)
         sensorCounter.push_back(0);

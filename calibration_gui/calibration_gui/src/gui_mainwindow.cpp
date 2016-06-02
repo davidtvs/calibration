@@ -314,7 +314,7 @@ void MainWindow::on_bt_stop_nodes_clicked()
         mProgress->startAnimation();
         mProgress->show();
 
-        ui->label_kill_nodes->setText("Stopping nodes...Please wait.");
+        ui->label_kill_nodes->setText("Terminating nodes...Please wait.");
 
         foreach (QProcess *process, processes)
         {

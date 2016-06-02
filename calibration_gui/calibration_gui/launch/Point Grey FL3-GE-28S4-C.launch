@@ -5,8 +5,8 @@
 
   <group ns="$(arg node_name)">
     <node name="$(arg node_name)" pkg="calibration_gui" type="point_grey_FL3_28S4" required="true" output="screen"></node>
+
     <node name="BD_$(arg node_name)" pkg="calibration_gui" type="point_grey_camera" required="true" output="screen">
-      <param name="sub_node_name" value="$(arg node_name)"/>
       <param name="ballDiameter" type="double" value="$(arg ball_diameter)"/>
     </node>
   </group>

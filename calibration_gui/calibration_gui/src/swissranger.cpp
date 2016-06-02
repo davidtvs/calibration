@@ -247,19 +247,17 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "swissranger");
 
 	ros::NodeHandle n("~");
-	string sub_node_name;
-	n.getParam("sub_node_name", sub_node_name);
+	string node_ns = ros::this_node::getNamespace();
+	node_ns.erase(0, 2);
 	n.getParam("ballDiameter", BALL_DIAMETER);
-	cout << "Subscribe node:" << sub_node_name << endl;
+	cout << "Node namespace:" << node_ns << endl;
 	cout << "Ball diameter:" << BALL_DIAMETER << endl;
-
-	std::cout << sub_node_name << std::endl;
 
 	markers_pub = n.advertise<visualization_msgs::MarkerArray>( "BallDetection", 10000);
 	sphereCenter_pub = n.advertise<geometry_msgs::PointStamped>("SphereCentroid",1000);
 	pointCloud_pub = n.advertise<sensor_msgs::PointCloud>("Pointcloud",10000);
 
-	swissranger cloud(sub_node_name);
+	swissranger cloud(node_ns);
 
 	ros::Rate loop_rate(50);
 

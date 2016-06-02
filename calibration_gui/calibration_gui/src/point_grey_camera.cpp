@@ -341,13 +341,13 @@ void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& cont
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "Point_Grey");
-	ros::NodeHandle n("~");
-	n.getParam("ballDiameter", BALL_DIAMETER);
-	cout << "Ball diameter:" << BALL_DIAMETER << endl;
 
-	string sub_node_name;
-	n.getParam("sub_node_name", sub_node_name);
-	cout << "sub_node_name:" << sub_node_name << endl;
+	ros::NodeHandle n("~");
+	string node_ns = ros::this_node::getNamespace();
+	node_ns.erase(0, 2);
+	n.getParam("ballDiameter", BALL_DIAMETER);
+	cout << "Node namespace:" << node_ns << endl;
+	cout << "Ball diameter:" << BALL_DIAMETER << endl;
 
 	//read calibration paraneters
 	string a="/intrinsic_calibrations/ros_calib.yaml";
@@ -368,14 +368,15 @@ int main(int argc, char **argv)
 
 	image_transport::ImageTransport it(n);
 
-	string raw_data_topic = "/" + sub_node_name;
+	string raw_data_topic = "/" + node_ns;
 
-	string ballDetection_topic = raw_data_topic + "/BD_" + sub_node_name;
+	string ballDetection_topic = raw_data_topic + "/BD_" + node_ns;
+
 	ballCentroidImage_pub = it.advertise(ballDetection_topic + "/BallDetection", 1);
 	ballCentroidCam_pub = n.advertise<geometry_msgs::PointStamped>( ballDetection_topic + "/SphereCentroid", 1);
 	ballCentroidCamPnP_pub = n.advertise<geometry_msgs::PointStamped>( ballDetection_topic + "/SphereCentroidPnP", 1);
 
-	CameraRaw cameraRaw(sub_node_name);
+	CameraRaw cameraRaw(node_ns);
 
 	CreateTrackbarsAndWindows ();
 

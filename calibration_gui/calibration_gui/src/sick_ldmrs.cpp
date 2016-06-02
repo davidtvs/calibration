@@ -493,15 +493,13 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "sick_ldmrs");
 
 	ros::NodeHandle n("~");
-	string sub_node_name;
-	n.getParam("sub_node_name", sub_node_name);
+	string node_ns = ros::this_node::getNamespace();
+	node_ns.erase(0, 2);
 	n.getParam("ballDiameter", BALL_DIAMETER);
-	cout << "Subscribe node:" << sub_node_name << endl;
+	cout << "Node namespace:" << node_ns << endl;
 	cout << "Ball diameter:" << BALL_DIAMETER << endl;
 
-	std::cout << sub_node_name << std::endl;
-
-	sickLDMRSscan scan(sub_node_name);
+	sickLDMRSscan scan(node_ns);
 
 	markers_ldmrs_pub = n.advertise<visualization_msgs::MarkerArray>( "BallDetection", 10000);
 	sphereCentroid_pub = n.advertise<geometry_msgs::PointStamped>("SphereCentroid",1000);

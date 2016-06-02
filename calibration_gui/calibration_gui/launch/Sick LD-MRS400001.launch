@@ -10,8 +10,8 @@
             <param name="host" value="$(arg host)"/>
             <param name="port" value="$(arg port)"/>
         </node>
+        
         <node name="BD_$(arg node_name)" pkg="calibration_gui" type="sick_ldmrs" required="true" output="screen">
-            <param name="sub_node_name" value="$(arg node_name)"/>
             <param name="ballDiameter" type="double" value="$(arg ball_diameter)"/>
         </node>
     </group>
