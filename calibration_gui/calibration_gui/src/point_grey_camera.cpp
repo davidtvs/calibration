@@ -217,9 +217,9 @@ void PolygonalCurveDetection( Mat &img, Mat &imgBinary)
 	/* The following lines make sure that position (0,0,0) is published when
 	   the ball is not detected (avoids publishing previous positions when the
 	   ball is no longer detected) */
-	centroid.x = 0;
-	centroid.y = 0;
-	centroid.z = 0;
+	centroid.x = -999;
+	centroid.y = -999;
+	centroid.z = -999;
 
 	pcl::PointXYZ centroidRadius; // Point structure for centroid
 	/* The following lines make sure that position (0,0,0) is published when

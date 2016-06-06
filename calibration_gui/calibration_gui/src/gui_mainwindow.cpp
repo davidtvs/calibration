@@ -429,9 +429,15 @@ void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
 
 void MainWindow::calibrationFinished()
 {
+    std::cout<<"calibrationFinished"<<std::endl;
     ui->bt_stop_nodes->setEnabled(true);
+    std::cout<<"stopnodes true"<<std::endl;
     ui->bt_calibrate->setEnabled(true);
+    std::cout<<"calibrate true"<<std::endl;
     ui->bt_stop_calibrate->setEnabled(false);
+    std::cout<<"stop calibrate true"<<std::endl;
     ui->bt_start_nodes->setEnabled(false);
+    std::cout<<"start_nodes true"<<std::endl;
     QMessageBox::information(0, "Calibration Complete", "Sensor calibration has finished.");
+    std::cout<<"messagebox true"<<std::endl;
 }

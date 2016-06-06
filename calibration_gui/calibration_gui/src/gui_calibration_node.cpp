@@ -154,6 +154,16 @@ void QNode::run() {
             }
             finder++;
         }
+        finder=0;
+        while ( finder < centroids.camCentroidPnP.size() && !found )
+        {
+            if (centroids.camCentroidPnP[finder].x == -999)
+            {
+                found = true;
+                break;
+            }
+            finder++;
+        }
 
         if(!found)
         {
@@ -178,7 +188,11 @@ void QNode::run() {
                         eu_dist.push_back( pointEuclideanDistance (sensorClouds[i].points[count-1], centroids.sensors_ball_centers[i]) );
                         // Sums the squared difference between the reference sensor (first sensor on sensors_ball_centers) and all the other sensors
                         diff_dist_mean += pow(eu_dist.front() - eu_dist.back(), 2);
-                        cout << endl << "points = " << i << " " << centroids.sensors_ball_centers[i] << endl;
+                        cout << endl << "points = " << i << " " << centroids.sensors_ball_centers[i] << " " << diff_dist_mean  << endl;
+                        for (int i=0; i < eu_dist.size(); ++i)
+                          std::cout << eu_dist[i] << ' ';
+
+                        std::cout << std::endl;
                     }
                     // Mean squared distance - high diff_dist_mean means that the ball displacement was not equal for every sensor, which means something is wrong
                     diff_dist_mean = diff_dist_mean/centroids.sensors_ball_centers.size();

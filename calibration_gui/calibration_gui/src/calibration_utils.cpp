@@ -46,7 +46,7 @@ void createDirectory ( )
 	time (&rawtime);
 	timeinfo = localtime(&rawtime);
 
-	strftime(buffer,80,"%d-%m-%Y_%I-%M-%S",timeinfo);
+	strftime(buffer,80,"%d-%m-%Y_%H-%M-%S",timeinfo);
 	std::string date(buffer);
 
   namespace fs = boost::filesystem;

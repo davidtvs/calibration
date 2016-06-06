@@ -154,28 +154,28 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pc
           {
             q = tf::createQuaternionFromRPY(0.0, 0.0, 0.0 ); // no rotation->this is the X axis
             color.r = 1.0;
-            std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
+            //std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
             break;
           }
           case 1:
           {
             q = tf::createQuaternionFromRPY( 0.0, 0.0, M_PI/2 ); // rotation to get Y axis from X
             color.g = 1.0;
-            std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
+            //std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
             break;
           }
           case 2:
           {
             q = tf::createQuaternionFromRPY( 0.0, -M_PI/2, 0.0); // rotation to get Z axis from X
             color.b = 1.0;
-            std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
+            //std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
             break;
           }
           case 3:
           {
             q = tf::createQuaternionFromRPY( 0.0, 0.0, 0.0); // no rotation->this is the square at the axes origin that represents the sensor
             color = colormap.color(n);
-            std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
+            //std::cout << "2 " << k << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << " " << color << std::endl;
             break;
           }
           default:
@@ -190,8 +190,8 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pc
   			tf::Quaternion rotation_laser = transform_laser.getRotation();
   			tf::Vector3 translation_laser = transform_laser.getOrigin();
 
-        std::cout << "translation " << translation_laser[0] << " " << translation_laser[1] << " " << translation_laser[2] << std::endl;
-        std::cout << "rotation " << rotation_laser[0] << " " << rotation_laser[1] << " " << rotation_laser[2] << " " << rotation_laser[3] << std::endl;
+        //std::cout << "translation " << translation_laser[0] << " " << translation_laser[1] << " " << translation_laser[2] << std::endl;
+        //std::cout << "rotation " << rotation_laser[0] << " " << rotation_laser[1] << " " << rotation_laser[2] << " " << rotation_laser[3] << std::endl;
 
   			marker_lasers[counter].pose.position.x=translation_laser[0];
   			marker_lasers[counter].pose.position.y=translation_laser[1];
