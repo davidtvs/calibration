@@ -179,8 +179,8 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 				m = m/M_PI*180;
 				std = std/M_PI*180;
 
-				std::cout << "std = " << std << std::endl;
-				std::cout << "m = " << m << std::endl;
+				//std::cout << "std = " << std << std::endl;
+				//std::cout << "m = " << m << std::endl;
 
 				//if (m>90 && m<140 && std < 5)
 				if (m>105 && m<140 && std < 5)

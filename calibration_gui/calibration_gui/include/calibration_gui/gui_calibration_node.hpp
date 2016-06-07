@@ -15,7 +15,7 @@
 #include <QStringListModel>
 #include <QMessageBox>
 #include <QMutexLocker>
-    #include <QWaitCondition>
+#include <QWaitCondition>
 
 /*****************************************************************************
 ** Class

@@ -84,39 +84,40 @@ void QNode::run() {
 
     CircleCentroids centroids(calibrationNodes, isCamera);
 
+    vector<pcl::PointXYZ> sensorsBallCenters;
+    vector<pcl::PointXYZ> camCentroidPnP;
+    vector<cv::Mat> camImage;
+
     // Vector for containing future pointclouds for each sensor
     vector<pcl::PointCloud<pcl::PointXYZ> > sensorClouds;
+    // Vector for containing image pointclouds from cameras - solvePnP method
+    vector<pcl::PointCloud<pcl::PointXYZ> > cameraCloudsPnP;
     for (int i=0; i < calibrationNodes.size(); i++)
     {
         pcl::PointCloud<pcl::PointXYZ> sensorCloud;
         sensorClouds.push_back(sensorCloud);
+        if (isCamera[i])
+        {
+            pcl::PointCloud<pcl::PointXYZ> cameraCloudPnP;
+            cameraCloudsPnP.push_back(cameraCloudPnP);
+        }
     }
 
     // Vector for containing future sensor poses
     vector<geometry_msgs::Pose> sensorPoses;
+    // Vector for containing future sensor poses
+    vector<geometry_msgs::Pose> cameraPosesPnP;
     for (int i=0; i < calibrationNodes.size(); i++)
     {
         geometry_msgs::Pose sensorPose;
         sensorPoses.push_back(sensorPose);
+        if (isCamera[i])
+        {
+            geometry_msgs::Pose cameraPosePnP;
+            cameraPosesPnP.push_back(cameraPosePnP);
+        }
     }
     sensorPoses.front().orientation.w = 1.0; // so it can be multiplied by transformations later, only the reference sensor needs this
-
-    // Vector for containing image pointclouds from cameras - solvePnP method
-    vector<pcl::PointCloud<pcl::PointXYZ> > cameraCloudsPnP;
-    for (int i=0; i < centroids.camCentroidPnP.size(); i++)
-    {
-        pcl::PointCloud<pcl::PointXYZ> cameraCloudPnP;
-        cameraCloudsPnP.push_back(cameraCloudPnP);
-    }
-
-    // Vector for containing future sensor poses
-    vector<geometry_msgs::Pose> cameraPosesPnP;
-    for (int i=0; i < centroids.camCentroidPnP.size(); i++)
-    {
-        geometry_msgs::Pose cameraPosePnP;
-        cameraPosesPnP.push_back(cameraPosePnP);
-    }
-
 
     // Pointclouds used for Rviz visualization
     vector<geometry_msgs::Pose> visualizationPoses;
@@ -137,17 +138,15 @@ void QNode::run() {
 
     while(count < num_of_points && ros::ok() && doCalibration)
     {
+        sensorsBallCenters = centroids.getSensorsBallCenters();
+        camCentroidPnP = centroids.getCamCentroidPnP();
+        camImage = centroids.getCamImage();
 
         int finder = 0;
         bool found = false;
-        while ( finder < centroids.sensors_ball_centers.size() )
+        while ( finder < sensorsBallCenters.size() )
         {
-            if (centroids.sensors_ball_centers[finder].x == -999)
-            {
-                found = true;
-                break;
-            }
-            else if (!centroids.sensors_ball_centers[finder].x && !centroids.sensors_ball_centers[finder].y && !centroids.sensors_ball_centers[finder].z)
+            if (sensorsBallCenters[finder].x == -999)
             {
                 found = true;
                 break;
@@ -155,9 +154,9 @@ void QNode::run() {
             finder++;
         }
         finder=0;
-        while ( finder < centroids.camCentroidPnP.size() && !found )
+        while ( finder < camCentroidPnP.size() && !found )
         {
-            if (centroids.camCentroidPnP[finder].x == -999)
+            if (camCentroidPnP[finder].x == -999)
             {
                 found = true;
                 break;
@@ -168,9 +167,9 @@ void QNode::run() {
         if(!found)
         {
 
-            P[0].x=centroids.sensors_ball_centers[0].x;
-            P[0].y=centroids.sensors_ball_centers[0].y;
-            P[0].z=centroids.sensors_ball_centers[0].z;
+            P[0].x=sensorsBallCenters[0].x;
+            P[0].y=sensorsBallCenters[0].y;
+            P[0].z=sensorsBallCenters[0].z;
 
             double dist;
             dist=sqrt(pow((P[0].x-P[1].x),2) + pow((P[0].y-P[1].y),2)); // X-Y distance
@@ -182,38 +181,38 @@ void QNode::run() {
                 if(count>0) // code beow is skipped on the first cycle (count = 0)
                 {
                     vector<float> eu_dist;
-                    for (int i = 0; i < centroids.sensors_ball_centers.size(); i++)
+                    for (int i = 0; i < sensorsBallCenters.size(); i++)
                     {
                         // Calculation of the distance between the corrent center of the ball detected and the previous
-                        eu_dist.push_back( pointEuclideanDistance (sensorClouds[i].points[count-1], centroids.sensors_ball_centers[i]) );
+                        eu_dist.push_back( pointEuclideanDistance (sensorClouds[i].points[count-1], sensorsBallCenters[i]) );
                         // Sums the squared difference between the reference sensor (first sensor on sensors_ball_centers) and all the other sensors
                         diff_dist_mean += pow(eu_dist.front() - eu_dist.back(), 2);
-                        cout << endl << "points = " << i << " " << centroids.sensors_ball_centers[i] << " " << diff_dist_mean  << endl;
+                        cout << endl << "points = " << i << " " << sensorsBallCenters[i] << " " << diff_dist_mean  << endl;
                         for (int i=0; i < eu_dist.size(); ++i)
                           std::cout << eu_dist[i] << ' ';
 
                         std::cout << std::endl;
                     }
                     // Mean squared distance - high diff_dist_mean means that the ball displacement was not equal for every sensor, which means something is wrong
-                    diff_dist_mean = diff_dist_mean/centroids.sensors_ball_centers.size();
-                    qDebug() << centroids.sensors_ball_centers.size();
+                    diff_dist_mean = diff_dist_mean/sensorsBallCenters.size();
+                    qDebug() << sensorsBallCenters.size();
                 }
                 cout << "diff_dist_mean = " << diff_dist_mean << endl;
 
                 if(diff_dist_mean <= max_displacement)    // the limit is set by the max_displacement variable in meters. If it's higher these points will be discarded
                 {
                     int cameraCounter = 0;
-                    for ( int i = 0; i < centroids.sensors_ball_centers.size(); i++ )
+                    for ( int i = 0; i < sensorsBallCenters.size(); i++ )
                     {
-                        cout << "crash" << centroids.sensors_ball_centers[i] << endl;
-                        sensorClouds[i].push_back(centroids.sensors_ball_centers[i]); // sensorCLouds now contains ball center points for every sensor
+                        cout << "crash" << sensorsBallCenters[i] << endl;
+                        sensorClouds[i].push_back(sensorsBallCenters[i]); // sensorCLouds now contains ball center points for every sensor
                         qDebug() << "nocrash";
                         if (isCamera[i])
                         {
-                            cameraCloudsPnP[cameraCounter].push_back(centroids.camCentroidPnP[cameraCounter]);
+                            cameraCloudsPnP[cameraCounter].push_back(camCentroidPnP[cameraCounter]);
                             string imgPath = file_path + "img_" + calibrationNodes[i] +"_" + boost::lexical_cast<std::string>(count) + ".jpg";
-                            cout << imgPath << "\n" << centroids.camImage.size() << endl;
-                            imwrite( imgPath, centroids.camImage[cameraCounter] );
+                            cout << imgPath << "\n" << camImage.size() << endl;
+                            imwrite( imgPath, camImage[cameraCounter] );
 
                             cameraCounter++;
                             qDebug() << cameraCounter;
@@ -251,9 +250,9 @@ void QNode::run() {
                     markers_pub.publish(targets_markers);
 
 
-                    P[1].x=centroids.sensors_ball_centers[0].x;
-                    P[1].y=centroids.sensors_ball_centers[0].y;
-                    P[1].z=centroids.sensors_ball_centers[0].z;
+                    P[1].x=sensorsBallCenters[0].x;
+                    P[1].y=sensorsBallCenters[0].y;
+                    P[1].z=sensorsBallCenters[0].z;
                     //cout<<"count "<<count+1<<endl;
 
                     count++;
@@ -278,7 +277,7 @@ void QNode::run() {
     {
 
         int cameraCounter = 0;
-        for (int i = 1; i < centroids.sensors_ball_centers.size(); i++) // starts with i=1 because for i=0 the target and uncalibrated sensor are the same
+        for (int i = 1; i < sensorsBallCenters.size(); i++) // starts with i=1 because for i=0 the target and uncalibrated sensor are the same
         {
             // Estimating rigid transform between target sensor and other sensors
             estimateTransformation(sensorPoses[i], sensorClouds.front(), sensorClouds[i],
@@ -286,7 +285,7 @@ void QNode::run() {
             if (isCamera[i])
             {
                 estimateTransformationCamera(cameraPosesPnP[cameraCounter], sensorClouds.front(), cameraCloudsPnP[cameraCounter],
-                                             calibrationNodes.front(), calibrationNodes[i], centroids.camImage[cameraCounter], true, true);
+                                             calibrationNodes.front(), calibrationNodes[i], camImage[cameraCounter], true, true);
                 cameraCounter++;
             }
         }

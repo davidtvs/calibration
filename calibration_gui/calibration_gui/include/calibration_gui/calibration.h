@@ -85,16 +85,6 @@ extern string file_path;
 class CircleCentroids
 {
 public:
-    ros::NodeHandle n_;
-
-    vector<ros::Subscriber> subs;
-    vector<pcl::PointXYZ> sensors_ball_centers;
-
-    vector<ros::Subscriber> subs_pnp;
-    vector<pcl::PointXYZ> camCentroidPnP; /**< ball center coordinates on single camera image. */
-
-    vector<image_transport::Subscriber> subs_cam_images;
-    vector<cv::Mat> camImage;
 /**
 @brief constructer - subscription of the topics with the ball center coordinates in the different sensors
 */
@@ -109,6 +99,9 @@ public:
           topic_name = "/" + sensors_list[i] + "/BD_" + sensors_list[i] + "/SphereCentroid";
           cout << i << " " << topic_name << endl;
           pcl::PointXYZ allocator_ball_centers;
+          allocator_ball_centers.x = -999;
+          allocator_ball_centers.y = -999;
+          allocator_ball_centers.z = -999;
           sensors_ball_centers.push_back(allocator_ball_centers);
 
           subs.push_back( n_.subscribe <geometry_msgs::PointStamped> (topic_name, 1, boost::bind(&CircleCentroids::sensorUpdate, this, _1, i)) );
@@ -123,6 +116,9 @@ public:
 
             // Allocating space in camCentroidPnP vector
             pcl::PointXYZ allocator_camCentroidPnP;
+            allocator_camCentroidPnP.x = -999;
+            allocator_camCentroidPnP.y = -999;
+            allocator_camCentroidPnP.z = -999;
             camCentroidPnP.push_back(allocator_camCentroidPnP);
             //Subscribing to topics containing image points for the solvepnp method
             subs_pnp.push_back( n_.subscribe <geometry_msgs::PointStamped> (topic_name + "PnP", 1, boost::bind(&CircleCentroids::camCentroidPnPUpdate, this, _1, cam_count)) );
@@ -166,6 +162,24 @@ public:
   			ROS_ERROR("cv_bridge exception: %s", e.what());
   		}
     }
+
+    vector<pcl::PointXYZ> getSensorsBallCenters (){ return sensors_ball_centers; }
+
+    vector<pcl::PointXYZ> getCamCentroidPnP (){ return camCentroidPnP; }
+
+    vector<cv::Mat> getCamImage (){ return camImage; }
+
+  private:
+    ros::NodeHandle n_;
+
+    vector<ros::Subscriber> subs;
+    vector<pcl::PointXYZ> sensors_ball_centers;
+
+    vector<ros::Subscriber> subs_pnp;
+    vector<pcl::PointXYZ> camCentroidPnP; /**< ball center coordinates on single camera image. */
+
+    vector<image_transport::Subscriber> subs_cam_images;
+    vector<cv::Mat> camImage;
 };
 
 #else
