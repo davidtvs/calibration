@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="lms151_1_host" default="192.168.0.231"/>
+  <arg name="lms151_2_host" default="192.168.0.134"/>
+
+  <node name="atlascar_fusion" pkg="multisensor_fusion" type="atlascar_fusion"/>
+
+  <group ns="lms151_1">
+    <node name="lms151_1" pkg="lms1xx" type="lms1xx">
+      <param name="host" value="$(arg lms151_1_host)"/>
+      <param name="frame_id" value="/lms151_1"/>
+    </node>
+  </group>
+
+  <group ns="lms151_2">
+    <node name="lms151_2" pkg="lms1xx" type="lms1xx">
+      <param name="host" value="$(arg lms151_2_host)"/>
+      <param name="frame_id" value="/lms151_2"/>
+    </node>
+  </group>
+
+</launch>
