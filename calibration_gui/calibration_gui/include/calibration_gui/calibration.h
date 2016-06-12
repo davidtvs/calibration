@@ -63,6 +63,7 @@
 //OpenCV
 #include "opencv2/calib3d/calib3d.hpp"
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core/eigen.hpp>
 
 // Boost filesystem to get parent directory
 #include "boost/filesystem.hpp"

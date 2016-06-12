@@ -299,10 +299,16 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<p
 
 	cout << "SolvePnP LMS to Camera = " << T << endl; // writes LMS to camera transformation to terminal
 
-	// Saving transformations on files
+	// Save transformations on files
 	string FilePath = file_path + name + "calib.txt";
-	writeFileCamera(C_M, "C_M", FilePath);
-	writeFileCamera(T, "M_C", FilePath);
+
+	Matrix4f Trans;
+	cv::cv2eigen(T, Trans);
+
+	// writeFileCamera(C_M, "C_M", FilePath);
+	// writeFileCamera(T, "M_C", FilePath);
+
+	writeFile(Trans, FilePath);
 
 	/* Visualization of camera position and orientation
 	         Convert the opensv matrices to tf compatible ones */

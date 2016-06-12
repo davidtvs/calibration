@@ -6,23 +6,35 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   roslib
   tf
+  image_transport
+  cv_bridge
+  laser_geometry
+  colormap
 )
 
+find_package(PkgConfig REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(PCL REQUIRED)
+
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES sensor_fusion
-#  CATKIN_DEPENDS roscpp std_msgs
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  CATKIN_DEPENDS roscpp std_msgs roslib tf colormap
 )
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
+  ${OpenCV_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  include
 )
 
-add_executable(atlascar_fusion src/atlascar_fusion.cpp)
+add_executable(atlascar_fusion src/atlascar_fusion.cpp src/multisensor_fusion_class.cpp)
 
-target_link_libraries(atlascar_fusion 
+target_link_libraries(atlascar_fusion
 	${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
 )
 
 ## Find catkin macros and libraries

@@ -24,15 +24,20 @@
    IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************************************/
+/**
+   \file  atlascar_fusion.cpp
+   \brief
+   \details
+   \author David Silva
+   \date   June, 2016
+ */
 
-#include <ros/ros.h>
-#include <ros/package.h>
-#include <tf/transform_broadcaster.h>
-#include <geometry_msgs/TransformStamped.h>
+#include "multisensor_fusion/atlascar_fusion.h"
+#include "multisensor_fusion/multisensor_fusion_class.h"
+#include <colormap/colormap.h>
 
-#include <fstream>
-
-#include <eigen3/Eigen/Dense>
+//OpenCV
+//#include <opencv2/highgui/highgui.hpp>
 
 
 int main(int argc, char** argv)
@@ -40,41 +45,51 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "atlascar_fusion");
 	ros::NodeHandle node;
 
-	std::string pkg_path = ros::package::getPath("multisensor_fusion"); // get calibration package path
+	// get calibration package path and navigate to folder where the geometric transformations are kept
+	std::string pkg_path = ros::package::getPath("multisensor_fusion") + "/geometric_transf/atlascar/";
 
-	std::string file_path = pkg_path + "/geometric_transf/atlascar/lms151_1_ldmrs_1_calib.txt"; // complete filepath where results will be saved
+	std::vector<std::string> files;
 
-	const char *file_path_dir = file_path.c_str(); // converts to char*
+	// Get transformation for each sensor
+	std::string file_path;
+	// 3D rigid transforms
+	file_path = pkg_path + "lms151_1_lms151_2_calib.txt";
+	files.push_back(file_path);
 
-	Eigen::Matrix4f transformation;
-  int nrows = 4, ncols = 4;
+	file_path = pkg_path + "lms151_1_ldmrs_1_calib.txt";
+	files.push_back(file_path);
 
-	std::ifstream myfile;
-	myfile.open (file_path_dir);
-	if (myfile.is_open())
+	file_path = pkg_path + "lms151_1_pointgrey_1_calib.txt";
+	files.push_back(file_path);
+
+	// Extrinsic camera calibration
+	file_path = pkg_path + "lms151_1_pointgrey_1_solvePnPRansac_calib.txt";
+	files.push_back(file_path);
+
+
+	//read calibration paraneters
+	std::string path = ros::package::getPath("multisensor_fusion") + "/intrinsic_calibrations/ros_calib.yaml";
+	cv::FileStorage fs(path, cv::FileStorage::READ);
+	if(!fs.isOpened())
 	{
-		for (int row = 0; row < nrows; row++)
-			for (int col = 0; col < ncols; col++)
-			{
-				float num = 0.0;
-				myfile >> num;
-				transformation(row, col) = num;
-			}
-    myfile.close();
+		std::cout << "failed to intrisic parameters file" << std::endl;
+		return -1;
 	}
 
-	std::cout << transformation << std::endl;
+	// Matrices to store intrinsic parameters and distortion coefficients
+	cv::Mat intrinsic_matrix, distortion_coeffs;
 
-	tf::Matrix3x3 T;
-	T.setValue(transformation(0,0),transformation(0,1),transformation(0,2),
-						 transformation(1,0),transformation(1,1),transformation(1,2),
-						 transformation(2,0),transformation(2,1),transformation(2,2));
-
+	fs["CM"] >> intrinsic_matrix;
+	fs["D"] >> distortion_coeffs;
 
 
+	MultisensorFusion fusion_helper(files);
+
+	MultisensorSubs multisensor_subs;
+
+
+	// LMS151 - reference sensor ================================================
 	tf::Quaternion q;
-
-	// LMS151 reference =========================================================
 	tf::TransformBroadcaster br_lms151a;
 	tf::Transform transform_lms151a;
 
@@ -83,25 +98,41 @@ int main(int argc, char** argv)
 
 	transform_lms151a.setRotation(q);
 
-	// LMS151 non-reference =====================================================
-	tf::TransformBroadcaster br_lms151b;
-	tf::Transform transform_lms151b;
+	// Non-reference sensors ====================================================
+	std::vector<tf::Transform> tf_transforms = fusion_helper.getTFTranforms();
+	std::vector<tf::TransformBroadcaster> tf_broadcasters = fusion_helper.getTFBroadcasters();
 
-	transform_lms151b.setOrigin(tf::Vector3(transformation(0,3),
-																					transformation(1,3),
-																					transformation(2,3)));
 
-	T.getRotation(q);
+	std::vector<cv::Mat> transformations = fusion_helper.getCVTransformations();
 
-	transform_lms151b.setRotation(q);
+	cv::Mat pointgrey_lms151_1 = transformations[2].inv();
+	cv::Mat pointgrey_lms151_2 = transformations[2].inv() * transformations[0];
+	cv::Mat pointgrey_ldmrs = transformations[2].inv() * transformations[1];
 
+	// Create a colormap
+	class_colormap colormap("hsv", 3, 1, false);
+
+	std::vector<cv::Point2f> reprojectPoints;
+	cv::Mat fusion_img = multisensor_subs.camImage.clone();
 
 	ros::Rate rate(10.0);
 	while (node.ok())
 	{
 		br_lms151a.sendTransform(tf::StampedTransform(transform_lms151a, ros::Time::now(),"atlascar_fusion","lms151_1"));
 
-		br_lms151b.sendTransform(tf::StampedTransform(transform_lms151b, ros::Time::now(),"atlascar_fusion","lms151_2"));
+		tf_broadcasters[0].sendTransform(tf::StampedTransform(tf_transforms[0], ros::Time::now(),"atlascar_fusion","lms151_2"));
+
+		tf_broadcasters[1].sendTransform(tf::StampedTransform(tf_transforms[1], ros::Time::now(),"atlascar_fusion","ldmrs"));
+		
+
+		fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_lms151_1, multisensor_subs.lms1CVpoints,
+			intrinsic_matrix, distortion_coeffs, colormap.cv_color(0));
+
+		fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_lms151_2, multisensor_subs.lms2CVpoints,
+			intrinsic_matrix, distortion_coeffs, colormap.cv_color(1));
+
+		fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_ldmrs, multisensor_subs.ldmrsCVpoints,
+			intrinsic_matrix, distortion_coeffs, colormap.cv_color(2));
 
 		rate.sleep();
 	}

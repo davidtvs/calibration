@@ -41,7 +41,6 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "FlyCapture2.h"
 #include "ros/ros.h"
 #include <geometry_msgs/PointStamped.h>
 #include <sensor_msgs/PointCloud.h>
