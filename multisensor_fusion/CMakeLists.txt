@@ -37,6 +37,13 @@ target_link_libraries(atlascar_fusion
   ${PCL_LIBRARIES}
 )
 
+add_executable(lms1_lms2_mrs_pg_kinect_fusion src/lms1_lms2_mrs_pg_kinect.cpp src/multisensor_fusion_class.cpp)
+
+target_link_libraries(lms1_lms2_mrs_pg_kinect_fusion
+	${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages

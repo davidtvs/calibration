@@ -85,7 +85,7 @@ void MultisensorFusion::eigenVector2cvVector(std::vector<Eigen::Matrix4f> eigenV
 	for (int i=0; i < eigenVector.size(); i++)
 	{
 		cv::eigen2cv(eigenVector[i], cvTransf_tmp);
-		cvTransf.push_back(cvTransf_tmp.inv());
+		cvTransf.push_back(cvTransf_tmp.clone());
 		std::cout << cvTransf[i] << std::endl;
 	}
 }
@@ -128,7 +128,8 @@ std::vector<cv::Mat> MultisensorFusion::getCVTransformations ()
 	return cvTransf;
 }
 
-cv::Mat MultisensorFusion::project3DtoImage(const cv::Mat img, cv::Mat cvTransformation, std::vector<cv::Point3f> points_3D, cv::Mat intrinsic_matrix, cv::Mat distortion_coeffs, cv::Scalar color)
+cv::Mat MultisensorFusion::project3DtoImage(const cv::Mat img, cv::Mat cvTransformation,
+	std::vector<cv::Point3f> points_3D, cv::Mat intrinsic_matrix, cv::Mat distortion_coeffs, cv::Scalar color)
 {
 	cv::Mat rotation_vector(1,3,cv::DataType<double>::type);
 	cv::Mat translation_vector(1,3,cv::DataType<double>::type);
@@ -154,7 +155,7 @@ cv::Mat MultisensorFusion::project3DtoImage(const cv::Mat img, cv::Mat cvTransfo
 	                  reprojectPoints);
 
 	cv::Mat imgClone = img.clone();
-	int myradius=5;
+	int myradius=2;
 	for (int i=0; i<reprojectPoints.size(); i++)
 	{
 		if (reprojectPoints[i].x >= 0 && reprojectPoints[i].x <= imgClone.cols && reprojectPoints[i].y >= 0 && reprojectPoints[i].y <= imgClone.rows)
