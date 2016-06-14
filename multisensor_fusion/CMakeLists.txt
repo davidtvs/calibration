@@ -37,9 +37,23 @@ target_link_libraries(atlascar_fusion
   ${PCL_LIBRARIES}
 )
 
-add_executable(lms1_lms2_mrs_pg_kinect_fusion src/lms1_lms2_mrs_pg_kinect.cpp src/multisensor_fusion_class.cpp)
+add_executable(lms1_lms2_mrs_pg_kinect_fusion src/lms1_lms2_mrs_pg_kinect_fusion.cpp src/multisensor_fusion_class.cpp)
 
 target_link_libraries(lms1_lms2_mrs_pg_kinect_fusion
+	${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
+add_executable(kinect_pg_lms1_lms2_mrs_fusion src/lms1_lms2_mrs_pg_kinect_fusion.cpp src/multisensor_fusion_class.cpp)
+
+target_link_libraries(kinect_pg_lms1_lms2_mrs_fusion
+	${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
+add_executable(lms1_kinect_pg_fusion src/lms1_kinect_pg_fusion.cpp src/multisensor_fusion_class.cpp)
+
+target_link_libraries(lms1_kinect_pg_fusion
 	${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
 )

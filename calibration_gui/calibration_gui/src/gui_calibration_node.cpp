@@ -186,7 +186,7 @@ void QNode::run() {
                         // Calculation of the distance between the corrent center of the ball detected and the previous
                         eu_dist.push_back( pointEuclideanDistance (sensorClouds[i].points[count-1], sensorsBallCenters[i]) );
                         // Sums the squared difference between the reference sensor (first sensor on sensors_ball_centers) and all the other sensors
-                        diff_dist_mean += pow(eu_dist.front() - eu_dist.back(), 2);
+                        diff_dist_mean += abs(eu_dist.front() - eu_dist.back());
                         cout << endl << "points = " << i << " " << sensorsBallCenters[i] << " " << diff_dist_mean  << endl;
                         for (int i=0; i < eu_dist.size(); ++i)
                           std::cout << eu_dist[i] << ' ';
