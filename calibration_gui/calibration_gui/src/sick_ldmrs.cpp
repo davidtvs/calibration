@@ -343,8 +343,8 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, int
 				// if (m>90 && m<145 && std < 12)
 				if (m>90 && m<145 && std < 8.5)
 				{
-					std::cout << "std = " << std << std::endl;
-					std::cout << "m = " << m << std::endl;
+					// std::cout << "std = " << std << std::endl;
+					// std::cout << "m = " << m << std::endl;
 					double ma,mb,cx,x1,x2,x3,cy,y1,y2,y3,z1,z2,z3;
 					x1=cluster->support_points[segment_init]->x;
 					x2=cluster->support_points[round(segment_end/2)]->x;

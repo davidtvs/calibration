@@ -138,7 +138,7 @@ public:
       sensors_ball_centers[i].x = msg->point.x;
       sensors_ball_centers[i].y = msg->point.y;
       sensors_ball_centers[i].z = msg->point.z;
-      cout << "sensor callback: " << i << endl;
+      // cout << "sensor callback: " << i << endl; //DEBUG
     }
 
 
@@ -147,7 +147,7 @@ public:
         camCentroidPnP[camNum].x = msg->point.x;
         camCentroidPnP[camNum].y = msg->point.y;
         camCentroidPnP[camNum].z = msg->point.z;
-        cout << "camera callback: " << camNum << endl;
+        // cout << "camera callback: " << camNum << endl; //DEBUG
     }
 
 
@@ -156,7 +156,7 @@ public:
       try
   		{
   			camImage[camNum] = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
-        cout << "image callback: " << camNum << endl;
+        // cout << "image callback: " << camNum << endl; //DEBUG
   		}
   		catch (cv_bridge::Exception &e)
   		{

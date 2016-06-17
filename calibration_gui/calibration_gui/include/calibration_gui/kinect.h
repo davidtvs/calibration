@@ -83,9 +83,9 @@ public:
 	kinect(const string &nodeToSub)
 	{
 		//Topics I want to subscribe
-		pointCloud_subscriber=n_.subscribe("/" + nodeToSub + "/camera/depth/points",
+		pointCloud_subscriber=n_.subscribe("/" + nodeToSub + "/camera/depth_registered/points",
 		                                   1, &kinect::pointCloudUpdate, this);
-		cout << "/" << nodeToSub << "/camera/depth/points" << endl;
+		cout << "/" << nodeToSub << "/camera/depth_registered/points" << endl;
 	}
 
 	~kinect(){
@@ -94,7 +94,6 @@ public:
 	void pointCloudUpdate(const sensor_msgs::PointCloud2ConstPtr & msg)
 	{
 		pcl::fromROSMsg(*msg, cloud);
-
 		//ROS_INFO("Scan time: %lf ", msg.data[0]);
 	}
 };

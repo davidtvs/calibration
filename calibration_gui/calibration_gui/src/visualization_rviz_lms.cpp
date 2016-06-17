@@ -211,9 +211,9 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<ClusterPtr>& clust
         pt.x=sphere.x;
         pt.y= sphere.y;
         pt.z= sphere.z;
-        cout<<"x "<<pt.x<<endl;
-        cout<<"y "<<pt.y<<endl;
-        cout<<"z "<<pt.z<<endl;
+        // cout<<"x "<<pt.x<<endl;
+        // cout<<"y "<<pt.y<<endl;
+        // cout<<"z "<<pt.z<<endl;
         marker_sphere.points.push_back(pt);
         marker_sphere.colors.push_back(color);
 

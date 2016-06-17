@@ -228,13 +228,13 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 					double R;
 					CalculateCircle(cluster,R,Centroid);
 					radius=R;
-					cout << "Radius = " << radius << endl; // DEBUGGING
+					// cout << "Radius = " << radius << endl; // DEBUGGING
 
 					double ballDiameter = BALL_DIAMETER;
 
 					if(radius > ballDiameter/2  || radius <= 0) // invalid radius /*+ 0.075*/
 					{
-						std::cout << "too big" << ballDiameter/2 << std::endl;
+						// std::cout << "too big" << ballDiameter/2 << std::endl;
 						sphere.x=-10000;
 						sphere.y=centroid.point.y;
 						sphere.z=centroid.point.z;
@@ -246,7 +246,7 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 					}
 					else /*if (radius <= ballDiameter/2)*/ // valid radius
 					{
-						std::cout << "valid" << ballDiameter/2 << std::endl;
+						// std::cout << "valid" << ballDiameter/2 << std::endl;
 						centroid.point.x=Centroid.x;
 						centroid.point.y=Centroid.y;
 						centroid.point.z=(sqrt(pow(ballDiameter/2,2)-pow(radius,2)));

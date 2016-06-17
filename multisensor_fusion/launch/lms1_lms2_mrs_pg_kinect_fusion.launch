@@ -1,45 +1,47 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="lms151_1_host" default="192.168.0.231"/>
-  <arg name="lms151_2_host" default="192.168.0.134"/>
-  <arg name="ldmrs_1_host" default="192.168.0.244"/>
-  <arg name="ldmrs_1_port" default="12002"/>
+    <arg name="lms151_1_host" default="192.168.0.231"/>
+    <arg name="lms151_2_host" default="192.168.0.134"/>
+    <arg name="ldmrs_1_host" default="192.168.0.244"/>
+    <arg name="ldmrs_1_port" default="12002"/>
 
-  <node name="lms1_lms2_mrs_pg_kinect_fusion" pkg="multisensor_fusion" type="lms1_lms2_mrs_pg_kinect_fusion" required="true" output="screen"/>
+    <node name="lms1_lms2_mrs_pg_kinect_fusion" pkg="multisensor_fusion" type="lms1_lms2_mrs_pg_kinect_fusion" required="true" output="screen"/>
 
-  <group ns="lms151_1">
-    <node name="lms151_1" pkg="lms1xx" type="lms1xx">
-      <param name="host" value="$(arg lms151_1_host)"/>
-      <param name="frame_id" value="/lms151_1"/>
-    </node>
-  </group>
+    <group ns="lms151_1">
+        <node name="lms151_1" pkg="lms1xx" type="lms1xx">
+            <param name="host" value="$(arg lms151_1_host)"/>
+            <param name="frame_id" value="/lms151_1"/>
+        </node>
+    </group>
 
-  <group ns="lms151_2">
-    <node name="lms151_2" pkg="lms1xx" type="lms1xx">
-      <param name="host" value="$(arg lms151_2_host)"/>
-      <param name="frame_id" value="/lms151_2"/>
-    </node>
-  </group>
+    <group ns="lms151_2">
+        <node name="lms151_2" pkg="lms1xx" type="lms1xx">
+            <param name="host" value="$(arg lms151_2_host)"/>
+            <param name="frame_id" value="/lms151_2"/>
+        </node>
+    </group>
 
-  <group ns="ldmrs_1">
-    <node pkg="sick_ldmrs" type="sickldmrs.py" name="ldmrs_1" required="true" output="screen">
-      <param name="host" value="$(arg ldmrs_1_host)"/>
-      <param name="port" value="$(arg ldmrs_1_port)"/>
-    </node>
-  </group>
+    <group ns="ldmrs_1">
+        <node pkg="sick_ldmrs" type="sickldmrs.py" name="ldmrs_1" required="true" output="screen">
+            <param name="host" value="$(arg ldmrs_1_host)"/>
+            <param name="port" value="$(arg ldmrs_1_port)"/>
+        </node>
+    </group>
 
-  <group ns="pointgrey_1">
-    <node name="pointgrey_1" pkg="pointgrey_fl3_ge_28s4_c" type="pointgrey_FL3_28S4" required="true" output="screen"/>
-  </group>
+    <group ns="pointgrey_1">
+        <node name="pointgrey_1" pkg="pointgrey_fl3_ge_28s4_c" type="pointgrey_FL3_28S4" required="true" output="screen"/>
+    </group>
 
-  <group ns="kinect_3d_1">
-    <include file="$(find openni_launch)/launch/openni.launch"/>
-  </group>
+    <group ns="kinect_3d_1">
+        <include file="$(find openni_launch)/launch/openni.launch">
+            <arg name="depth_registration" value="true"/>
+        </include>
+    </group>
 
-  <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find multisensor_fusion)/launch/lms1_lms2_mrs_pg_kinect_fusion.rviz"/>
+    <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find multisensor_fusion)/launch/lms1_lms2_mrs_pg_kinect_fusion.rviz"/>
 
-  <node name="image_view_image_fusion" pkg="image_view" type="image_view" args="image:=/image_fusion"/>
+    <node name="image_view_image_fusion" pkg="image_view" type="image_view" args="image:=/image_fusion"/>
 
-  <node name="image_view_image_fusion_pnp" pkg="image_view" type="image_view" args="image:=/image_fusion_pnp"/>
+    <node name="image_view_image_fusion_pnp" pkg="image_view" type="image_view" args="image:=/image_fusion_pnp"/>
 </launch>

@@ -122,7 +122,9 @@ int main(int argc, char** argv)
 	{
 		br_lms151a.sendTransform(tf::StampedTransform(transform_lms151a, ros::Time::now(),"lms1_kinect_pg","lms151_1"));
 
+		// For depth registered point cloud (XYZ+RGB)
 		tf_broadcasters[2].sendTransform(tf::StampedTransform(tf_transforms[2], ros::Time::now(),"lms1_kinect_pg","camera_rgb_optical_frame"));
+		// For point cloud (XYZ)
 		//tf_broadcasters[2].sendTransform(tf::StampedTransform(tf_transforms[2], ros::Time::now(),"lms1_kinect_pg","camera_depth_optical_frame"));
 
     fusion_img = multisensor_subs.camImage_rect.clone();

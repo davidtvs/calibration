@@ -34,10 +34,13 @@
 #include "calibration_gui/kinect.h"
 #include "calibration_gui/visualization_rviz_kinect.h"
 
+// TF
+#include <tf/transform_broadcaster.h>
+#include <geometry_msgs/TransformStamped.h>
+
 
 ros::Publisher markers_pub;
 ros::Publisher sphereCenter_pub;
-ros::Publisher pointCloud_pub;
 
 
 /**
@@ -60,7 +63,7 @@ void writeFile(Eigen::VectorXf sphereCoeffsRefined)
 void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
 {
 
-	ros::Time start = ros::Time::now();
+	// ros::Time start = ros::Time::now();
 
 	geometry_msgs::PointStamped sphereCenter;
 	sphereCenter.point.x = -999;
@@ -95,14 +98,14 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
   seg.setModelType (pcl::SACMODEL_SPHERE);
   seg.setMethodType (pcl::SAC_RANSAC);
   //seg.setMaxIterations (1000);
-  seg.setDistanceThreshold (0.005);
-  seg.setRadiusLimits (BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2, BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2);
+  seg.setDistanceThreshold (0.05);
+  seg.setRadiusLimits (0, BALL_DIAMETER/2 + BALL_DIAMETER/2);
 
 	//std::cout << "min: " << BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2 << "max: " << BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 << std::endl;
 	seg.setInputCloud (Kinect_cloud_filtered);
 	seg.segment (*inliers, *coefficients);
 
-	ros::Time end = ros::Time::now();
+	// ros::Time end = ros::Time::now();
 
 	//cout << "Ball detection time filtered: " <<  (end - start).toNSec() * 1e-6 << " msec"  << endl;
 
@@ -117,20 +120,21 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
 			sphereCenter.point.z = coefficients->values[2];
 
 
-				cout << coefficients->values[0] << ", "
-						 << coefficients->values[1] << ", "
-						 << coefficients->values[2] << ", "
-						 << coefficients->values[3] << endl;
+				// cout << coefficients->values[0] << ", "
+				// 		 << coefficients->values[1] << ", "
+				// 		 << coefficients->values[2] << ", "
+				// 		 << coefficients->values[3] << endl;
 		}
 
 	}
 
-	start = ros::Time::now();
 
 	/*
 	 * Source: http://robotica.unileon.es/mediawiki/index.php/PCL/OpenNI_tutorial_3:_Cloud_processing_%28advanced%29
 	 */
-	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(Kinect_cloud));
+	/*
+	start = ros::Time::now();
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(Kinect_cloud));
 	pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
 
 	pcl::ModelCoefficients::Ptr coefficients_(new pcl::ModelCoefficients);
@@ -197,27 +201,25 @@ int main(int argc, char **argv)
 	cout << "Node namespace:" << node_ns << endl;
 	cout << "Ball diameter:" << BALL_DIAMETER << endl;
 
-	markers_pub = n.advertise<visualization_msgs::MarkerArray>( "BallDetection", 10000);
+	markers_pub = n.advertise<visualization_msgs::MarkerArray>( "BallDetection", 1000);
 	sphereCenter_pub = n.advertise<geometry_msgs::PointStamped>("SphereCentroid",1000);
-	pointCloud_pub = n.advertise<sensor_msgs::PointCloud2>("Pointcloud",10000);
-	sensor_msgs::PointCloud2 rosPointCloud2;
 
 	kinect cloud(node_ns);
+
+	tf::Transform transform;
+	tf::TransformBroadcaster tf_broadcast;
+	transform.setOrigin( tf::Vector3(0.0, 0.0, 0.0) );
+	transform.setRotation( tf::createQuaternionFromRPY(0,0,0) );
 
 	ros::Rate loop_rate(30);
 
 	while( ros::ok() )
 	{
+		tf_broadcast.sendTransform(tf::StampedTransform(transform, ros::Time::now(),"my_frame","camera_rgb_optical_frame"));
+
 		if(cloud.cloud.points.size())
 		{
-
 			sphereDetection(cloud.cloud);
-
-
-			pcl::toROSMsg(cloud.cloud, rosPointCloud2);
-			rosPointCloud2.header.frame_id = "/my_frame";
-			rosPointCloud2.header.stamp = ros::Time::now();
-			pointCloud_pub.publish(rosPointCloud2);
 		}
 		ros::spinOnce();
 		loop_rate.sleep();

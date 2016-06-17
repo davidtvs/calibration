@@ -203,7 +203,7 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
 
 	t1 = get_timestamp();
 	secs = (t1 - t0) / 1000000.0L;
-	std::cout << secs << std::endl;
+	//std::cout << secs << std::endl;
 
 	if(inlierIndices.indices.size()>0)
 	{
