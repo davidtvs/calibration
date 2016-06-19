@@ -99,7 +99,7 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
   seg.setMethodType (pcl::SAC_RANSAC);
   //seg.setMaxIterations (1000);
   seg.setDistanceThreshold (0.05);
-  seg.setRadiusLimits (0, BALL_DIAMETER/2 + BALL_DIAMETER/2);
+  seg.setRadiusLimits (0, BALL_DIAMETER);
 
 	//std::cout << "min: " << BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2 << "max: " << BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 << std::endl;
 	seg.setInputCloud (Kinect_cloud_filtered);
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 	tf::Transform transform;
 	tf::TransformBroadcaster tf_broadcast;
 	transform.setOrigin( tf::Vector3(0.0, 0.0, 0.0) );
-	transform.setRotation( tf::createQuaternionFromRPY(0,0,0) );
+	transform.setRotation( tf::createQuaternionFromRPY(0,0,0) ); // ZYX
 
 	ros::Rate loop_rate(30);
 

@@ -132,6 +132,7 @@ void QNode::run() {
 
 	float diff_displacement;
 	float reference_dist;
+	float dist;
 	vector<float> eu_dist;
 
 	ros::Rate loop_rate(50);
@@ -178,6 +179,12 @@ void QNode::run() {
 				for (int i = 0; i < sensorsBallCenters.size(); i++)
 				{
 					// Calculation of the distance between the corrent center of the ball detected and the previous
+					for (int j = 0; j < count ; j++)
+					{
+						dist = pointEuclideanDistance (sensorClouds[i].points[j], sensorsBallCenters[i]);
+						if (dist < min_distance)
+							break;
+					}
 					eu_dist.push_back( pointEuclideanDistance (sensorClouds[i].points[count-1], sensorsBallCenters[i]) );
 					// Sums the squared difference between the reference sensor (first sensor on sensors_ball_centers) and all the other sensors
 					diff_displacement = abs(eu_dist.front() - eu_dist.back());
@@ -196,14 +203,9 @@ void QNode::run() {
 					std::cout << std::endl;
 				}
 			}
-			std::cout << "valid point0: " << count << " " << found << std::endl;
-			if( (count == 0) || (!found && eu_dist[0] >= min_distance) ) // the limit is set by the max_displacement variable in meters. If it's higher these points will be discarded
+			std::cout << "valid point0: " << count << " " << found << " " << dist << std::endl;
+			if( (count == 0) || (!found && dist >= min_distance) ) // the limit is set by the max_displacement variable in meters. If it's higher these points will be discarded
 			{
-				if (count > 0)
-					std::cout << "valid point1: " << count << " " << found << " " << eu_dist[0] << std::endl;
-				else
-					std::cout << "valid point1.0: " << count << " " << found << std::endl;
-
 				int cameraCounter = 0;
 				for ( int i = 0; i < sensorsBallCenters.size(); i++ )
 				{
@@ -249,7 +251,7 @@ void QNode::run() {
 				visualizationClouds.insert( visualizationClouds.end(), cameraCloudsPnP.begin(), cameraCloudsPnP.end() );
 
 				visualization_msgs::MarkerArray targets_markers;
-				targets_markers.markers = createTargetMarkers(visualizationClouds, visualizationPoses);
+				targets_markers.markers = createTargetMarkers(visualizationClouds, visualizationPoses, displayNames);
 				markers_pub.publish(targets_markers);
 
 				count++;
@@ -319,7 +321,7 @@ void QNode::run() {
 		visualizationClouds.insert( visualizationClouds.end(), cameraCloudsPnP.begin(), cameraCloudsPnP.end() );
 
 		visualization_msgs::MarkerArray targets_markers;
-		targets_markers.markers = createTargetMarkers(visualizationClouds, visualizationPoses);
+		targets_markers.markers = createTargetMarkers(visualizationClouds, visualizationPoses, displayNames);
 		markers_pub.publish(targets_markers);
 
 		cout<<"Calibration complete!"<<endl;
@@ -329,11 +331,16 @@ void QNode::run() {
 }
 
 
-void QNode::setLaunchedNodes(const vector<string> nodes, const vector<bool> camera)
+void QNode::setNodes(const vector<string> nodes, const vector<bool> camera, const std::vector<std::string> names)
 {
 	qDebug() << "setLaunchedNodes";
 	calibrationNodes = nodes;
 	isCamera = camera;
+    displayNames = names;
+    std::cout << "Display Names: ";
+    for (int i= 0; i < displayNames.size(); i++)
+        std::cout << displayNames[i] << " ";
+    std::cout << std::endl;
 }
 
 

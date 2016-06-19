@@ -40,7 +40,7 @@ public:
     void setCalibrationPoints(const int numPoints) { num_of_points = numPoints; }
     void setMinDistance (const double distance) { min_distance = distance; }
     void setMaxDisplacement(const double distance) { max_displacement = distance; }
-    void setLaunchedNodes(const std::vector<std::string> nodes, const std::vector<bool> camera);
+    void setNodes(const std::vector<std::string> nodes, const std::vector<bool> camera, const std::vector<std::string> names);
     void setAutoAcquisition(const bool acquisition_type) { acquisitionIsAuto = acquisition_type; }
     void setDoCalibration(const bool calibration_state) { doCalibration = calibration_state; }
 
@@ -61,6 +61,7 @@ private:
 
     std::vector<std::string> calibrationNodes;
     std::vector<bool> isCamera;
+    std::vector<std::string> displayNames;
 
     QWaitCondition waitCondition;
     QMutex mutex;

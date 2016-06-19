@@ -21,6 +21,8 @@ public:
 
     std::vector<bool> getIsCamera() { return isCamera; }
 
+    std::vector<std::string> getDisplayNames();
+
     void resetLaunchedLists();
 
 private:

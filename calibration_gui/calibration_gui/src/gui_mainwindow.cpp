@@ -366,7 +366,7 @@ void MainWindow::on_bt_calibrate_clicked()
             vec.push_back(str.toStdString());
         }
 
-        qnode->setLaunchedNodes(vec, isCamera);
+        qnode->setNodes(vec, isCamera, mSensors->getDisplayNames());
         qnode->setCalibrationPoints(num_calib_points);
         qnode->setMinDistance(min_distance);
         qnode->setMaxDisplacement(max_displacement);
