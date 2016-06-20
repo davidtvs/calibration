@@ -120,10 +120,10 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
 			sphereCenter.point.z = coefficients->values[2];
 
 
-				// cout << coefficients->values[0] << ", "
-				// 		 << coefficients->values[1] << ", "
-				// 		 << coefficients->values[2] << ", "
-				// 		 << coefficients->values[3] << endl;
+				cout << coefficients->values[0] << ", "
+						 << coefficients->values[1] << ", "
+						 << coefficients->values[2] << ", "
+						 << coefficients->values[3] << endl;
 		}
 
 	}
