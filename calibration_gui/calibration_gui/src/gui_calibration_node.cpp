@@ -190,7 +190,7 @@ void QNode::run() {
 					diff_displacement = abs(eu_dist.front() - eu_dist.back());
 					cout << endl << "points = " << i << " " << sensorsBallCenters[i]  << endl;
 					cout << "diff_displacement = " << diff_displacement << endl;
-					if (diff_displacement > max_displacement )
+					if (diff_displacement > max_displacement || dist < min_distance)
 					{
 						std::cout << "diff_displacement too high" << std::endl;
 						found = true;
@@ -203,7 +203,7 @@ void QNode::run() {
 					std::cout << std::endl;
 				}
 			}
-			std::cout << "valid point0: " << count << " " << found << " " << dist << std::endl;
+			std::cout << "new points conditions: " << count << " " << found << " " << dist << std::endl;
 			if( (count == 0) || (!found && dist >= min_distance) ) // the limit is set by the max_displacement variable in meters. If it's higher these points will be discarded
 			{
 				int cameraCounter = 0;

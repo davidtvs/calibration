@@ -65,13 +65,13 @@ void CreateTrackbarsAndWindows ()
 	char key = waitKey(1);
 
 	/* Trackbars for Hue, Saturation and Value (HSV) in "Camera 1" window */
-	lowH = 0;
+	lowH = 142;
 	highH = 179;
 
-	lowS = 101;
+	lowS = 45;
 	highS = 255;
 
-	lowV = 37;
+	lowV = 0;
 	highV = 255;
 
 	valC = 200;

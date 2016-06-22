@@ -128,9 +128,9 @@ int main(int argc, char** argv)
 	ros::Rate rate(10.0);
 	while (node.ok())
 	{
-		br_lms151a.sendTransform(tf::StampedTransform(transform_lms151a, ros::Time::now(),"atlascar_fusion","lms151_1"));
+		br_lms151a.sendTransform(tf::StampedTransform(transform_lms151a, ros::Time::now(),"atlascar_fusion","laser_1"));
 
-		tf_broadcasters[0].sendTransform(tf::StampedTransform(tf_transforms[0], ros::Time::now(),"atlascar_fusion","lms151_2"));
+		tf_broadcasters[0].sendTransform(tf::StampedTransform(tf_transforms[0], ros::Time::now(),"atlascar_fusion","laser_2"));
 
 		tf_broadcasters[1].sendTransform(tf::StampedTransform(tf_transforms[1], ros::Time::now(),"atlascar_fusion","ldmrs"));
 
