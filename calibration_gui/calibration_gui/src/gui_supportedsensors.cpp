@@ -4,22 +4,23 @@
 
 SupportedSensors::SupportedSensors()
 {
-    supportedSensors = QList<QString>() << "Sick LMS151"
-                                        << "Sick LD-MRS400001"
-                                        << "Point Grey FL3-GE-28S4-C"
-                                        << "SwissRanger SR4000_Ethernet"
-                                        << "SwissRanger SR4000_USB"
-                                        << "Microsoft Kinect 3D Sensor";
-
-    supportedSensorsNodes = QList<QString>() << "lms151"
-                                             << "ldmrs"
-                                             << "pointgrey"
-                                             << "swissranger_eth"
-                                             << "swissranger_usb"
-                                             << "kinect_3d";
+    // Add supported sensors: (roslaunch file name, node name, is it a camera?)
+    this->addSupportedSensors("Sick LMS151", "lms151", false);
+    this->addSupportedSensors("Sick LD-MRS400001", "ldmrs", false);
+    this->addSupportedSensors("Point Grey FL3-GE-28S4-C", "pointgrey", true);
+    this->addSupportedSensors("SwissRanger SR4000_Ethernet", "swissranger_eth", false);
+    this->addSupportedSensors("SwissRanger SR4000_USB", "swissranger_usb", false);
+    this->addSupportedSensors("Microsoft Kinect 3D Sensor", "kinect_3d", false);
 
     for (int i = 0; i < supportedSensors.size(); i++)
         sensorCounter.push_back(0);
+}
+
+void SupportedSensors::addSupportedSensors (QString roslaunch_name, QString node_name, bool camera)
+{
+    supportedSensors.push_back(roslaunch_name);
+    supportedSensorsNodes.push_back(node_name);
+    supportedCamera.push_back(camera);
 }
 
 void SupportedSensors::addTreeChilds(QTreeWidgetItem *item, const QString sensorID)
@@ -85,84 +86,23 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
 
     QStringList roslaunch_params = QStringList() << ball_diameter;
 
-    if (sensor == supportedSensors[0]) // Sick LMS151
+    for (int i = 0; i<supportedSensors.size(); i++)
     {
-        sensorCounter[0] += 1;
-        launchedNodes.push_back(supportedSensorsNodes[0] + "_" + QString::number(sensorCounter[0]));
-        node_name += launchedNodes.last();
+        if (sensor == supportedSensors[i])
+        {
+            sensorCounter[i] += 1;
+            launchedNodes.push_back(supportedSensorsNodes[i] + "_" + QString::number(sensorCounter[i]));
+            node_name += launchedNodes.last();
 
-        itemchild = item->child(0); // Get child item (itemchild) of top level item (item)
-        sensorIP += itemchild->text(1);
-
-        roslaunch_params << sensorIP << node_name;
-
-        isCamera.push_back(false);
+            if (item->childCount())
+            {
+                itemchild = item->child(0);
+                sensorIP += itemchild->text(1);
+            }
+            roslaunch_params << sensorIP << node_name;
+            isCamera.push_back(supportedCamera[i]);
+        }
     }
-    else if (sensor == supportedSensors[1]) // Sick LD-MRS400001
-    {
-        sensorCounter[1] += 1;
-        launchedNodes.push_back(supportedSensorsNodes[1] + "_" + QString::number(sensorCounter[1]));
-        node_name += launchedNodes.last();
-
-        itemchild = item->child(0); // Get child item (itemchild) of top level item (item)
-        sensorIP += itemchild->text(1);
-
-        roslaunch_params << sensorIP << node_name;
-
-        isCamera.push_back(false);
-    }
-    else if (sensor == supportedSensors[2]) // Point Grey FL3-GE-28S4-C
-    {
-        sensorCounter[2] += 1;
-        launchedNodes.push_back(supportedSensorsNodes[2] + "_" + QString::number(sensorCounter[2]));
-        node_name += launchedNodes.last();
-
-        // No childs
-
-        roslaunch_params << node_name;
-
-        isCamera.push_back(true);
-    }
-    else if (sensor == supportedSensors[3]) // SwissRanger SR4000_(Ethernet)
-    {
-        sensorCounter[3] += 1;
-        launchedNodes.push_back(supportedSensorsNodes[3] + "_" + QString::number(sensorCounter[3]));
-        node_name += launchedNodes.last();
-
-        itemchild = item->child(0); // Get child item (itemchild) of top level item (item)
-        sensorIP += itemchild->text(1);
-
-        roslaunch_params << sensorIP << node_name;
-
-        isCamera.push_back(false);
-    }
-    else if (sensor == supportedSensors[4]) // SwissRanger SR4000_(USB)
-    {
-        sensorCounter[4] += 1;
-        launchedNodes.push_back(supportedSensorsNodes[4] + "_" + QString::number(sensorCounter[4]));
-        node_name += launchedNodes.last();
-
-        // No childs
-
-        roslaunch_params << node_name;
-
-        isCamera.push_back(false);
-    }
-    else if (sensor == supportedSensors[5]) // Microsoft Kinect IR Sensor
-    {
-        sensorCounter[5] += 1;
-        launchedNodes.push_back( supportedSensorsNodes[5] + "_" + QString::number(sensorCounter[5]) );
-        node_name += launchedNodes.last();
-
-        // No childs
-
-        roslaunch_params << node_name;
-
-        isCamera.push_back(false);
-    }
-    else
-        qDebug() << sensor << "is not on" << supportedSensors;
-
 
     QString roslaunch_file = sensor +".launch";
 

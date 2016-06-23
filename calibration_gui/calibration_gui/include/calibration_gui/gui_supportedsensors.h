@@ -27,13 +27,15 @@ public:
 
 private:
     QList<QString> supportedSensors;
+    std::vector<bool> supportedCamera;
     QList<QString> supportedSensorsNodes;
     QList<QString> launchedNodes;
     QList<int> sensorCounter;
     std::vector<bool> isCamera;
 
-    void makeChild (QTreeWidgetItem *parent, const QString text, int column);
 
+    void makeChild (QTreeWidgetItem *parent, const QString text, int column);
+    void addSupportedSensors (QString roslaunch_name, QString node_name, bool camera);
 };
 
 #endif // GUI_SUPPORTEDSENSORS_H

@@ -8,6 +8,12 @@
 
   <node name="atlascar_fusion" pkg="multisensor_fusion" type="atlascar_fusion" required="true" output="screen"/>
 
+  <node pkg="tf" type="tf_remap" name="tf_remapper" output="screen">
+  <rosparam param="mappings">
+    [{old: world, new: /lms},{old: laser_1, new: /lms151_1},{old: laser_2, new: /lms151_2}]
+  </rosparam>
+</node>
+
   <!-- <group ns="lms151_1">
     <node name="lms151_1" pkg="lms1xx" type="lms1xx">
       <param name="host" value="$(arg lms151_1_host)"/>

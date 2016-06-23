@@ -2,6 +2,7 @@
 #define OPTIONS_H
 
 #include <QDialog>
+#include <QCloseEvent>
 
 namespace Ui {
 class Options;
@@ -27,6 +28,8 @@ public:
 
 private slots:
     void on_buttonBox_accepted();
+
+    void closeEvent(QCloseEvent *event);
 
 private:
     Ui::Options *ui;
