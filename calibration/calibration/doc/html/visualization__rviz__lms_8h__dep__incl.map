@@ -1,6 +1,0 @@
-<map id="visualization_rviz_lms.h" name="visualization_rviz_lms.h">
-<area shape="rect" id="node2" href="$sick__lms151__1_8cpp.html" title="Algorithm for the ball center detection with one of the Sick LMS151 laser. " alt="" coords="5,104,139,131"/>
-<area shape="rect" id="node3" href="$sick__lms151__2_8cpp.html" title="Algorithm for the ball center detection with one of the Sick LMS151 laser. " alt="" coords="163,104,297,131"/>
-<area shape="rect" id="node4" href="$visualization__rviz__lms_8cpp.html" title="Illustration of the ball detection on the laser data. " alt="" coords="323,97,445,138"/>
-<area shape="rect" id="node5" href="$visualization__rviz__lms2_8cpp.html" title="Illustration of the ball detection on the laser data. " alt="" coords="469,97,592,138"/>
-</map>

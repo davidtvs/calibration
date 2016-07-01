@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
- <group ns="laser_1">
-        <node name="laser_1" pkg="lms1xx" type="lms1xx">
-            <param name="host" value="192.168.0.134"/>
-            <param name="frame_id" value="/laser_1"/>
-        </node>
-    </group>
-</launch>
