@@ -32,6 +32,8 @@
    \date   June, 2016
  */
 
+ #include <math.h>
+
 #include <ros/ros.h>
 #include <laser_geometry/laser_geometry.h>
 #include <sensor_msgs/PointCloud.h>
@@ -80,9 +82,22 @@ public:
 
 		CM = intrinsic_matrix.clone();
 		D = distortion_coeffs.clone();
+
+    lms1_min_angle = -180;
+    lms1_max_angle = 180;
+    lms2_min_angle = -180;
+    lms2_max_angle = 180;
 	}
 
 	~MultisensorSubs(){}
+
+	void setLMSAngleLimits(double lms1_min, double lms1_max, double lms2_min, double lms2_max)
+	{
+		lms1_min_angle = lms1_min;
+		lms1_max_angle = lms1_max;
+		lms2_min_angle = lms2_min;
+		lms2_max_angle = lms2_max;
+	}
 
 	void lms1Callback (const sensor_msgs::LaserScan::ConstPtr& msg)
 	{
@@ -90,16 +105,22 @@ public:
 
 		sensor_msgs::PointCloud2 ROScloud;
 		projector_.projectLaser(*msg, ROScloud);
+		ROScloud.header.frame_id = "lms151_1";
 
 		lms151_1_pointCloud_pub.publish(ROScloud);
 
 		pcl::PointCloud<pcl::PointXYZ> PCLcloud;
 		pcl::fromROSMsg(ROScloud, PCLcloud);
 
+		double x,y,result;
 		//std::cout<< "lms1CVpoints ===========================" << std::endl;
 		for(int i = 0; i < PCLcloud.points.size(); i++)
 		{
-			lms1CVpoints.push_back( cv::Point3f(PCLcloud.points[i].x, PCLcloud.points[i].y, PCLcloud.points[i].z) );
+			x = PCLcloud.points[i].x;
+			y = PCLcloud.points[i].y;
+			result = atan2 (y,x) * 180/M_PI;
+			if (result >= lms1_min_angle && result <= lms1_max_angle)
+				lms1CVpoints.push_back( cv::Point3f(x, y, PCLcloud.points[i].z) );
 			//std::cout<< lms1CVpoints.back() << std::endl;
 		}
 		//std::cout<< "lms1CVpoints END ===========================" << std::endl;
@@ -111,15 +132,21 @@ public:
 
 		sensor_msgs::PointCloud2 ROScloud;
 		projector_.projectLaser(*msg, ROScloud);
+		ROScloud.header.frame_id = "lms151_2";
 
 		lms151_2_pointCloud_pub.publish(ROScloud);
 
 		pcl::PointCloud<pcl::PointXYZ> PCLcloud;
 		pcl::fromROSMsg(ROScloud, PCLcloud);
 
+		double x,y,result;
 		for(int i = 0; i < PCLcloud.points.size(); i++)
 		{
-			lms2CVpoints.push_back( cv::Point3f(PCLcloud.points[i].x, PCLcloud.points[i].y, PCLcloud.points[i].z) );
+			x = PCLcloud.points[i].x;
+			y = PCLcloud.points[i].y;
+			result = atan2 (y,x) * 180/M_PI;
+			if (result >= lms2_min_angle && result <= lms2_max_angle)
+				lms2CVpoints.push_back( cv::Point3f(x, y, PCLcloud.points[i].z) );
 		}
 	}
 
@@ -142,8 +169,8 @@ public:
 		try
 		{
 			cv::Mat camImage;
-			camImage = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
-			cv::undistort(camImage, camImage_rect, CM, D);
+			camImage_rect = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
+			//cv::undistort(camImage, camImage_rect, CM, D);
 		}
 		catch (cv_bridge::Exception &e)
 		{
@@ -175,4 +202,7 @@ private:
 
 	cv::Mat CM;
 	cv::Mat D;
+
+	double lms1_min_angle, lms1_max_angle;
+	double lms2_min_angle, lms2_max_angle;
 };

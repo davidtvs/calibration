@@ -243,7 +243,7 @@ void QNode::run() {
 				visualizationPoses.clear();
 				visualizationClouds.clear();
 				visualizationPoses.reserve( sensorPoses.size() + cameraPosesPnP.size() );
-				visualizationPoses.reserve( sensorClouds.size() + cameraCloudsPnP.size() );
+				visualizationClouds.reserve( sensorClouds.size() + cameraCloudsPnP.size() );
 
 				visualizationPoses.insert( visualizationPoses.end(), sensorPoses.begin(), sensorPoses.end() );
 				visualizationPoses.insert( visualizationPoses.end(), cameraPosesPnP.begin(), cameraPosesPnP.end() );

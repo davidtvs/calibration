@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Grid1
-        - /TF1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 775
   - Class: rviz/Selection
@@ -21,6 +21,7 @@ Panels:
   - Class: rviz/Views
     Expanded:
       - /Current View1
+      - /Current View1/Focal Point1
     Name: Views
     Splitter Ratio: 0.5
   - Class: rviz/Time
@@ -58,7 +59,7 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 0; 0; 255
+      Color: 3; 169; 244
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -143,31 +144,43 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         atlascar_fusion:
-          Value: true
+          Value: false
         laser_1:
-          Value: true
+          Value: false
         laser_2:
-          Value: true
+          Value: false
         ldmrs:
           Value: true
-        world:
+        lms151_1:
           Value: true
-      Marker Scale: 1
+        lms151_2:
+          Value: true
+        world:
+          Value: false
+      Marker Scale: 2
       Name: TF
-      Show Arrows: true
+      Show Arrows: false
       Show Axes: true
       Show Names: true
       Tree:
         atlascar_fusion:
-          laser_1:
-            {}
-          laser_2:
-            {}
           ldmrs:
             {}
+          lms151_1:
+            {}
+          lms151_2:
+            {}
       Update Interval: 0
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /ATLASCAR1
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
@@ -193,22 +206,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10.1665
+      Distance: 2.5
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 3.29169
-        Y: -6.17266
-        Z: -3.17234
+        X: 0
+        Y: 0
+        Z: 0
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.474797
+      Pitch: 0
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.15501
+      Yaw: 3
     Saved: ~
 Window Geometry:
   Displays:

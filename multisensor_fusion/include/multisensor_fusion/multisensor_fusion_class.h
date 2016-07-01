@@ -36,6 +36,7 @@
 #include <ros/package.h>
 #include <tf/transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <visualization_msgs/Marker.h>
 
 #include <fstream>
 
@@ -70,6 +71,8 @@ public:
 
   cv::Mat project3DtoImage(const cv::Mat img, cv::Mat cvTransformation, std::vector<cv::Point3f> points_3D,
     cv::Mat intrinsic_matrix, cv::Mat distortion_coeffs, cv::Scalar color);
+
+	visualization_msgs::Marker addCar(const std::vector<double> RPY, const std::vector<double> translation, const std::string frameID);
 
 private:
 

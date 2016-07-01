@@ -11,8 +11,8 @@
             <param name="port" value="$(arg port)"/>
         </node>
 
-        <!-- <node name="BD_$(arg node_name)" pkg="calibration_gui" type="sick_ldmrs" required="true" output="screen">
+        <node name="BD_$(arg node_name)" pkg="calibration_gui" type="sick_ldmrs" required="true" output="screen">
             <param name="ballDiameter" type="double" value="$(arg ball_diameter)"/>
-        </node> -->
+        </node>
     </group>
 </launch>

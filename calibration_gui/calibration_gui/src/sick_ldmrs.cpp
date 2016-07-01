@@ -340,7 +340,7 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, int
 				std = std/M_PI*180;
 
 				//if (m>90 && m<135 && std < 8.6)
-				// if (m>90 && m<145 && std < 12)
+				//if (m>90 && m<145 && std < 12) // ATLASCAR
 				if (m>90 && m<145 && std < 8.5)
 				{
 					// std::cout << "std = " << std << std::endl;
@@ -427,7 +427,7 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, int
 			}
 		}
 	}
-	//cout<<"R "<<radius<<endl;
+	cout<<"R "<<radius<<endl;
 	return radius;
 }
 

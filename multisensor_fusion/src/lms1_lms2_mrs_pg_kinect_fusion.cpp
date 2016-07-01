@@ -34,7 +34,7 @@
 
 #include "multisensor_fusion/subscribers_class.h"
 #include "multisensor_fusion/multisensor_fusion_class.h"
-#include <colormap/colormap.h>
+#include <tf/transform_listener.h>
 
 //OpenCV
 //#include <opencv2/highgui/highgui.hpp>
@@ -72,8 +72,8 @@ int main(int argc, char** argv)
 	file_path = pkg_path + "lms151_1_pointgrey_1_solvePnPRansac_calib.txt";
 	files.push_back(file_path);
 
-  file_path = pkg_path + "lms151_1_kinect_3d_1_calib.txt";
-  files.push_back(file_path);
+	file_path = pkg_path + "lms151_1_kinect_3d_1_calib.txt";
+	files.push_back(file_path);
 
 	//read calibration paraneters
 	std::string path = ros::package::getPath("multisensor_fusion") + "/intrinsic_calibrations/ros_calib.yaml";
@@ -95,6 +95,7 @@ int main(int argc, char** argv)
 
 	MultisensorSubs multisensor_subs(intrinsic_matrix, distortion_coeffs);
 
+	multisensor_subs.setLMSAngleLimits(-90, 90, -45, 180);
 
 	// LMS151 - reference sensor ================================================
 	tf::Quaternion q;
@@ -121,13 +122,13 @@ int main(int argc, char** argv)
 	cv::Mat pointgrey_lms151_2_pnp = transformations[3].inv() * transformations[0];
 	cv::Mat pointgrey_ldmrs_pnp = transformations[3].inv() * transformations[1];
 
-	// Create a colormap
-	class_colormap colormap("hsv", 4, 1, false);
-
 	cv::Mat fusion_img;
 	cv::Mat fusion_img_pnp;
 
-	ros::Rate rate(10.0);
+	tf::TransformListener listener;
+	tf::StampedTransform t_rgb_link;
+
+	ros::Rate rate(15.0);
 	while (node.ok())
 	{
 		br_lms151a.sendTransform(tf::StampedTransform(transform_lms151a, ros::Time::now(),"lms1_lms2_mrs_pg_kinect","lms151_1"));
@@ -136,35 +137,45 @@ int main(int argc, char** argv)
 
 		tf_broadcasters[1].sendTransform(tf::StampedTransform(tf_transforms[1], ros::Time::now(),"lms1_lms2_mrs_pg_kinect","ldmrs"));
 
-    tf_broadcasters[4].sendTransform(tf::StampedTransform(tf_transforms[4], ros::Time::now(),"lms1_lms2_mrs_pg_kinect","camera_rgb_optical_frame"));
+		try{
+			listener.lookupTransform("/camera_rgb_optical_frame", "/camera_link",
+			                         ros::Time(0), t_rgb_link);
+
+			tf_broadcasters[4].sendTransform(tf::StampedTransform(tf_transforms[4] * t_rgb_link, ros::Time::now(),"lms1_lms2_mrs_pg_kinect","camera_link"));
+		}
+		catch (tf::TransformException ex) {
+			ROS_ERROR("%s",ex.what());
+			ros::Duration(1.0).sleep();
+		}
 
 
-    fusion_img = multisensor_subs.camImage_rect.clone();
+
+		fusion_img = multisensor_subs.camImage_rect.clone();
 		fusion_img_pnp = multisensor_subs.camImage_rect.clone();
 
 		if (multisensor_subs.lms1CVpoints.size())
 		{
 			fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_lms151_1, multisensor_subs.lms1CVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(0));
+			                                            intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 0, 255));
 
 			fusion_img_pnp = fusion_helper.project3DtoImage(fusion_img_pnp, pointgrey_lms151_1_pnp, multisensor_subs.lms1CVpoints,
-			                                                intrinsic_matrix, distortion_coeffs, colormap.cv_color(0));
+			                                                intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 0, 255));
 		}
 		if (multisensor_subs.lms2CVpoints.size())
 		{
 			fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_lms151_2, multisensor_subs.lms2CVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(1));
+			                                            intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 255, 0));
 
 			fusion_img_pnp = fusion_helper.project3DtoImage(fusion_img_pnp, pointgrey_lms151_2_pnp, multisensor_subs.lms2CVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(1));
+			                                                intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 255, 0));
 		}
 		if (multisensor_subs.ldmrsCVpoints.size())
 		{
 			fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_ldmrs, multisensor_subs.ldmrsCVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(2));
+			                                            intrinsic_matrix, distortion_coeffs, cv::Scalar( 255, 255, 0));
 
 			fusion_img_pnp = fusion_helper.project3DtoImage(fusion_img_pnp, pointgrey_ldmrs_pnp, multisensor_subs.ldmrsCVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(2));
+			                                                intrinsic_matrix, distortion_coeffs, cv::Scalar( 255, 255, 0));
 		}
 		if(!fusion_img.empty()) {
 			image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", fusion_img).toImageMsg();

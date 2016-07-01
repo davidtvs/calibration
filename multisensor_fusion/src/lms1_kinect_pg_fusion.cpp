@@ -34,7 +34,6 @@
 
 #include "multisensor_fusion/subscribers_class.h"
 #include "multisensor_fusion/multisensor_fusion_class.h"
-#include <colormap/colormap.h>
 
 //OpenCV
 //#include <opencv2/highgui/highgui.hpp>
@@ -111,9 +110,6 @@ int main(int argc, char** argv)
 
 	cv::Mat pointgrey_lms151_1_pnp = transformations[1].inv();
 
-	// Create a colormap
-	class_colormap colormap("hsv", 4, 1, false);
-
 	cv::Mat fusion_img;
 	cv::Mat fusion_img_pnp;
 
@@ -133,10 +129,10 @@ int main(int argc, char** argv)
 		if (multisensor_subs.lms1CVpoints.size())
 		{
 			fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_lms151_1, multisensor_subs.lms1CVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(0));
+			                                            intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 0, 255));
 
 			fusion_img_pnp = fusion_helper.project3DtoImage(fusion_img_pnp, pointgrey_lms151_1_pnp, multisensor_subs.lms1CVpoints,
-			                                                intrinsic_matrix, distortion_coeffs, colormap.cv_color(0));
+			                                                intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 0, 255));
 		}
 		if(!fusion_img.empty()) {
 			image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", fusion_img).toImageMsg();

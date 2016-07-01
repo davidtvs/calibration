@@ -1,3 +1,6 @@
 calibration-old
 bagedit
 multisensor_aquisition
+CMakeLists.txt
+calibration_gui/calibration_gui/launch/rosbag_06-04
+calibration_gui/calibration_gui/launch/rosbag_15_17-06

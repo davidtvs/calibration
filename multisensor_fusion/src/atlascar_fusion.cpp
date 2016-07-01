@@ -34,7 +34,6 @@
 
 #include "multisensor_fusion/subscribers_class.h"
 #include "multisensor_fusion/multisensor_fusion_class.h"
-#include <colormap/colormap.h>
 
 //OpenCV
 //#include <opencv2/highgui/highgui.hpp>
@@ -44,6 +43,9 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "kinect_pg_lms1_lms2_mrs");
 	ros::NodeHandle node;
+
+	ros::Publisher car_pub;
+	car_pub = node.advertise<visualization_msgs::Marker>("/ATLASCAR1", 1);
 
 	image_transport::ImageTransport it(node);
 	image_transport::Publisher fusion_image_pub = it.advertise("image_fusion", 3);
@@ -91,7 +93,32 @@ int main(int argc, char** argv)
 
 	MultisensorFusion fusion_helper(files);
 
+	std::vector<double> RPY;
+	// ATLASCAR model rotations
+	RPY.push_back(M_PI/2); // X-rotation
+	RPY.push_back(0.0); // Y-rotation
+	RPY.push_back(M_PI); // Z-rotation
+
+	std::vector<double> translation;
+	translation.push_back(-4.387/2); // X translation. 4.387 is the car's length
+	translation.push_back(-1.702/2); // Y translation. 1.702 is the car's width
+	translation.push_back(-0.46); // Z translation. 0.46 is the height of the reference LMS sensor
+
+	visualization_msgs::Marker atlascar = fusion_helper.addCar(RPY, translation, "/atlascar_fusion"); // builds the marker to publish
+
+
+
 	MultisensorSubs multisensor_subs(intrinsic_matrix, distortion_coeffs);
+
+	multisensor_subs.setLMSAngleLimits(-135, 45, -45, 135);
+
+
+
+	tf::Transform t0;
+  tf::Quaternion q0;
+	t0.setOrigin( tf::Vector3( tfScalar(0), tfScalar(0), tfScalar(0)) ); // no translation is done
+	q0 = tf::createQuaternionFromRPY(0, 0, 55 * M_PI/180); // no rotation
+	t0.setRotation( q0 );
 
 
 	// LMS151 - reference sensor ================================================
@@ -119,20 +146,17 @@ int main(int argc, char** argv)
 	cv::Mat pointgrey_lms151_2_pnp = transformations[3].inv() * transformations[0];
 	cv::Mat pointgrey_ldmrs_pnp = transformations[3].inv() * transformations[1];
 
-	// Create a colormap
-	class_colormap colormap("hsv", 3, 1, false);
-
 	cv::Mat fusion_img;
 	cv::Mat fusion_img_pnp;
 
-	ros::Rate rate(10.0);
+	ros::Rate rate(15.0);
 	while (node.ok())
 	{
-		br_lms151a.sendTransform(tf::StampedTransform(transform_lms151a, ros::Time::now(),"atlascar_fusion","laser_1"));
+		br_lms151a.sendTransform(tf::StampedTransform(t0*transform_lms151a, ros::Time::now(),"atlascar_fusion","lms151_1"));
 
-		tf_broadcasters[0].sendTransform(tf::StampedTransform(tf_transforms[0], ros::Time::now(),"atlascar_fusion","laser_2"));
+		tf_broadcasters[0].sendTransform(tf::StampedTransform(t0*tf_transforms[0], ros::Time::now(),"atlascar_fusion","lms151_2"));
 
-		tf_broadcasters[1].sendTransform(tf::StampedTransform(tf_transforms[1], ros::Time::now(),"atlascar_fusion","ldmrs"));
+		tf_broadcasters[1].sendTransform(tf::StampedTransform(t0*tf_transforms[1], ros::Time::now(),"atlascar_fusion","ldmrs"));
 
 		fusion_img = multisensor_subs.camImage_rect.clone();
 		fusion_img_pnp = multisensor_subs.camImage_rect.clone();
@@ -140,26 +164,26 @@ int main(int argc, char** argv)
 		if (multisensor_subs.lms1CVpoints.size())
 		{
 			fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_lms151_1, multisensor_subs.lms1CVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(0));
+			                                            intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 0, 255));
 
 			fusion_img_pnp = fusion_helper.project3DtoImage(fusion_img_pnp, pointgrey_lms151_1_pnp, multisensor_subs.lms1CVpoints,
-			                                                intrinsic_matrix, distortion_coeffs, colormap.cv_color(0));
+			                                                intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 0, 255));
 		}
 		if (multisensor_subs.lms2CVpoints.size())
 		{
 			fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_lms151_2, multisensor_subs.lms2CVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(1));
+			                                            intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 255, 0));
 
 			fusion_img_pnp = fusion_helper.project3DtoImage(fusion_img_pnp, pointgrey_lms151_2_pnp, multisensor_subs.lms2CVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(1));
+			                                            intrinsic_matrix, distortion_coeffs, cv::Scalar( 0, 255, 0));
 		}
 		if (multisensor_subs.ldmrsCVpoints.size())
 		{
 			fusion_img = fusion_helper.project3DtoImage(fusion_img, pointgrey_ldmrs, multisensor_subs.ldmrsCVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(2));
+			                                            intrinsic_matrix, distortion_coeffs, cv::Scalar( 255, 255, 0));
 
 			fusion_img_pnp = fusion_helper.project3DtoImage(fusion_img_pnp, pointgrey_ldmrs_pnp, multisensor_subs.ldmrsCVpoints,
-			                                            intrinsic_matrix, distortion_coeffs, colormap.cv_color(2));
+			                                            intrinsic_matrix, distortion_coeffs, cv::Scalar( 255, 255, 0));
 		}
 		if(!fusion_img.empty()) {
 			image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", fusion_img).toImageMsg();
@@ -167,6 +191,9 @@ int main(int argc, char** argv)
 			image_msg_pnp = cv_bridge::CvImage(std_msgs::Header(), "bgr8", fusion_img_pnp).toImageMsg();
 			fusion_image_pnp_pub.publish(image_msg_pnp);
 		}
+
+		car_pub.publish( atlascar );
+
 		ros::spinOnce();
 		rate.sleep();
 	}

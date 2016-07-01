@@ -108,7 +108,7 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
 
     QStringList roslaunch_arg = QStringList() << "calibration_gui"
                                               << roslaunch_file
-                                              << roslaunch_params; 
+                                              << roslaunch_params;
 
     return roslaunch_arg;
 }
@@ -117,16 +117,23 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
 std::vector<std::string> SupportedSensors::getDisplayNames()
 {
     std::vector<std::string> displayNames;
+    std::vector<std::string> displayNamesRigid;
+    std::vector<std::string> displayNamesPnP;
     for (int i = 0; i < launchedNodes.size(); i++)
     {
         if (isCamera[i])
         {
-            displayNames.push_back(launchedNodes[i].toStdString() + "_rigid");
-            displayNames.push_back(launchedNodes[i].toStdString() + "_pnp");
+            displayNamesRigid.push_back(launchedNodes[i].toStdString() + "_rigid");
+            displayNamesPnP.push_back(launchedNodes[i].toStdString() + "_pnp");
         }
         else
-            displayNames.push_back(launchedNodes[i].toStdString());
+            displayNamesRigid.push_back(launchedNodes[i].toStdString());
     }
+
+    displayNames.reserve( displayNamesRigid.size() + displayNamesPnP.size() );
+    displayNames.insert( displayNames.end(), displayNamesRigid.begin(), displayNamesRigid.end() );
+    displayNames.insert( displayNames.end(), displayNamesPnP.begin(), displayNamesPnP.end() );
+
     return displayNames;
 }
 

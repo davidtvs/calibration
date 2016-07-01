@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   cv_bridge
   laser_geometry
-  colormap
 )
 
 find_package(PkgConfig REQUIRED)
@@ -19,7 +18,7 @@ find_package(PCL REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs roslib tf colormap
+  CATKIN_DEPENDS roscpp std_msgs roslib tf
 )
 
 include_directories(

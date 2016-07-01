@@ -59,16 +59,6 @@ ros::Publisher markers_pub;
 ros::Publisher sphereCenter_pub;
 ros::Publisher pointCloud_pub;
 
-typedef unsigned long long timestamp_t;
-
-static timestamp_t get_timestamp ()
-{
-	struct timeval now;
-	gettimeofday (&now, NULL);
-	return now.tv_usec + (timestamp_t)now.tv_sec * 1000000;
-}
-
-
 /**
    @brief write in a file the center of the sphere
    @param[in] sphereCoeffsRefined center sphere coordinates
@@ -89,9 +79,7 @@ void writeFile(Eigen::VectorXf sphereCoeffsRefined)
 void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
 {
 
-	timestamp_t t0, t1;
-	double secs;
-	t0 = get_timestamp();
+	ros::Time start = ros::Time::now();
 
 	geometry_msgs::PointStamped sphereCenter;
 	sphereCenter.point.x = -999;
@@ -187,25 +175,70 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
 	 * Detects the ball up to 2-2.3 meters, very fast
 	 * Source: http://robotica.unileon.es/mediawiki/index.php/PCL/OpenNI_tutorial_3:_Cloud_processing_%28advanced%29
 	 */
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(SwissRanger_cloud));
-	pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
+	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(SwissRanger_cloud));
+	   pcl::PointCloud<pcl::PointXYZ>::Ptr inlierPoints(new pcl::PointCloud<pcl::PointXYZ>);
 
-	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
-	pcl::SACSegmentation<pcl::PointXYZ> segmentation;
-	segmentation.setInputCloud(cloudPtr);
-	segmentation.setModelType(pcl::SACMODEL_SPHERE);
-	segmentation.setMethodType(pcl::SAC_RANSAC);
-	segmentation.setDistanceThreshold(0.01);
-	segmentation.setOptimizeCoefficients(true);
+	   pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+	   pcl::SACSegmentation<pcl::PointXYZ> segmentation;
+	   segmentation.setInputCloud(cloudPtr);
+	   segmentation.setModelType(pcl::SACMODEL_SPHERE);
+	   segmentation.setMethodType(pcl::SAC_RANSAC);
+	   segmentation.setDistanceThreshold(0.01);
+	   segmentation.setOptimizeCoefficients(true);
 
-	pcl::PointIndices inlierIndices;
-	segmentation.segment(inlierIndices, *coefficients);
+	   pcl::PointIndices inlierIndices;
+	   segmentation.segment(inlierIndices, *coefficients);
 
-	t1 = get_timestamp();
-	secs = (t1 - t0) / 1000000.0L;
-	//std::cout << secs << std::endl;
+	   t1 = get_timestamp();
+	   secs = (t1 - t0) / 1000000.0L;
+	   //std::cout << secs << std::endl;
 
-	if(inlierIndices.indices.size()>0)
+	   if(inlierIndices.indices.size()>0)
+	   {
+
+	        if (coefficients->values[3]<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && coefficients->values[3]>BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2)
+	        {
+	                sphereCenter.point.x = coefficients->values[0];
+	                sphereCenter.point.y = coefficients->values[1];
+	                sphereCenter.point.z = coefficients->values[2];
+	        }
+	        cout << coefficients->values[0] << ", "
+	             << coefficients->values[1] << ", "
+	             << coefficients->values[2] << ", "
+	             << coefficients->values[3] << endl;
+	   }*/
+
+	/* METHOD #4 ================================================================
+	 * Detects the ball up to 3 meters, fast. Optimized Method #3
+	 */
+	pcl::PointCloud<pcl::PointXYZ>::Ptr SR_cloudPtr (new pcl::PointCloud<pcl::PointXYZ>(SwissRanger_cloud));
+
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p (new pcl::PointCloud<pcl::PointXYZ>);
+
+	pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
+	pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
+
+	// Create the segmentation object
+	pcl::SACSegmentation<pcl::PointXYZ> seg;
+	// Optional
+	seg.setOptimizeCoefficients (true);
+	// Mandatory
+	seg.setModelType (pcl::SACMODEL_SPHERE);
+	seg.setMethodType (pcl::SAC_RANSAC);
+	seg.setMaxIterations (10000);
+	seg.setDistanceThreshold (0.0070936);
+	seg.setProbability(0.99);
+	seg.setRadiusLimits (BALL_DIAMETER/2-0.05, BALL_DIAMETER/2+0.05);
+	seg.setInputCloud (SR_cloudPtr);
+	seg.segment (*inliers, *coefficients);
+
+	ros::Time end = ros::Time::now();
+
+	cout << "Ball detection time filtered: " <<  (end - start).toNSec() * 1e-6 << " msec"  << endl;
+
+	cout << *coefficients << endl;
+
+	if(inliers->indices.size ()>0)
 	{
 
 		if (coefficients->values[3]<BALL_DIAMETER/2 + 0.05*BALL_DIAMETER/2 && coefficients->values[3]>BALL_DIAMETER/2 - 0.05*BALL_DIAMETER/2)
@@ -213,14 +246,11 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> SwissRanger_cloud)
 			sphereCenter.point.x = coefficients->values[0];
 			sphereCenter.point.y = coefficients->values[1];
 			sphereCenter.point.z = coefficients->values[2];
+
+
+			cout << "Accepted: " << *coefficients << endl;
 		}
-		cout << coefficients->values[0] << ", "
-		     << coefficients->values[1] << ", "
-		     << coefficients->values[2] << ", "
-		     << coefficients->values[3] << endl;
 	}
-
-
 
 	sphereCenter.header.stamp = ros::Time::now();
 	sphereCenter_pub.publish(sphereCenter);

@@ -185,7 +185,7 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 				//std::cout << "std = " << std << std::endl;
 				//std::cout << "m = " << m << std::endl;
 
-				//if (m>90 && m<140 && std < 5)
+				//if (m>90 && m<140 && std < 7.5)
 				if (m>105 && m<140 && std < 5)
 				{
 					// Circle information computation
@@ -228,10 +228,11 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 					double R;
 					CalculateCircle(cluster,R,Centroid);
 					radius=R;
-					// cout << "Radius = " << radius << endl; // DEBUGGING
+					cout << "Radius = " << radius << endl; // DEBUGGING
 
 					double ballDiameter = BALL_DIAMETER;
 
+					// DEFAULT
 					if(radius > ballDiameter/2  || radius <= 0) // invalid radius /*+ 0.075*/
 					{
 						// std::cout << "too big" << ballDiameter/2 << std::endl;
@@ -260,9 +261,41 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 						centre[2] = centroid.point.z;
 						circlePoints(circleP,radius,centre,20);
 					}
-					/*else // radius above ball radius but within margin of error
+
+					// ATLASCAR
+					/*if(radius > ballDiameter/2 + 0.075 || radius <= 0) // invalid radius
+					{
+						// std::cout << "too big" << ballDiameter/2 << std::endl;
+						sphere.x=-10000;
+						sphere.y=centroid.point.y;
+						sphere.z=centroid.point.z;
+						double centre[3];
+						centre[0] = Centroid.x;
+						centre[1] = Centroid.y;
+						centre[2] = 0;
+						circlePoints(circleP,radius,centre,20);
+					}
+					else if (radius <= ballDiameter/2) // valid radius
+					{
+						// std::cout << "valid" << ballDiameter/2 << std::endl;
+						centroid.point.x=Centroid.x;
+						centroid.point.y=Centroid.y;
+						centroid.point.z=(sqrt(pow(ballDiameter/2,2)-pow(radius,2)));
+						sphere.x=centroid.point.x;
+						sphere.y=centroid.point.y;
+						sphere.z=centroid.point.z;
+						//cout<<"x "<<centroid.point.x<<endl;
+						double centre[3];
+						centre[0] = Centroid.x;
+						centre[1] = Centroid.y;
+						centre[2] = centroid.point.z;
+						circlePoints(circleP,radius,centre,20);
+					}
+					else // radius above ball radius but within margin of error
 					{
 						radius = ballDiameter/2; // because radius is bigger than ball radius the laser is close to the ball's equator
+						centroid.point.x=Centroid.x;
+						centroid.point.y=Centroid.y;
 						centroid.point.z=(sqrt(pow(ballDiameter/2,2)-pow(radius,2)));
 						sphere.x=centroid.point.x;
 						sphere.y=centroid.point.y;

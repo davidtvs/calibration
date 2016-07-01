@@ -8,7 +8,7 @@
 
     <node name="lms1_lms2_mrs_pg_kinect_fusion" pkg="multisensor_fusion" type="lms1_lms2_mrs_pg_kinect_fusion" required="true" output="screen"/>
 
-    <group ns="lms151_1">
+    <!-- <group ns="lms151_1">
         <node name="lms151_1" pkg="lms1xx" type="lms1xx">
             <param name="host" value="$(arg lms151_1_host)"/>
             <param name="frame_id" value="/lms151_1"/>
@@ -31,10 +31,11 @@
 
     <group ns="pointgrey_1">
         <node name="pointgrey_1" pkg="pointgrey_fl3_ge_28s4_c" type="pointgrey_FL3_28S4" required="true" output="screen"/>
-    </group>
+    </group> -->
 
     <group ns="kinect_3d_1">
         <include file="$(find openni_launch)/launch/openni.launch">
+            <arg name="load_driver" value="false"/>
             <arg name="depth_registration" value="true"/>
         </include>
     </group>

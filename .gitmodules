@@ -1,0 +1,3 @@
+[submodule "colormap"]
+	path = colormap
+	url = https://github.com/miguelriemoliveira/colormap.git

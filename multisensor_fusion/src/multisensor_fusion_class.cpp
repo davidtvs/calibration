@@ -139,12 +139,12 @@ cv::Mat MultisensorFusion::project3DtoImage(const cv::Mat img, cv::Mat cvTransfo
 	R = cvTransformation(cv::Range(0,3), cv::Range(0,3));
 	cv::Rodrigues(R, rotation_vector);
 
-	std::cout << "Rodrigues rotation vector = " << rotation_vector << std::endl;
+	//std::cout << "Rodrigues rotation vector = " << rotation_vector << std::endl;
 
 	// Computes translation vector for cvTransformation
 	translation_vector = cvTransformation(cv::Range(0,3), cv::Range(3,4));
 
-	std::cout << "Translation vector = " << translation_vector << std::endl;
+	//std::cout << "Translation vector = " << translation_vector << std::endl;
 
 	// Project objectPoints to the image to check if solvePnP results are good ===
 	std::vector<cv::Point2f> reprojectPoints;
@@ -164,6 +164,63 @@ cv::Mat MultisensorFusion::project3DtoImage(const cv::Mat img, cv::Mat cvTransfo
 
 	return imgClone;
 }
+
+visualization_msgs::Marker MultisensorFusion::addCar(const std::vector<double> RPY, const std::vector<double> translation, const std::string frameID)
+{
+  tf::Quaternion q;
+	tf::Vector3 trans;
+
+	if (translation.empty() && RPY.empty()) //user does not want to translate/rotate clouds and sensors.
+	{
+		trans = tf::Vector3( tfScalar(0), tfScalar(0), tfScalar(0) ); // no translation is done
+		q = tf::createQuaternionFromRPY(0.0, 0.0, 0.0 ); // no rotation
+	}
+	else if (translation.empty()) // only rotation given by the user, no translation
+	{
+		trans = tf::Vector3( tfScalar(0), tfScalar(0), tfScalar(0) ); // no translation
+		q = tf::createQuaternionFromRPY( RPY[0], RPY[1], RPY[2] ); // quaternion computation from given angles
+	}
+	else // rotation and translation given by the user
+	{
+		trans = tf::Vector3( tfScalar(translation[0]), tfScalar(translation[1]), tfScalar(translation[2]) ); // translation given by the user
+		q = tf::createQuaternionFromRPY( RPY[0], RPY[1], RPY[2] ); // quaternion computation from given angles
+	}
+
+	visualization_msgs::Marker marker;
+	// Set the frame ID and timestamp.  See the TF tutorials for information on these.
+	marker.header.frame_id = frameID;
+	marker.header.stamp = ros::Time();
+	// Set the namespace and id for this marker.  This serves to create a unique ID
+	// Any marker sent with the same namespace and id will overwrite the old one
+	marker.ns = "ATLASCAR1";
+	marker.id = 0;
+	// Set the marker type
+	marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+	// Set the marker action.  Options are ADD and DELETE
+	marker.action = visualization_msgs::Marker::ADD;
+	// Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
+	marker.pose.position.x = trans[0];
+	marker.pose.position.y = trans[1];
+	marker.pose.position.z = trans[2];
+	marker.pose.orientation.x = q[0];
+	marker.pose.orientation.y = q[1];
+	marker.pose.orientation.z = q[2];//0.8836;
+	marker.pose.orientation.w = q[3];//0.466;
+	// Set the scale of the marker -- 1x1x1 here means 1m on a side
+	marker.scale.x = 0.01;
+	marker.scale.y = 0.01;
+	marker.scale.z = 0.01;
+	// Set the color
+	marker.color.a = 1.0; // Don't forget to set the alpha!
+	marker.color.r = 0.50;
+	marker.color.g = 0.50;
+	marker.color.b = 0.50;
+	// Publish the marker
+	marker.mesh_resource = "package://multisensor_fusion/STL/ford_escort_atlascar1.stl";
+	//car_pub.publish( marker );
+  return marker;
+}
+
 
 
 //

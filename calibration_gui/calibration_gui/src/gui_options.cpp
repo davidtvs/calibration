@@ -21,6 +21,7 @@ Options::Options(QWidget *parent) :
     num_calibration_points = ui->ledit_num_calib_points->text();
     min_distance = ui->ledit_min_distance->text();
     max_displacement = ui->ledit_max_disp->text();
+    auto_acquisition = ui->rb_auto->isChecked();
 }
 
 Options::~Options()
