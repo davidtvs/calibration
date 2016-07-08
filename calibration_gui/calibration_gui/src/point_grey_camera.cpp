@@ -56,7 +56,7 @@ int minR;
 void CreateTrackbarsAndWindows ()
 {
 	// create the main window, and attach the trackbars
-	namedWindow( "Camera", CV_WINDOW_NORMAL );
+	//namedWindow( "Camera", CV_WINDOW_NORMAL );
 	namedWindow( "Binarized Image", CV_WINDOW_NORMAL );
 	namedWindow( "Control", CV_WINDOW_NORMAL );
 	namedWindow( "Circle", CV_WINDOW_NORMAL );
@@ -122,7 +122,7 @@ void ImageProcessing(Mat &img)
 
 	// capture loop
 
-	imshow("Camera", img);         // untouched image
+	//imshow("Camera", img);         // untouched image
 
 	// =========================================================================
 	// Pre-processing
