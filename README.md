@@ -31,10 +31,16 @@ Finally, the **multisensor_fusion** package is not required by the calibration p
 
 ## Installation
 
-1. Clone;
+1. Clone (including submodules);
 2. Before compiling, install the following system dependencies: [FlyCapture 2.x SDK](https://www.ptgrey.com/support/downloads) and [libmesasr-dev](http://hptg.com/industrial/);
 3. Compile the packages
 
 ## Video
 
 [![Multisensor Extrinsic Calibration Package Demo](http://i.imgur.com/ZLJIOG6.png)](https://www.youtube.com/watch?v=0umgCqLqCCM)
+
+
+
+**ATLAS Project** developed at LAR-UA
+http://atlas.web.ua.pt/
+http://lars.mec.ua.pt/
