@@ -76,7 +76,7 @@ typedef boost::shared_ptr<MultiScan> MultiScanPtr;
 /**
   \class sickLMSscan
   \brief Class to subscribe the scans from the sick ld-mrs laser
-  \author Marcelo Pereira
+  \author David Silva
  */
 class sickLDMRSscan
 {
@@ -91,6 +91,10 @@ public:
     sensor_msgs::LaserScan scan2;
     sensor_msgs::LaserScan scan3;
 
+/**
+	@brief Constructor. Subscription of the point cloud from the SICK LD-MRS laser sensor
+	@param nodeToSub node name to subscribe
+*/
     sickLDMRSscan(const string &nodeToSub)
     {
         //Topics I want to subscribe
@@ -100,24 +104,43 @@ public:
         scan3_subscriber=n_.subscribe("/" + nodeToSub + "/scan3", 1000, &sickLDMRSscan::scan3Update, this);
     }
 
+/**
+   @brief Callback function that is called when a message arrives to the topic: "/" + nodeToSub + "/scan0"
+   @param msg message received from the SICK LD-MRS laser sensor
+   @return void
+*/
     void scan0Update(const sensor_msgs::LaserScan& msg)
     {
         scan0=msg;
         //ROS_INFO("Scan time: %lf ", msg.ranges[1]);
     }
 
+/**
+   @brief Callback function that is called when a message arrives to the topic: "/" + nodeToSub + "/scan1"
+   @param msg message received from the SICK LD-MRS laser sensor
+   @return void
+*/
     void scan1Update(const sensor_msgs::LaserScan& msg)
     {
         scan1=msg;
         //ROS_INFO("Scan time: %lf ", msg.ranges[1]);
     }
-
+/**
+   @brief Callback function that is called when a message arrives to the topic: "/" + nodeToSub + "/scan2"
+   @param msg message received from the SICK LD-MRS laser sensor
+   @return void
+*/
     void scan2Update(const sensor_msgs::LaserScan& msg)
     {
         scan2=msg;
         //ROS_INFO("Scan time: %lf ", msg.ranges[1]);
     }
 
+/**
+   @brief Callback function that is called when a message arrives to the topic: "/" + nodeToSub + "/scan3"
+   @param msg message received from the SICK LD-MRS laser sensor
+   @return void
+*/
     void scan3Update(const sensor_msgs::LaserScan& msg)
     {
         scan3=msg;

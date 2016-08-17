@@ -68,8 +68,8 @@ vector <int> scan_ldmrs_header;
 
 /**
    @brief Handler for the incoming data
-   @param lidarPoints incoming Laser Points
-   @param iterations iteration of the Laser Scan
+   @param[in] lidarPoints incoming Laser Points
+   @param[in] iterations iteration of the Laser Scan
    @return void
  */
 void dataFromFileHandler(vector<MultiScanPtr>& lidarPoints, vector<int> iterations)

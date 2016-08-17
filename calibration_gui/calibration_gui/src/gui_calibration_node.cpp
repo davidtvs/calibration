@@ -1,6 +1,36 @@
-/*****************************************************************************
-** Includes
-*****************************************************************************/
+/**************************************************************************************************
+   Software License Agreement (BSD License)
+
+   Copyright (c) 2014-2015, LAR toolkit developers - University of Aveiro - http://lars.mec.ua.pt
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without modification, are permitted
+   provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this list of
+   conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of
+   conditions and the following disclaimer in the documentation and/or other materials provided
+   with the distribution.
+ * Neither the name of the University of Aveiro nor the names of its contributors may be used to
+   endorse or promote products derived from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+   IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+   FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+   IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ***************************************************************************************************/
+/**
+   \file  gui_calibration_node.cpp
+   \brief Calibration node class. Performs the actual extrinsic calibration of the chosen sensors
+   \author David Silva
+   \date   July, 2016
+ */
+
 #define _NODE_CPP_
 
 // ROS includes
@@ -8,7 +38,7 @@
 #include <ros/network.h>
 
 // Project includes
-#include "calibration_gui/gui_calibration_node.hpp"
+#include "calibration_gui/gui_calibration_node.h"
 #include "calibration_gui/gui_mainwindow.h"
 #include "ui_mainwindow.h"
 #include "calibration_gui/calibration.h"
@@ -20,11 +50,12 @@
 #include <sstream>
 #include <QDebug>
 
-
-/*****************************************************************************
-** Implementation
-*****************************************************************************/
-
+/**
+   @brief QNode class constructor
+   @param argc master URL
+   @param argv host URL
+   @param name node name
+ */
 QNode::QNode(int argc, char** argv, const std::string &name ) :
 	init_argc(argc),
 	init_argv(argv),
@@ -35,12 +66,20 @@ QNode::QNode(int argc, char** argv, const std::string &name ) :
 
 }
 
+/**
+   @brief QNode class destructor.
+   See http://docs.ros.org/electric/api/qt_tutorials/html/qnode_8cpp_source.html
+ */
 QNode::~QNode() {
 	shutdown();
 }
+
+
 /**
- * This is called by the qt application to stop the ros node before the
- * qt app closes.
+   @brief Method called by the qt application to stop the ros node before the qt app closes.
+   See http://docs.ros.org/electric/api/qt_tutorials/html/qnode_8cpp_source.html
+   @param void
+   @return void
  */
 void QNode::shutdown() {
 	if(ros::isStarted()) {
@@ -50,6 +89,12 @@ void QNode::shutdown() {
 	wait();
 }
 
+/**
+   @brief Method to initialize the ROS node
+   See http://docs.ros.org/electric/api/qt_tutorials/html/qnode_8cpp_source.html
+   @param void
+   @return true on success, false otherwise
+ */
 bool QNode::on_init() {
 	ros::init(init_argc,init_argv,node_name);
 	if ( !ros::master::check() ) {
@@ -60,6 +105,13 @@ bool QNode::on_init() {
 	return true;
 }
 
+/**
+   @brief Method to initialize the ROS node with configurable initialisation master and host URLs
+   See http://docs.ros.org/electric/api/qt_tutorials/html/qnode_8cpp_source.html
+   @param[in] master_url master URL
+   @param[in] host_url host URL
+   @return true on success, false otherwise
+ */
 bool QNode::on_init(const std::string &master_url, const std::string &host_url) {
 	std::map<std::string,std::string> remappings;
 	remappings["__master"] = master_url;
@@ -73,6 +125,11 @@ bool QNode::on_init(const std::string &master_url, const std::string &host_url) 
 	return true;
 }
 
+/**
+   @brief Function called after the thread is started. It executes the calibration process; acquiring data from the chosen sensors and then computing their extrinsic transformations relative to a reference sensor.
+   @param void
+   @return void
+ */
 void QNode::run() {
 	ros::Publisher markers_pub;
 	//ros::Publisher car_pub;
@@ -330,7 +387,13 @@ void QNode::run() {
 	emit calibrationComplete(); // used to signal the gui that the calibration is complete
 }
 
-
+/**
+   @brief Sets relevant information about the sensors to be calibrated.
+   @param[in] nodes vector that contains the names of the sensors launched
+   @param[in] camera vector that contains information about the type of sensor. true if it's a camera, false otherwise
+   @param[in] names sensor names to dispaly in the Rviz 3D visualization widget
+   @return void
+ */
 void QNode::setNodes(const vector<string> nodes, const vector<bool> camera, const std::vector<std::string> names)
 {
 	qDebug() << "setLaunchedNodes";
@@ -343,7 +406,12 @@ void QNode::setNodes(const vector<string> nodes, const vector<bool> camera, cons
     std::cout << std::endl;
 }
 
-
+/**
+   @brief Builds a message box to display information to the user
+   @param[in] msg text shown in the message box
+   @param[in] answer the answer given by the user to the message box
+   @return void
+ */
 void QNode::msgShower(const QString& msg, QMessageBox::StandardButton* answer)
 {
 	QMutexLocker locker(&mutex);

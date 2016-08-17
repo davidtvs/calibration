@@ -1,14 +1,50 @@
+/**************************************************************************************************
+   Software License Agreement (BSD License)
+
+   Copyright (c) 2014-2015, LAR toolkit developers - University of Aveiro - http://lars.mec.ua.pt
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without modification, are permitted
+   provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this list of
+   conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of
+   conditions and the following disclaimer in the documentation and/or other materials provided
+   with the distribution.
+ * Neither the name of the University of Aveiro nor the names of its contributors may be used to
+   endorse or promote products derived from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+   IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+   FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+   IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ***************************************************************************************************/
+/**
+   \file  gui_supportedsensors.cpp
+   \brief Sets and gets information related to the sensors supported by the calibration application
+   \author David Silva
+   \date   July, 2016
+ */
+ 
 #include "calibration_gui/gui_supportedsensors.h"
 
 #include <QDebug>
 
+/**
+   @brief Constructor for the SupportedSensors class.
+ */
 SupportedSensors::SupportedSensors()
 {
     // Add supported sensors: (roslaunch file name, node name, is it a camera?)
     this->addSupportedSensors("Sick LMS151", "lms151", false);
     this->addSupportedSensors("Sick LD-MRS400001", "ldmrs", false);
     this->addSupportedSensors("Point Grey FL3-GE-28S4-C", "pointgrey", true);
-    this->addSupportedSensors("SwissRanger SR4000_Ethernet", "swissranger_eth", false);
+    //this->addSupportedSensors("SwissRanger SR4000_Ethernet", "swissranger_eth", false); launch file needs to be developed
     this->addSupportedSensors("SwissRanger SR4000_USB", "swissranger_usb", false);
     this->addSupportedSensors("Microsoft Kinect 3D Sensor", "kinect_3d", false);
 
@@ -16,6 +52,13 @@ SupportedSensors::SupportedSensors()
         sensorCounter.push_back(0);
 }
 
+/**
+   @brief Method to add a new sensor to the
+   @param[in] roslaunch_name file name of the roslaunch file
+   @param[in] node_name name for the sensor nodes
+   @param[in] camera true if the sensor is a camera; false if not
+   @return void
+ */
 void SupportedSensors::addSupportedSensors (QString roslaunch_name, QString node_name, bool camera)
 {
     supportedSensors.push_back(roslaunch_name);
@@ -23,6 +66,12 @@ void SupportedSensors::addSupportedSensors (QString roslaunch_name, QString node
     supportedCamera.push_back(camera);
 }
 
+/**
+   @brief Method to add the required childs
+   @param[in] item parent item from the QTreeWidget
+   @param[in] sensorID item sensor name
+   @return void
+ */
 void SupportedSensors::addTreeChilds(QTreeWidgetItem *item, const QString sensorID)
 {
     QString ask_IP = "IP Address";
@@ -51,6 +100,13 @@ void SupportedSensors::addTreeChilds(QTreeWidgetItem *item, const QString sensor
     }
 }
 
+/**
+   @brief Creates the QTreeWidgetItem childs
+   @param[in] parent is the parent QTreeWidgetItem
+   @param[in] text is the text to display
+   @param[in] column column of the QTreeWidgetItem child to be added
+   @return void
+ */
 void SupportedSensors::makeChild (QTreeWidgetItem *parent, const QString text, int column)
 {
     QTreeWidgetItem *item = new QTreeWidgetItem(parent);
@@ -66,16 +122,13 @@ void SupportedSensors::makeChild (QTreeWidgetItem *parent, const QString text, i
     item->parent()->setExpanded(true);
 }
 
-
-
-// ====================================================================================
-// References:
-// http://stackoverflow.com/questions/36156519/set-qstring-to-qprocess-properly
-// http://stackoverflow.com/questions/24771293/how-to-get-parameter-from-ros-launch-file-and-use-it-in-qt
-// http://stackoverflow.com/questions/10098980/real-time-display-of-qprocess-output-in-a-textbrowser
-// http://doc.qt.io/qt-4.8/qprocess.html
-// ====================================================================================
-
+/**
+   @brief Gets the roslaunch file arguments from the QTreeWidget
+   @param[in] item QTreeWidgetItem
+   @param[in] sensor name of the sensor
+   @param[in] ballDiameter diameter of the ball inserted in the Options window
+   @return roslaunch_arg a list of the roslaunch arguments
+ */
 QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString sensor, double ballDiameter)
 {
     QString ball_diameter = "ball_diameter:=" + QString::number(ballDiameter);
@@ -113,7 +166,11 @@ QStringList SupportedSensors::roslaunchManager(QTreeWidgetItem * item, QString s
     return roslaunch_arg;
 }
 
-
+/**
+   @brief Gets sensor names to display in the Rviz 3D visualizer
+   @param void
+   @return displayNames vector of strings with the sensor names
+ */
 std::vector<std::string> SupportedSensors::getDisplayNames()
 {
     std::vector<std::string> displayNames;
@@ -137,7 +194,11 @@ std::vector<std::string> SupportedSensors::getDisplayNames()
     return displayNames;
 }
 
-
+/**
+   @brief Clears variables
+   @param void
+   @return void
+ */
 void SupportedSensors::resetLaunchedLists()
 {
     isCamera.clear();

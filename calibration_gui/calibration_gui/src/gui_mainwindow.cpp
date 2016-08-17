@@ -1,3 +1,36 @@
+/**************************************************************************************************
+   Software License Agreement (BSD License)
+
+   Copyright (c) 2014-2015, LAR toolkit developers - University of Aveiro - http://lars.mec.ua.pt
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without modification, are permitted
+   provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this list of
+   conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of
+   conditions and the following disclaimer in the documentation and/or other materials provided
+   with the distribution.
+ * Neither the name of the University of Aveiro nor the names of its contributors may be used to
+   endorse or promote products derived from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+   IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+   FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+   IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ***************************************************************************************************/
+/**
+   \file  gui_mainwindow.cpp
+   \brief Extrinsic calibration package Graphical User Interface Main Window
+   \author David Silva
+   \date   July, 2016
+ */
+
 #include "calibration_gui/gui_mainwindow.h"
 
 #include <QDebug>
@@ -12,7 +45,11 @@
 #include <QTreeView>
 #include <QMessageBox>
 
-
+/**
+   @brief GUI Main Window constructor. Sets up the GUI, connects signals to slots and initialization of variables.
+   @param[in] node pointer to calibration ROS node
+   @param[in] parent is the parent widget
+ */
 MainWindow::MainWindow(QNode *node, QWidget *parent)
     :QMainWindow(parent)
     ,ui(new Ui::MainWindow)
@@ -81,6 +118,9 @@ MainWindow::MainWindow(QNode *node, QWidget *parent)
             SLOT(combobox_itemChanged(QString))); // Combobox
 }
 
+/**
+   @brief GUI Main Window destructor
+ */
 MainWindow::~MainWindow()
 {
     delete mRviz;
@@ -88,7 +128,11 @@ MainWindow::~MainWindow()
 }
 
 
-
+/**
+   @brief Add button SLOT. Adds an item to the QTreeWidget.
+   @param void
+   @return void
+ */
 void MainWindow::on_bt_add_clicked()
 {
     // Add root to TreeWidget
@@ -122,7 +166,12 @@ void MainWindow::on_bt_add_clicked()
 
 }
 
-
+/**
+   @brief Remove button SLOT. Removes the selected item from the QTreeWidget.
+   Only avalable when parent items are selected.
+   @param void
+   @return void
+ */
 void MainWindow::on_bt_remove_clicked()
 {
     QList<QTreeWidgetItem*> items = ui->treeWidget->selectedItems();
@@ -140,7 +189,12 @@ void MainWindow::on_bt_remove_clicked()
     }
 }
 
-
+/**
+   @brief Reference button SLOT. Makes the selected sensor item the reference sensor.
+   Only avalable when parent items are selected.
+   @param void
+   @return void
+ */
 void MainWindow::on_bt_make_reference_clicked()
 {
     qDebug() << "on_bt_make_reference_clicked";
@@ -186,13 +240,24 @@ void MainWindow::on_bt_make_reference_clicked()
     }
 }
 
+/**
+   @brief Options button SLOT. Launches the Options window.
+   @param void
+   @return void
+ */
 void MainWindow::on_actionOptions_triggered()
 {
     mOptions->setModal(true);
     mOptions->exec();
 }
 
-
+/**
+   @brief SLOT for changed items.
+   For Debugging purposes only.
+   @param[in] item QTreeWidgetItem changed by the user
+   @param[in] column column that contains \p item
+   @return void
+ */
 void MainWindow::on_treeWidget_itemChanged(QTreeWidgetItem *item, int column)
 {
     qDebug() << "on_treeWidget_itemChanged";
@@ -201,6 +266,11 @@ void MainWindow::on_treeWidget_itemChanged(QTreeWidgetItem *item, int column)
     qDebug() << changedText << " " << column << " " << parameter;
 }
 
+/**
+   @brief Enables/disables buttons according to the currently selected item in the QTreeWidget
+   @param void
+   @return void
+ */
 void MainWindow::on_treeWidget_itemSelectionChanged()
 {
     QList<QTreeWidgetItem *> selectedItems = ui->treeWidget->selectedItems();
@@ -228,7 +298,11 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
     }
 }
 
-
+/**
+   @brief SLOT called after the user selects and item fom the QComboBox
+   @param[in] text QComboBox item text
+   @return void
+ */
 void MainWindow::combobox_itemChanged(const QString &text)
 {
     // Source: http://stackoverflow.com/questions/26212722/how-to-get-index-of-rows-on-click-event-of-qpushbutton-in-qtreewidget
@@ -244,7 +318,12 @@ void MainWindow::combobox_itemChanged(const QString &text)
     }
 }
 
-
+/**
+   @brief Start Nodes button SLOT. Starts the relevant nodes for each of the added sensors.
+   Nodes are launched according to their respective roslaunch files.
+   @param void
+   @return void
+ */
 void MainWindow::on_bt_start_nodes_clicked()
 {
     qDebug() << "in start nodes";
@@ -297,6 +376,11 @@ void MainWindow::on_bt_start_nodes_clicked()
     }
 }
 
+/**
+   @brief Stop Nodes button SLOT. Terminates the previously launched nodes 
+   @param void
+   @return void
+ */
 void MainWindow::on_bt_stop_nodes_clicked()
 {
     qDebug() << "Nodes to be killed" << launchedNodes;
@@ -335,6 +419,12 @@ void MainWindow::on_bt_stop_nodes_clicked()
     }
 }
 
+/**
+   @brief Calibrate button SLOT. Starts the calibration node.
+   See gui_calibration_node.cpp
+   @param void
+   @return void
+ */
 void MainWindow::on_bt_calibrate_clicked()
 {
     int num_calib_points = mOptions->getNumCalibPoints().toInt();
@@ -383,12 +473,23 @@ void MainWindow::on_bt_calibrate_clicked()
     }
 }
 
+/**
+   @brief Stop Calibration button SLOT. Stops the current calibration process.
+   See gui_calibration_node.cpp
+   @param void
+   @return void
+ */
 void MainWindow::on_bt_stop_calibrate_clicked()
 {
     qnode->setDoCalibration(false);
 }
 
-
+/**
+   @brief SLOT for the signal sent when a previously launched sensor node dies/is killed.
+   @param[in] exit_code is the exit code of the process
+   @param[in] exit_status is the  exit status of the process
+   @return void
+ */
 void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
 {
     for (int i = 0; i < processes.size(); i++)
@@ -427,6 +528,12 @@ void MainWindow::NodeFinished(int exit_code, QProcess::ExitStatus exit_status)
     qDebug() << processes;
 }
 
+/**
+   @brief SLOT for the signal sent when the calibration process ends.
+   See gui_calibration_node.cpp
+   @param void
+   @return void
+ */
 void MainWindow::calibrationFinished()
 {
     std::cout<<"calibrationFinished"<<std::endl;

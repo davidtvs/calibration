@@ -26,8 +26,10 @@
  ***************************************************************************************************/
 /**
    \file  atlascar_fusion.cpp
-   \brief
-   \details
+   \brief Performs data fusion between the sensors used on ATLASCAR 1:
+   - 2 SICK LMS151;
+   - SICK LD-MRS400001;
+   - Point Grey FL3-GE28S4-C.
    \author David Silva
    \date   June, 2016
  */
@@ -35,10 +37,16 @@
 #include "multisensor_fusion/subscribers_class.h"
 #include "multisensor_fusion/multisensor_fusion_class.h"
 
-//OpenCV
-//#include <opencv2/highgui/highgui.hpp>
 
-
+/**
+   @brief Main function which performs data fusion with the following sensors:
+   - 2 SICK LMS151;
+   - SICK LD-MRS400001;
+   - Point Grey FL3-GE28S4-C.
+   @param argc
+   @param argv
+   @return int
+ */
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "kinect_pg_lms1_lms2_mrs");

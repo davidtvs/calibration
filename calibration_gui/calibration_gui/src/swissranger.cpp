@@ -299,9 +299,6 @@ int main(int argc, char **argv)
 			pcl::PointXYZ p;
 			for(int i=0; i<cloud.cloud.points.size(); i++)
 			{
-				// p.x=cloud.cloud.points[i].z;
-				// p.y=-cloud.cloud.points[i].y;
-				// p.z=cloud.cloud.points[i].x;
 				p.x=cloud.cloud.points[i].x;
 				p.y=cloud.cloud.points[i].y;
 				p.z=cloud.cloud.points[i].z;

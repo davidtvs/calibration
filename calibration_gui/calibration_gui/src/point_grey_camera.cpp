@@ -25,10 +25,10 @@
    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************************************/
 /**
-   \file  camera.cpp
-   \brief Ball detection with a Point Grey
-   \author Marcelo Pereira, David Silva
-   \date   December, 2015
+   \file  point_grey_camera.cpp
+   \brief Ball detection and computation of its relevant proprieties with a Point Grey camera
+   \author David Silva
+   \date  July, 2016
  */
 
 #include "calibration_gui/point_grey_camera.h"
@@ -52,12 +52,16 @@ int valA;
 int maxR;
 int minR;
 
-
+/**
+   @brief Creates windows and trackbars to control the ball detection algorithm
+   @param void
+   @return void
+ */
 void CreateTrackbarsAndWindows ()
 {
 	// create the main window, and attach the trackbars
 	//namedWindow( "Camera", CV_WINDOW_NORMAL );
-	namedWindow( "Binarized Image", CV_WINDOW_NORMAL );
+	namedWindow( "Binary Image", CV_WINDOW_NORMAL );
 	namedWindow( "Control", CV_WINDOW_NORMAL );
 	namedWindow( "Circle", CV_WINDOW_NORMAL );
 	// namedWindow( "Canny", CV_WINDOW_NORMAL );
@@ -110,8 +114,8 @@ void CreateTrackbarsAndWindows ()
 }
 
 /**
-   @brief Image capture
-   @param[in] ppCameras
+   @brief Image processing and ball detection
+   @param[in] img image captured by the Point Grey camera
    @return void
  */
 void ImageProcessing(Mat &img)
@@ -147,7 +151,7 @@ void ImageProcessing(Mat &img)
 
 
 
-	imshow("Binarized Image", imgBinary);
+	imshow("Binary Image", imgBinary);
 
 	// =====================================================================
 	// Circle detection
@@ -161,7 +165,12 @@ void ImageProcessing(Mat &img)
 	char key = waitKey(1);
 }
 
-
+/**
+   @brief Hough Circles implementation for ball detection.
+   @param[in] img undistorted captured image
+   @param[in] imgBinary binary image for ball detection
+   @return void
+ */
 void HoughDetection(const Mat &img, const Mat& imgBinary)
 {
 	Mat dst = img.clone();
@@ -192,11 +201,11 @@ void HoughDetection(const Mat &img, const Mat& imgBinary)
 
 
 /**
-   @brief Ball detection in the stereo system
-   @param[in]
+   @brief Ball detection amd computation of its proprieties using approximated polygonal curves.
+   @param[in] img undistorted captured image
+   @param[in] imgBinary binary image for ball detection
    @return void
  */
-//void ballDetection(sensor_msgs::PointCloud cloud)
 void PolygonalCurveDetection( Mat &img, Mat &imgBinary)
 {
 	vector<vector<Point> > contours;
@@ -283,6 +292,12 @@ void PolygonalCurveDetection( Mat &img, Mat &imgBinary)
 	imshow("Circle", dst);
 }
 
+/**
+   @brief Publishes the detected ball center
+   @param[in] centroid detected ball center in pixels
+   @param[in] centroidRadius detected ball center in the camera frame
+   @return void
+ */
 void CentroidPub( const pcl::PointXYZ centroid, const pcl::PointXYZ centroidRadius )
 {
 	// Method based on solvePnP ================================================
@@ -306,6 +321,13 @@ void CentroidPub( const pcl::PointXYZ centroid, const pcl::PointXYZ centroidRadi
 	//std::cout << CentroidCam << std::endl;
 }
 
+/**
+   @brief Creates a circle that represents the detected ball and its center
+   @param[out] im undistorted captured image
+   @param[in] label text to write (currently not used)
+   @param[in] contour detected ball contour
+   @return void
+ */
 void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& contour)
 {
 	int fontface = cv::FONT_HERSHEY_SIMPLEX;
@@ -333,7 +355,7 @@ void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& cont
 }
 
 /**
-   @brief Main function of the camera node
+   @brief Main function of the ball detection node for Point Grey camera
    @param argc
    @param argv
    @return int
@@ -399,7 +421,7 @@ std::cout << "test3" << std::endl;
 
 	//destroy the windows
 	destroyWindow("Camera");
-	destroyWindow("Binarized Image");
+	destroyWindow("Binary Image");
 	destroyWindow("Control");
 	destroyWindow("Circle");
 	//destroyWindow("Canny");

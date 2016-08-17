@@ -56,8 +56,8 @@ int checkCircle=0;
 
 /**
    @brief Handler for the incoming data
-   @param groundtruth_points incoming Laser Points
-   @param iteration iteration of the Laser Scan
+   @param[in] groundtruth_points incoming Laser Points
+   @param[in] iteration iteration of the Laser Scan
    @return void
  */
 
@@ -232,10 +232,9 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 
 					double ballDiameter = BALL_DIAMETER;
 
-					// DEFAULT
-					if(radius > ballDiameter/2  || radius <= 0)
+					// Determines if the radius is valid or not
+					if(radius > ballDiameter/2  || radius <= 0) // invalid
 					{
-						// std::cout << "too big" << ballDiameter/2 << std::endl;
 						sphere.x=-10000;
 						sphere.y=centroid.point.y;
 						sphere.z=centroid.point.z;
@@ -261,72 +260,6 @@ double find_circle(vector<ClusterPtr> clusters, vector<ClusterPtr>& circleP, Poi
 						centre[2] = centroid.point.z;
 						circlePoints(circleP,radius,centre,20);
 					}
-
-					// ATLASCAR
-					/*if(radius > ballDiameter/2 + 0.075 || radius <= 0) // invalid radius
-					{
-						// std::cout << "too big" << ballDiameter/2 << std::endl;
-						sphere.x=-10000;
-						sphere.y=centroid.point.y;
-						sphere.z=centroid.point.z;
-						double centre[3];
-						centre[0] = Centroid.x;
-						centre[1] = Centroid.y;
-						centre[2] = 0;
-						circlePoints(circleP,radius,centre,20);
-					}
-					else if (radius <= ballDiameter/2) // valid radius
-					{
-						// std::cout << "valid" << ballDiameter/2 << std::endl;
-						centroid.point.x=Centroid.x;
-						centroid.point.y=Centroid.y;
-						centroid.point.z=(sqrt(pow(ballDiameter/2,2)-pow(radius,2)));
-						sphere.x=centroid.point.x;
-						sphere.y=centroid.point.y;
-						sphere.z=centroid.point.z;
-						//cout<<"x "<<centroid.point.x<<endl;
-						double centre[3];
-						centre[0] = Centroid.x;
-						centre[1] = Centroid.y;
-						centre[2] = centroid.point.z;
-						circlePoints(circleP,radius,centre,20);
-					}
-					else // radius above ball radius but within margin of error
-					{
-						radius = ballDiameter/2; // because radius is bigger than ball radius the laser is close to the ball's equator
-						centroid.point.x=Centroid.x;
-						centroid.point.y=Centroid.y;
-						centroid.point.z=(sqrt(pow(ballDiameter/2,2)-pow(radius,2)));
-						sphere.x=centroid.point.x;
-						sphere.y=centroid.point.y;
-						sphere.z=centroid.point.z;
-						//cout<<"x "<<centroid.point.x<<endl;
-						double centre[3];
-						centre[0] = Centroid.x;
-						centre[1] = Centroid.y;
-						centre[2] = centroid.point.z;
-						circlePoints(circleP,radius,centre,20);
-					}*/
-
-					// OLD VERSION =======================================================
-					// if(radius>ballDiameter/2)
-					//      radius=ballDiameter/2;
-					// centroid.point.z=(sqrt(pow(ballDiameter/2,2)-pow(radius,2)));
-					// sphere.x=centroid.point.x;
-					// sphere.y=centroid.point.y;
-					// sphere.z=centroid.point.z;
-					// cout<<"x "<<centroid.point.x<<endl;
-					//
-					// double centre[3];
-					// centre[0] = Centroid.x;
-					// centre[1] = Centroid.y;
-					// centre[2] = centroid.point.z;
-					//
-					// //writeFile(centre,"lms_dist_2.txt");
-					//
-					// circlePoints(circleP,radius,centre,20);
-					// OLD VERSION =======================================================
-
 
 					if(!circleP.empty())
 						circleP[count]->centroid=cluster->centroid;

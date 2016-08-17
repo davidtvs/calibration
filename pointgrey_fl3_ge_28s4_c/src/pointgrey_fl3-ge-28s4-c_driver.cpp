@@ -25,10 +25,14 @@
    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************************************/
 /**
-   \file  camera_calib.cpp
-   \brief Intrinc calibration of the Point Grey FL3-GE-28S4-C using OpenCV
-   \author Marcelo Pereira, David Silva
-   \date   December, 2015
+   \file  pointgrey_fl3-ge-28s4-c_driver.cpp
+   \brief Driver node for the Point Grey FL3-GE28S4-C. Sets a camera configuration, grabs the images and publishes them to a topic named RawImage.
+   Camera configuration:
+   - Resolution: 964x724 pixels
+   - Offset: x=0, y=0
+   - Mode: Mode 1
+   \author David Silva
+   \date   August, 2016
  */
 
 #include <opencv2/highgui/highgui.hpp>
@@ -49,6 +53,11 @@ using namespace cv;
 using namespace std;
 using namespace FlyCapture2;
 
+/**
+   @brief Prints FlyCapture2 version and build date
+   @param void
+   @return void
+ */
 void PrintBuildInfo()
 {
 	FC2Version fc2Version;
@@ -63,6 +72,18 @@ void PrintBuildInfo()
 	cout << timeStamp.str() << endl << endl;
 }
 
+/**
+   @brief Prints camera information:
+   - Serial number;
+   - Camera model;
+   - Camera vendor;
+   - Sensor;
+   - Resolution;
+   - Firmware version;
+   - Firmware build time.
+   @param[in] pCamInfo camera info
+   @return void
+ */
 void PrintCameraInfo( CameraInfo* pCamInfo )
 {
 	cout << endl;
@@ -77,15 +98,23 @@ void PrintCameraInfo( CameraInfo* pCamInfo )
 
 }
 
+/**
+   @brief Print error trace
+   @param[in] error
+   @return void
+ */
 void PrintError( Error error )
 {
 	error.PrintErrorTrace();
 }
 
 /**
-@brief Confifuration of the camera image format
+@brief Configuration of the camera image format
+- Resolution: 964x724
+- Offset: x=0, y=0
+- Mode: Mode 1
 @param[in] camera
-@return bool
+@return false if an error occurred, true on success
 */
 bool SetConfiguration(Camera &camera)
 {
@@ -106,7 +135,7 @@ bool SetConfiguration(Camera &camera)
     if ( error != PGRERROR_OK )
     {
       PrintError( error );
-      return -1;
+      return false;
     }
 
     // Make Format7 Configuration
@@ -143,7 +172,7 @@ bool SetConfiguration(Camera &camera)
     if ( error != PGRERROR_OK )
     {
       PrintError( error );
-      return -1;
+      return false;
     }
 
     // Stop the camera to allow settings to change.
@@ -151,7 +180,7 @@ bool SetConfiguration(Camera &camera)
     if ( error != PGRERROR_OK )
     {
       PrintError( error );
-      return -1;
+      return false;
     }
 
     // Get camera info to check if camera is running in color or mono mode
@@ -160,13 +189,14 @@ bool SetConfiguration(Camera &camera)
     if ( error != PGRERROR_OK )
     {
       PrintError( error );
-      return -1;
+      return false;
     }
+	return true;
 }
 
 
 /**
-   @brief Main function of the camera_calib node
+   @brief Driver node for the Point Grey FL3-GE28S4-C
    @param argc
    @param argv
    @return int
@@ -296,7 +326,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-// Disconnect the camera
+	// Disconnect the camera
 	error = Camera.Disconnect();
 	if (error != PGRERROR_OK)
 	{

@@ -1,3 +1,6 @@
+/* Progress indicator
+   Credit to mojocorp - https://github.com/mojocorp/QProgressIndicator
+*/
 #ifndef QPROGRESSINDICATOR_H
 #define QPROGRESSINDICATOR_H
 

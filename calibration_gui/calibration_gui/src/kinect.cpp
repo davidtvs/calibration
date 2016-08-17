@@ -27,7 +27,7 @@
  ***************************************************************************************************/
 /**
    \file  kinect.cpp
-   \brief Algorithm for the ball center detection with Kinect based on swissranger
+   \brief Algorithm for the ball center detection with Kinect based on the algorithm developed for the Swissranger
    \author David Silva
    \date   May, 2016
  */
@@ -57,8 +57,8 @@ void writeFile(Eigen::VectorXf sphereCoeffsRefined)
 }
 
 /**
-   @brief Detection of the ball on the sensor data
-   @param[in] SwissRanger_cloud point cloud from the swissranger
+   @brief Detection of the ball on the Kinect data
+   @param[in] Kinect_cloud point cloud from the Kinect
    @return void
  */
 void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
@@ -275,7 +275,7 @@ void sphereDetection(pcl::PointCloud<pcl::PointXYZ> Kinect_cloud)
 }
 
 /**
-   @brief Main function of the swissranger node
+   @brief Main function of the ball detection node for kinect
    @param argc
    @param argv
    @return int

@@ -42,7 +42,7 @@ using namespace std;
 /**
   \class swissranger
   \brief Class to handle the point cloud from the swissranger
-  \author Marcelo Pereira
+  \author David Silva
  */
 class swissranger
 {
@@ -52,7 +52,8 @@ public:
     sensor_msgs::PointCloud cloud; /**< point cloud from the swissranger. */
 
 /**
-@brief constructer - subscription of the point cloud from the swissranger
+	@brief Constructor. Subscription of the point cloud from the swissranger
+	@param nodeToSub node name to subscribe
 */
     swissranger(const string &nodeToSub)
     {
@@ -60,8 +61,16 @@ public:
         pointCloud_subscriber=n_.subscribe("/" + nodeToSub + "/pointcloud_raw", 1, &swissranger::pointCloudUpdate, this);
     }
 
+/**
+@brief swissranger class destructor
+*/
     ~swissranger(){}
 
+/**
+   @brief Callback function that is called when a message arrives
+   @param msg message received from the Swissranger sensor
+   @return void
+ */
     void pointCloudUpdate(const sensor_msgs::PointCloud & msg)
     {
         cloud=msg;

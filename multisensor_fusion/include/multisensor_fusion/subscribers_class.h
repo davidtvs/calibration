@@ -25,9 +25,8 @@
    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************************************/
 /**
-   \file  atlascar_fusion.cpp
-   \brief
-   \details
+   \file  subscribers_class.h
+   \brief Handles topic subscription for each sensor.
    \author David Silva
    \date   June, 2016
  */
@@ -53,7 +52,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
 
-
+/**
+   \class MultisensorSubs
+   \brief Subscribes to the topics containing data acquired by each sensor and grabs that data with callbacks.
+   \author David Silva
+ */
 class MultisensorSubs
 {
 public:

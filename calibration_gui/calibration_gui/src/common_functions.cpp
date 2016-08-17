@@ -25,8 +25,8 @@
  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************************************/
 /**
- \file  sick_ldmrs.cpp
- \brief Algorithm for the ball center detection with the Sick LD-MRS laser
+ \file  common_functions.cpp
+ \brief Functions required by the SICK LMS and SICK LD-MRS algorithms for the ball center detection
  \author Marcelo Pereira
  \date   December, 2015
 */

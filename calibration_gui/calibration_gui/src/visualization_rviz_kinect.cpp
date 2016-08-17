@@ -25,11 +25,10 @@
  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************************************/
 /**
- \file  visualization_rviz_swissranger.cpp
- \brief Illustration of the ball detection on the sensor data
- \details It is represented the segmentation of the sensor data, and the ball when detected
- \author Marcelo Pereira
- \date   December, 2015
+ \file  visualization_rviz_kinect.cpp
+ \brief Illustration of the ball detection on the Kinect 3D-depth sensor data. Similar to visualization_rviz_swissranger.cpp.
+ \author  David Silva
+ \date   July, 2016
 */
 
 #include <lidar_segmentation/lidar_segmentation.h>

@@ -26,9 +26,9 @@
  ***************************************************************************************************/
 /**
    \file  point_grey_camera.h
-   \brief Global include file
-   \author Marcelo Pereira, David Silva
-   \date   December, 2015
+   \brief Header file for point_grey_camera.cpp. Ball detection and computation of its relevant proprieties with a Point Grey camera.
+   \author David Silva
+   \date   July, 2016
  */
 
 #ifndef _POINT_GREY_CAMERA_H_
@@ -68,9 +68,9 @@ using namespace cv;
 using namespace std;
 
 /**
-   \class sickLMSscan
-   \brief Class to subscribe the scans from the two sick lms151 lasers
-   \author Marcelo Pereira
+   \class CameraRaw
+   \brief Class to subscribe and acquire the images from the Point Grey camera
+   \author David Silva
  */
 class CameraRaw
 {
@@ -79,12 +79,21 @@ public:
 	image_transport::Subscriber subs_cam_image;
 	Mat camImage;
 
+/**
+	@brief Constructor. Subscription to the topic that contains the images acquired from the Point Grey camera.
+	@param nodeToSub node name to subscribe
+*/
 	CameraRaw(const string &nodeToSub)
 	{
 		image_transport::ImageTransport it(n_);
 		subs_cam_image = it.subscribe ("/" + nodeToSub + "/RawImage", 1, &CameraRaw::imageUpdate, this);
 	}
 
+/**
+   @brief Callback function that is called when a message arrives to the topic: "/" + nodeToSub + "/RawImage"
+   @param msg message received from the SICK LD-MRS laser sensor
+   @return void
+*/
 	void imageUpdate(const sensor_msgs::ImageConstPtr& msg)
 	{
 		try

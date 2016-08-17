@@ -1,3 +1,6 @@
+/* Progress indicator
+   Credit to mojocorp - https://github.com/mojocorp/QProgressIndicator
+*/
 #include "calibration_gui/gui_QProgressIndicator.h"
 
 #include <QPainter>

@@ -89,7 +89,7 @@ set (MyProject_src src/gui_main.cpp
 		)
 set (MyProjectLib_hdr include/calibration_gui/gui_mainwindow.h
 			include/calibration_gui/gui_myrviz.h
-			include/calibration_gui/gui_calibration_node.hpp
+			include/calibration_gui/gui_calibration_node.h
 			include/calibration_gui/gui_options.h
 			include/calibration_gui/gui_supportedsensors.h
 			include/calibration_gui/gui_QProgressIndicator.h

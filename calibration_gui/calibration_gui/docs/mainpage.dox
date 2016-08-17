@@ -1,0 +1,79 @@
+/**
+\mainpage Multisensor Extrinsic Calibration
+\htmlinclude manifest.html
+
+\b calibration_gui is a package to estimate the extrinsic parameters (geometric transformations) between a set of sensors, with respect to a global frame using a ball as a calibration target. The calibration process consists of the following stages:
+-# each sensor must detect the ball and compute the position of its center;
+-# the ball is placed in motion in front of the sensors allowing them to detect its center along sucessive positions, creating at the same time a point cloud of detected centers for each of the sensors;
+-# one sensors is chosen as reference and the remainder are calibrated relatively to it.
+
+Supported Hardware
+==================
+
+This package currently supports the following sensors:
+- Sick LD-MRS400001
+- Sick LMS151
+- SwissRanger SR40000
+- Point Grey cameras Flea Gigabit Ethernet (tested with the model FL3-GE28S4-C)
+- Microsoft Kinect 3D-depth sensor
+
+
+Installation
+============
+
+-# Clone the packages;
+-# Before compiling, install the following system dependencies: <a href="https://www.ptgrey.com/support/downloads">FlyCapture 2.x SDK</a> and <a href="http://hptg.com/industrial/">libmesasr-dev</a>;
+-# Compile the packages;
+
+Usage
+=====
+
+The calibration process can be:
+
+- Automatic: the user moves the ball and the ball center points are automatically acquired;
+- Semi-automatic or User Prompt Mode: a user prompt is displayed after each ball center acquisition; while that window is active no points are acquired.
+
+Automatic Calibration
+---------------------
+
+-# Run the application with the command "rosrun calibration_gui calibration_gui". The GUI main window will be displayed;
+-# Click the "Add" button to add a new sensor to the list. Select the desired sensor from the combo box and fill its sensor-specific options. The "Remove" button removes a sensor from the list. "Reference" makes the currently selected sensor on the list the reference sensor.
+-# Click the "Options" button to access the calibration options. Set the desired options for the calibration procedure and set "Acquisition type" to "Automatic". Click "OK" to save the options.
+-# Sensor nodes can now be launched by clicking the "Start Nodes" button. Note that only sensors on the list with a checked checkbox will be launched and calibrated. A message box will appear to confirm the ball diameter;
+	-# If a Point Grey camera is used, three windows will be displayed: a window with the image received from the camera where a circle representing the detected ball is drawn; a window containing a binary image of the image received from the camera; and a control window with six trackbars, two for each HSV component. On the control window, using the trackbars, the user sets the desired HSV range for color thresholding. The binary image is the result of the color thresholding process applied to the image received from the camera.
+-# Click "Start Calibration" in order to start calibrating the chosen sensors. A message box is displayed to confirm calibration options. Answering "Yes" will start the calibration procedure;
+	-# Ball center points are now acquired and drawn on the visualizer automatically, as the ball moves, until the user-defined number of calibration points is reached. Note that the calibration procedure can be interrupted at any time by clicking on the "Stop Calibration" or "Stop Nodes" button;
+	-# A message box will notify the user when the number of calibration points is reached. At this point the sensors poses are already estimated and displayed on the 3D visualizer;
+-# The user can perform another calibration by clicking on "Start Calibration" or return the GUI to its initial state by clicking "Stop Nodes".
+	-# Clicking on "Start Calibration" sends the application to the previous step;
+	-# Clicking on "Stop Nodes" will display a message box to confirm if the user wants to terminate all nodes. If the answer is "Yes", the "Terminating nodes...Please wait." message is displayed and the user must wait until it disappears, at that point, every node has been safely terminated.
+
+
+### Demonstration #######
+
+\htmlonly
+<style>
+iframe {
+    display: block;
+    width: 800px;
+    height: 400px;
+    margin: 0 auto;
+    border: 0;
+}
+</style>
+<iframe src="https://www.youtube.com/embed/0umgCqLqCCM" frameborder="0" allowfullscreen></iframe>
+\endhtmlonly
+
+User Prompt Calibration Mode
+----------------------------
+
+This calibration mode is very similar to the one presented in the previous section, except for the following steps:
+
+<p>3. "Acquisition type" must be set to "User Prompt".</p>
+
+and,
+
+5a. Ball center points are acquired only after the user presses "OK" on the message box shown below. When a new point is acquired, the message box is displayed again until the user wishes to acquire a new point.
+
+\image html user_prompt_mode.png
+*/

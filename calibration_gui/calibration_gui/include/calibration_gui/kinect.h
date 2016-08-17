@@ -26,10 +26,12 @@
  ***************************************************************************************************/
 /**
    \file  swissranger.h
-   \brief Global include file
+   \brief Header file for kinect.cpp. Ball detection and computation of its relevant proprieties with the Kinect 3D-depth sensor.
    \author David Silva
-   \date   Maio, 2016
+   \date   July, 2016
  */
+ 
+
 #ifndef _KINECT_H_
 #define _KINECT_H_
 
@@ -66,9 +68,9 @@ double BALL_DIAMETER;
 using namespace std;
 
 /**
-   \class swissranger
-   \brief Class to handle the point cloud from the swissranger
-   \author Marcelo Pereira, David Silva
+   \class kinect
+   \brief Class to handle the point cloud from the Kinect 3D-depth sensor
+   \author David Silva
  */
 class kinect
 {
@@ -78,7 +80,8 @@ public:
 	pcl::PointCloud<pcl::PointXYZ> cloud;
 
 /**
-   @brief constructer - subscription of the point cloud from the swissranger
+   @brief Constructor. Subscribes to the point cloud from the Kinect 3D-depth sensor.
+   @param nodeToSub node name to subscribe 
  */
 	kinect(const string &nodeToSub)
 	{
@@ -87,10 +90,17 @@ public:
 		                                   1, &kinect::pointCloudUpdate, this);
 		cout << "/" << nodeToSub << "/camera/depth_registered/points" << endl;
 	}
+	
+/**
+	@brief Class destructor
+*/
+	~kinect(){}
 
-	~kinect(){
-	}
-
+/**
+   @brief Callback function that is called when a message arrives to the topic: "/" + nodeToSub + "/camera/depth_registered/points"
+   @param msg message received from the Kinect 3D-depth sensor
+   @return void
+*/
 	void pointCloudUpdate(const sensor_msgs::PointCloud2ConstPtr & msg)
 	{
 		pcl::fromROSMsg(*msg, cloud);

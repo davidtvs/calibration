@@ -26,7 +26,7 @@
  ***************************************************************************************************/
 /**
    \file  calibration_utils.cpp
-   \brief Common function for calibration.cpp and calibration_pcd.cpp
+   \brief Common functions for calibration.cpp and calibration_pcd.cpp
    \details Several helper functions that estimate transforms, draw and analyse results for calibration.cpp and calibration_pcd.cpp
    \author David Silva
    \date   April, 2016
@@ -36,7 +36,12 @@
 
 #include "calibration_gui/calibration.h"
 
-
+/**
+   @brief Creates a directory to save results.
+   The folder name is the current date and time
+   @param void
+   @return void
+ */
 void createDirectory ( )
 {
 	time_t rawtime;
@@ -73,7 +78,7 @@ void createDirectory ( )
 /**
    @brief Write a file with the resulting calibration for lasers
    @param[in] transformation geometric transformation matrix
-   @param[in] name name and extension of the file
+   @param[in] filepath is an absolute filepath with filename and extension
    @return void
  */
 void writeFile( const Matrix4f transformation, const string filepath)
@@ -87,8 +92,9 @@ void writeFile( const Matrix4f transformation, const string filepath)
 
 /**
    @brief Write a file with the resulting calibration for cameras
-   @param[in] geometric transformation matrix
-   @param[in] name name and extension of the file
+   @param[in] transformation transformation matrix
+   @param[in] transformation_name variable name given to the geometric transformation
+   @param[in] filepath is an absolute filepath with filename and extension
    @return void
  */
 void writeFileCamera( cv::Mat transformation, const char* transformation_name, const string filepath)
@@ -100,11 +106,12 @@ void writeFileCamera( cv::Mat transformation, const char* transformation_name, c
 }
 
 /**
-   @brief Transformation estimation between sensor pairs
+   @brief Transformation estimation between sensor pairs using the 3D rigid transformation algorithm from PCL
    @param[out] laser geometric transformation of the calibrated sensor
    @param[in] target_laserCloud point cloud from the reference sensor
-   @param[in] laserCloud point cloud from the source sensor
-   @param[in] laserNames name of the sensor pairs
+   @param[out] laserCloud point cloud from the source sensor
+   @param[in] targetSensorName name of the reference sensor
+   @param[in] sensorName name of the source sensor
    @return void
  */
 void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::PointXYZ> target_laserCloud,
@@ -165,6 +172,18 @@ void estimateTransformation(geometry_msgs::Pose & laser,pcl::PointCloud<pcl::Poi
 	writeFile(Trans, FilePath);
 }
 
+/**
+   @brief Transformation estimation between sensor pairs using the extrinsic calibration algorithm from OpenCV
+   @param[out] camera geometric transformation of the calibrated sensor
+   @param[in] targetCloud point cloud from the reference sensor
+   @param[out] cameraPnPCloud ball centers point cloud in the camera image plane
+   @param[in] targetSensorName name of the reference sensor
+   @param[in] cameraName name of the camera to be calibrated
+   @param[in] projImage image acquired from the camera where \p targetCloud is going to be projected
+   @param[in] draw if true the projected points are drawn on the image
+   @param[in] ransac if true the RANSAC extrinsic calibration algorithm is used
+   @return 0 on success
+ */
 int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<pcl::PointXYZ> targetCloud, pcl::PointCloud<pcl::PointXYZ> cameraPnPCloud,
 	const string targetSensorName, const string cameraName, const cv::Mat &projImage, const bool draw, const bool ransac)
 {
@@ -342,6 +361,12 @@ int estimateTransformationCamera(geometry_msgs::Pose & camera, pcl::PointCloud<p
 	return 0;
 }
 
+/**
+   @brief Creates a marker of the 3D car model to be displayed in Rviz
+   @param[in] RPY vector containing (Roll, Pitch, Yaw) angles to rotate de model
+   @param[in] translation vector containing (x, y, z) translations to translate the model
+   @return marker is the 3D car model to displayed
+ */
 visualization_msgs::Marker addCar(const vector<double>& RPY, const vector<double>& translation)
 {
   tf::Quaternion q;
@@ -398,6 +423,12 @@ visualization_msgs::Marker addCar(const vector<double>& RPY, const vector<double
   return marker;
 }
 
+/**
+   @brief Computes the Euclidean distance between two points
+   @param[in] p1 Point 1
+   @param[in] p2 Point 2
+   @return eu_dist Euclidean distance
+ */
 float pointEuclideanDistance (const pcl::PointXYZ &p1, const pcl::PointXYZ &p2)
 {
 	float eu_dist, x_dist, y_dist, z_dist;
@@ -409,6 +440,11 @@ float pointEuclideanDistance (const pcl::PointXYZ &p1, const pcl::PointXYZ &p2)
 	return eu_dist;
 }
 
+/**
+   @brief Computes the Euclidean distance between two consecutive points in a point cloud
+   @param[in] p1 Point cloud
+   @return eu_dist_vector vector containing the Euclidean distance between each of the point pairs
+ */
 vector<float> gridEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1)
 {
   float eu_dist, x_dist, y_dist, z_dist;
@@ -422,6 +458,12 @@ vector<float> gridEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1)
   return eu_dist_vector;
 }
 
+/**
+   @brief Computes the Euclidean distance between two points with the same index in different point clouds
+   @param[in] p1 Point cloud 1
+   @param[in] p2 Point cloud 2
+   @return eu_dist_vector vector containing the Euclidean distance between each of the point pairs
+ */
 vector<float> pointCloudEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>& p1, const pcl::PointCloud<pcl::PointXYZ>& p2)
 {
   float eu_dist, x_dist, y_dist, z_dist;
@@ -435,12 +477,23 @@ vector<float> pointCloudEuclideanDistance ( const pcl::PointCloud<pcl::PointXYZ>
   return eu_dist_vector;
 }
 
+/**
+   @brief Computes the mean value of a vector
+   @param[in] v vector of values
+   @return mean of the vector
+ */
 float vectorMean ( const vector<float>& v )
 {
   float sum = accumulate(v.begin(), v.end(), 0.0); // sums every element in "v"
-  return sum / v.size(); // mean value
+  float mean = sum / v.size();  // mean value
+  return mean;
 }
 
+/**
+   @brief Write a file with the resulting calibration for cameras
+   @param[in] v vector of values
+   @return std populational standard deviation of vector \p v
+ */
 float vectorStdDeviationPopulation ( const vector<float>& v )
 {
   float m = vectorMean (v); // mean calculation
@@ -449,5 +502,7 @@ float vectorStdDeviationPopulation ( const vector<float>& v )
   for(int i=0; i<v.size(); ++i)
     sum_deviation+=(v[i]-m)*(v[i]-m); // adds errors between elements of the "v" and mean value
 
-  return sqrt(sum_deviation / (v.size() )); // population standard deviation
+  float std = sqrt(sum_deviation / (v.size() )); // population standard deviation
+  
+  return std;
 }

@@ -26,8 +26,7 @@
  ***************************************************************************************************/
 /**
    \file  multisensor_fusion_class.h
-   \brief
-   \details
+   \brief Header file for multisensor_fusion_class.cpp
    \author David Silva
    \date   June, 2016
  */
@@ -47,8 +46,8 @@
 #include "opencv2/calib3d/calib3d.hpp"
 
 /**
-   \class
-   \brief
+   \class MultisensorFusion
+   \brief Helper class to perform data fusion.
    \author David Silva
  */
 class MultisensorFusion

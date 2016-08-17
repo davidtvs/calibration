@@ -26,14 +26,17 @@
  ***************************************************************************************************/
 /**
    \file  multisensor_fusion_class.cpp
-   \brief
-   \details
+   \brief MultisensorFusion class methods
    \author David Silva
    \date   June, 2016
  */
 
 #include "multisensor_fusion/multisensor_fusion_class.h"
 
+/**
+   @brief MultisensorFusion constructor. Reads geometric transformations to an eigen matrix and converts it to cvMat.
+   @param[in] files is a vector of strings where each element is the filepath to a geometric transformation
+ */
 MultisensorFusion::MultisensorFusion(const std::vector<std::string> files)
 {
 	transformations.resize(files.size());
@@ -50,7 +53,7 @@ MultisensorFusion::MultisensorFusion(const std::vector<std::string> files)
 
 /**
    @brief Read a file with geometric transformations
-   @param[in] geometric transformation matrix
+   @param[out] geometric transformation matrix
    @param[in] filepath and filename with extension
    @return void
  */
@@ -79,6 +82,11 @@ void MultisensorFusion::readFile( Eigen::Matrix4f &transformation, const std::st
 
 }
 
+/**
+   @brief Converts a vector of Eigen matrices to a vector of cvMat.
+   @param[in] eigenVector vector of geometric transformations in Eigen matrices
+   @return void
+ */
 void MultisensorFusion::eigenVector2cvVector(std::vector<Eigen::Matrix4f> eigenVector)
 {
 	cv::Mat cvTransf_tmp(4,4,CV_32FC1);
@@ -90,6 +98,11 @@ void MultisensorFusion::eigenVector2cvVector(std::vector<Eigen::Matrix4f> eigenV
 	}
 }
 
+/**
+   @brief Gets transformations in TF format from transformations in Eigen format
+   @param void
+   @return tf_transforms is a vector of transformations in TF format
+ */
 std::vector<tf::Transform> MultisensorFusion::getTFTranforms()
 {
 	tf::Matrix3x3 T;
@@ -113,21 +126,46 @@ std::vector<tf::Transform> MultisensorFusion::getTFTranforms()
 	return tf_transforms;
 }
 
+/**
+   @brief Gets the vector of TF broadcasters.
+   @param void
+   @return tf_broadcasters is the vector of TF broadcasters
+ */
 std::vector<tf::TransformBroadcaster> MultisensorFusion::getTFBroadcasters()
 {
 	return tf_broadcasters;
 }
 
+/**
+   @brief Gets transformations in Eigen format.
+   @param void
+   @return transformations vector of Eigen transformations
+ */
 std::vector<Eigen::Matrix4f> MultisensorFusion::getEigenTransformations ()
 {
 	return transformations;
 }
 
+/**
+   @brief Gets transformations in cvMat format.
+   @param void
+   @return cvTransf vector of cvMat transformations
+ */
 std::vector<cv::Mat> MultisensorFusion::getCVTransformations ()
 {
 	return cvTransf;
 }
 
+/**
+   @brief Projects 3D world points (from lasers, Kinect, Swissranger, etc) to an image.
+   @param[in] img initial image
+   @param[in] cvTransformation geometric transformation between the sensor and the camera
+   @param[in] points_3D 3D points acquired by the sensor
+   @param[in] intrinsic_matrix intrinc camera parameters
+   @param[in] distortion_coeffs tangential and radial lens distortion coefficients
+   @param[in] color is the color used to draw the 3D points on the image
+   @return imgClone is the initial image with the projected 3D points
+ */
 cv::Mat MultisensorFusion::project3DtoImage(const cv::Mat img, cv::Mat cvTransformation,
 	std::vector<cv::Point3f> points_3D, cv::Mat intrinsic_matrix, cv::Mat distortion_coeffs, cv::Scalar color)
 {
@@ -165,6 +203,13 @@ cv::Mat MultisensorFusion::project3DtoImage(const cv::Mat img, cv::Mat cvTransfo
 	return imgClone;
 }
 
+/**
+   @brief Creates a marker of the 3D car model to be displayed in Rviz
+   @param[in] RPY vector containing (Roll, Pitch, Yaw) angles to rotate de model
+   @param[in] translation vector containing (x, y, z) translations to translate the model
+   @param[in] frameID Rviz frame name
+   @return marker is the 3D car model to displayed
+ */
 visualization_msgs::Marker MultisensorFusion::addCar(const std::vector<double> RPY, const std::vector<double> translation, const std::string frameID)
 {
   tf::Quaternion q;
@@ -220,18 +265,3 @@ visualization_msgs::Marker MultisensorFusion::addCar(const std::vector<double> R
 	//car_pub.publish( marker );
   return marker;
 }
-
-
-
-//
-// // LMS151 reference =========================================================
-// tf::TransformBroadcaster br_lms151a;
-// tf::Transform transform_lms151a;
-//
-// transform_lms151a.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-// q.setRPY(0, 0, 0);
-//
-// transform_lms151a.setRotation(q);
-//
-// // LMS151 non-reference =====================================================
-// tf::TransformBroadcaster br_lms151b;

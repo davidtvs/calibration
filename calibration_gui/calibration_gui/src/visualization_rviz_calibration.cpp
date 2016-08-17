@@ -28,8 +28,8 @@
    \file  visualization_rviz_calibration.cpp
    \brief Representation of the calibration result
    \details The resulting calibration of the sensors is represented by arrows, as well as the point clouds acquired during the calibration process
-   \author Marcelo Pereira
-   \date   December, 2015
+   \author Marcelo Pereira, David Silva
+   \date   July, 2016
  */
 
 #include <lidar_segmentation/lidar_segmentation.h>
@@ -101,7 +101,7 @@ vector<visualization_msgs::Marker> createTargetMarkers(vector<pcl::PointCloud<pc
 		marker_list.update(marker_centers);
 	}
 
-	//position and orientation of laser
+	//position and orientation of laser - David Silva
 	int counter = 0;
 	for(int n=0; n<lasers.size(); n++)
 	{

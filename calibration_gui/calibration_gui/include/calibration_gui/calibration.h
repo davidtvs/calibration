@@ -87,7 +87,7 @@ class CircleCentroids
 {
 public:
 /**
-@brief constructer - subscription of the topics with the ball center coordinates in the different sensors
+@brief Constructor. Subscription of the topics with the ball center coordinates in the different sensors
 */
     CircleCentroids(const vector<string> &sensors_list, const vector<bool> &isCamera)
     {
