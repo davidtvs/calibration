@@ -41,7 +41,6 @@ Finally, the **multisensor_fusion** package is not required by the calibration p
 
 
 
-**ATLAS Project** developed at LAR-UA
-
-http://atlas.web.ua.pt/
-http://lars.mec.ua.pt/
+**ATLAS Project** developed at LAR-UA <br />
+http://atlas.web.ua.pt/ <br />
+http://lars.mec.ua.pt/ <br />
