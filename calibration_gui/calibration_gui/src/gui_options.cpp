@@ -32,7 +32,7 @@
  */
 
 #include "calibration_gui/gui_options.h"
-#include "ui_options.h"
+#include "gui_options.h"
 
 /**
    @brief Constructor for the Options class.
